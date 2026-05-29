@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  fullName  String
+  role      String   @default("Warehouse")
+  createdAt DateTime @default(now())
+  orders    Order[]
+  inventory InventoryLog[]
+  systemLogs SystemLog[]
+}
+
+model Customer {
+  id           Int          @id @default(autoincrement())
+  company      String
+  contactPerson String
+  phone        String
+  email        String
+  tier         String       @default("Regular")
+  totalOrders  Int          @default(0)
+  lastOrderDate DateTime?
+  createdAt    DateTime     @default(now())
+  orders       Order[]
+  contactLogs  ContactLog[]
+  complaints   Complaint[]
+}
+
+model ContactLog {
+  id         Int      @id @default(autoincrement())
+  customerId Int
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  note       String
+  createdAt  DateTime @default(now())
+}
+
+model Complaint {
+  id          Int      @id @default(autoincrement())
+  customerId  Int
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  status      String   @default("Open")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Product {
+  id               Int            @id @default(autoincrement())
+  sku              String         @unique
+  name             String
+  category         String
+  unitPrice        Float
+  quantityOnHand   Int
+  quantityReserved Int            @default(0)
+  reorderPoint     Int            @default(5)
+  createdAt        DateTime       @default(now())
+  orderItems       OrderItem[]
+  inventoryLogs    InventoryLog[]
+}
+
+model Order {
+  id              Int        @id @default(autoincrement())
+  customerId      Int
+  customer        Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  userId          Int
+  user            User       @relation(fields: [userId], references: [id])
+  status          String     @default("Pending")
+  totalAmount     Float
+  costAmount      Float
+  deliveryAddress String
+  deadline        DateTime
+  notes           String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  items           OrderItem[]
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  unitPrice Float
+}
+
+model InventoryLog {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
+  change    Int
+  reason    String
+  createdAt DateTime @default(now())
+}
+
+model SystemLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+}
+
+model AppConfig {
+  id    Int    @id @default(autoincrement())
+  key   String @unique
+  value String
+}
