@@ -10,7 +10,7 @@ import { User } from '../types';
 const roleOptions = [
   { value: 'Admin', label: 'Admin' },
   { value: 'Manager', label: 'Manager' },
-  { value: 'Viewer', label: 'Viewer' },
+  { value: 'Warehouse', label: 'Warehouse' },
 ];
 
 interface SystemLog {
@@ -36,19 +36,21 @@ export default function AdminPanelPage() {
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newFullName, setNewFullName] = useState('');
-  const [newRole, setNewRole] = useState<string | null>('Viewer');
+  const [newRole, setNewRole] = useState<string | null>('Manager');
   const [submitting, setSubmitting] = useState(false);
 
   const [roleEditModal, setRoleEditModal] = useState<{ user: User; role: string } | null>(null);
   const [roleEditSubmitting, setRoleEditSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchUsers = async () => {
     setLoadingUsers(true);
+    setError(null);
     try {
       const res = await getUsers();
       setUsers(Array.isArray(res) ? res : res.data ?? res.users ?? []);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      setError(err.message || 'Пайдаланушыларды жүктеу қатесі');
     } finally {
       setLoadingUsers(false);
     }
@@ -56,13 +58,14 @@ export default function AdminPanelPage() {
 
   const fetchConfig = async () => {
     setConfigLoading(true);
+    setError(null);
     try {
       const beta = await getConfig('beta');
-      setBetaValue(Number(beta.value ?? beta) || 0);
-      const company = await getConfig('companyName');
-      setCompanyName(company.value ?? company ?? '');
-    } catch (err) {
-      console.error(err);
+      setBetaValue(typeof beta.value === 'string' ? parseFloat(beta.value) : 0.05);
+      const company = await getConfig('company_name');
+      setCompanyName(typeof company.value === 'string' ? company.value : '');
+    } catch (err: any) {
+      setError(err.message || 'Конфигурацияны жүктеу қатесі');
     } finally {
       setConfigLoading(false);
     }
@@ -70,11 +73,12 @@ export default function AdminPanelPage() {
 
   const fetchLogs = async () => {
     setLoadingLogs(true);
+    setError(null);
     try {
       const res = await getSystemLogs();
       setLogs(Array.isArray(res) ? res : res.data ?? res.logs ?? []);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      setError(err.message || 'Журналды жүктеу қатесі');
     } finally {
       setLoadingLogs(false);
     }
@@ -97,7 +101,7 @@ export default function AdminPanelPage() {
       setNewEmail('');
       setNewPassword('');
       setNewFullName('');
-      setNewRole('Viewer');
+      setNewRole('Manager');
       fetchUsers();
     } catch (err: any) {
       const { showNotification } = await import('@mantine/notifications');
@@ -139,6 +143,11 @@ export default function AdminPanelPage() {
     <Container size="xl">
       <Title order={3} mb="md">Әкімші панелі</Title>
 
+      {error && (
+        <Text c="red" mb="md" p="xs" style={{ background: '#fff0f0', borderRadius: 4 }}>
+          Қате: {error}
+        </Text>
+      )}
       <Tabs value={activeTab} onChange={setActiveTab}>
         <Tabs.List mb="md">
           <Tabs.Tab value="users" leftSection={<IconUser size={14} />}>Пайдаланушылар</Tabs.Tab>
@@ -310,7 +319,7 @@ export default function AdminPanelPage() {
               label="Жаңа рөл"
               data={roleOptions}
               value={roleEditModal.role}
-              onChange={v => setRoleEditModal({ ...roleEditModal, role: v ?? 'Viewer' })}
+              onChange={v => setRoleEditModal({ ...roleEditModal, role: v ?? 'Manager' })}
               mb="lg"
             />
             <Group justify="flex-end">
