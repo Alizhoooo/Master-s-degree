@@ -1,4 +1,4 @@
-const API = '/api';
+const API = '/api/v1';
 
 function getToken(): string | null {
   return localStorage.getItem('token');

@@ -18,21 +18,21 @@ async function bootstrap() {
     transform: true,
   }));
 
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api/v1');
 
   // Swagger
   const swaggerConfig = new DocumentBuilder()
     .setTitle('SupplyFlow API')
     .setDescription('SupplyFlow Business Process Management System')
-    .setVersion('1.0')
+    .setVersion('v1')
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api/docs', app, document);
+  SwaggerModule.setup('api/v1/docs', app, document);
 
   const port = configService.get<number>('app.port', 3001);
   await app.listen(port);
   logger.log(`Application running on http://localhost:${port}`);
-  logger.log(`Swagger docs: http://localhost:${port}/api/docs`);
+  logger.log(`Swagger docs: http://localhost:${port}/api/v1/docs`);
 }
 bootstrap();
