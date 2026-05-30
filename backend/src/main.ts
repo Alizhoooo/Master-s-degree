@@ -1,13 +1,16 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
+  const logger = new Logger('Bootstrap');
 
-  app.enableCors({
-    origin: 'http://localhost:5173',
-  });
+  const corsOrigin = configService.get<string>('app.corsOrigin');
+  app.enableCors({ origin: corsOrigin, credentials: true });
 
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
@@ -17,6 +20,19 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
 
-  await app.listen(3001);
+  // Swagger
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('SupplyFlow API')
+    .setDescription('SupplyFlow Business Process Management System')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api/docs', app, document);
+
+  const port = configService.get<number>('app.port', 3001);
+  await app.listen(port);
+  logger.log(`Application running on http://localhost:${port}`);
+  logger.log(`Swagger docs: http://localhost:${port}/api/docs`);
 }
 bootstrap();

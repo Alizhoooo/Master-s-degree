@@ -1,13 +1,23 @@
-import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards, Request, HttpCode, HttpStatus } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { OrderService } from './order.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { CreateOrderDto } from './dto/create-order.dto';
+import { UpdateStatusDto } from './dto/update-status.dto';
 
+@ApiTags('Orders')
 @Controller('orders')
 @UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 export class OrderController {
   constructor(private orderService: OrderService) {}
 
   @Get()
+  @ApiOperation({ summary: 'List all orders with filters' })
+  @ApiQuery({ name: 'status', required: false })
+  @ApiQuery({ name: 'customerId', required: false })
+  @ApiQuery({ name: 'dateFrom', required: false })
+  @ApiQuery({ name: 'dateTo', required: false })
   findAll(
     @Query('status') status?: string,
     @Query('customerId') customerId?: string,
@@ -23,29 +33,37 @@ export class OrderController {
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get order by ID' })
+  @ApiParam({ name: 'id', type: Number })
   findOne(@Param('id') id: string) {
     return this.orderService.findOne(+id);
   }
 
   @Post()
-  create(
-    @Body() body: { customerId: number; items: { productId: number; quantity: number }[]; deliveryAddress: string; deadline: string; notes?: string },
-    @Request() req,
-  ) {
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Create new order' })
+  create(@Body() body: CreateOrderDto, @Request() req) {
     return this.orderService.create(body, req.user.id);
   }
 
   @Patch(':id/status')
-  updateStatus(@Param('id') id: string, @Body() body: { status: string }, @Request() req) {
+  @ApiOperation({ summary: 'Update order status' })
+  @ApiParam({ name: 'id', type: Number })
+  updateStatus(@Param('id') id: string, @Body() body: UpdateStatusDto, @Request() req) {
     return this.orderService.updateStatus(+id, body.status, req.user.id);
   }
 
   @Post(':id/cancel')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Cancel order' })
+  @ApiParam({ name: 'id', type: Number })
   cancelOrder(@Param('id') id: string) {
     return this.orderService.cancelOrder(+id);
   }
 
   @Get(':id/pick-list')
+  @ApiOperation({ summary: 'Get pick list for order' })
+  @ApiParam({ name: 'id', type: Number })
   getPickList(@Param('id') id: string) {
     return this.orderService.getPickList(+id);
   }
