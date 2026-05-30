@@ -16,4 +16,4 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 EXPOSE 3001
-CMD ["node", "dist/main.js"]
+CMD npx prisma db push && npx prisma db seed && node dist/main.js
