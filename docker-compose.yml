@@ -17,6 +17,16 @@ services:
       timeout: 3s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   backend:
     build: ./backend
     environment:
@@ -28,10 +38,14 @@ services:
       BETA_COEFFICIENT: "0.05"
       CORS_ORIGIN: http://localhost:5173,http://localhost:4173
       RATE_LIMIT: 100
+      REDIS_URL: redis://redis:6379
+      SENTRY_DSN: ""
     ports:
       - "3001:3001"
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     command: sh -c "npx prisma migrate deploy && node dist/main.js"
 

@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import helmet from 'helmet';
+import { CacheModule } from './common/cache.module';
 import { PrismaModule } from './common/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { InventoryModule } from './inventory/inventory.module';
@@ -29,6 +30,7 @@ import appConfig from './common/env.config';
         ],
       }),
     }),
+    CacheModule,
     PrismaModule,
     AuthModule,
     InventoryModule,
