@@ -1,5 +1,8 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
+import helmet from 'helmet';
 import { PrismaModule } from './common/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { InventoryModule } from './inventory/inventory.module';
@@ -17,6 +20,15 @@ import appConfig from './common/env.config';
       isGlobal: true,
       load: [appConfig],
     }),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        throttlers: [
+          { ttl: 60000, limit: config.get<number>('app.rateLimit', 100) },
+        ],
+      }),
+    }),
     PrismaModule,
     AuthModule,
     InventoryModule,
@@ -27,5 +39,12 @@ import appConfig from './common/env.config';
     AdminModule,
     HealthModule,
   ],
+  providers: [
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+  ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(helmet()).forRoutes('*');
+  }
+}
