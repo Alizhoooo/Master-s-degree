@@ -2,7 +2,8 @@ import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useQueryClient } from '@tanstack/react-query';
 
-const WS_URL = import.meta.env.VITE_WS_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
+const WS_URL = API_URL.replace('/api/v1', '');
 
 export function useInventorySocket() {
   const socketRef = useRef<Socket | null>(null);
