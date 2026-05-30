@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Table, Button, Modal, Select, NumberInput, TextInput, Textarea, Badge,
@@ -6,8 +6,8 @@ import {
 } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
 import { IconPlus, IconEye, IconX } from '@tabler/icons-react';
-import { getOrders, getCustomers, getProducts, createOrder, cancelOrder } from '../api';
-import { Order, Customer, Product } from '../types';
+import { useOrders, useCustomers, useProducts, useCreateOrder, useCancelOrder } from '../api/hooks';
+import { TableSkeleton } from '../components/Skeleton';
 
 const statusColor: Record<string, string> = {
   Pending: 'yellow',
@@ -21,15 +21,19 @@ const statusColor: Record<string, string> = {
 };
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
   const [opened, setOpened] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const limit = 20;
 
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
+  const { data: ordersRes, isLoading } = useOrders({ page: String(page), limit: String(limit) });
+  const { data: customers = [] } = useCustomers();
+  const { data: products = [] } = useProducts();
+  const createOrder = useCreateOrder();
+  const cancelOrder = useCancelOrder();
+
+  const orders = Array.isArray(ordersRes) ? ordersRes : (ordersRes?.data ?? ordersRes?.orders ?? []);
+  const total = ordersRes?.total ?? orders.length;
+
   const [customerId, setCustomerId] = useState<number | null>(null);
   const [productRows, setProductRows] = useState<{ productId: number | null; quantity: number }[]>([
     { productId: null, quantity: 1 },
@@ -38,44 +42,12 @@ export default function OrdersPage() {
   const [deadline, setDeadline] = useState<Date | null>(null);
   const [notes, setNotes] = useState('');
 
-  const limit = 20;
-
-  const fetchOrders = async () => {
-    setLoading(true);
-    try {
-      const res = await getOrders({ page: String(page), limit: String(limit) });
-      if (Array.isArray(res)) {
-        setOrders(res);
-        setTotal(res.length);
-      } else if (res.data) {
-        setOrders(res.data);
-        setTotal(res.total ?? res.data.length);
-      } else {
-        setOrders(res.orders ?? []);
-        setTotal(res.total ?? 0);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchOrders();
-  }, [page]);
-
-  const openModal = async () => {
-    setOpened(true);
-    if (customers.length === 0) {
-      try {
-        const [c, p] = await Promise.all([getCustomers(), getProducts()]);
-        setCustomers(Array.isArray(c) ? c : c.data ?? c.customers ?? []);
-        setProducts(Array.isArray(p) ? p : p.data ?? p.products ?? []);
-      } catch (err) {
-        console.error(err);
-      }
-    }
+  const resetForm = () => {
+    setCustomerId(null);
+    setProductRows([{ productId: null, quantity: 1 }]);
+    setDeliveryAddress('');
+    setDeadline(null);
+    setNotes('');
   };
 
   const addProductRow = () => {
@@ -93,12 +65,9 @@ export default function OrdersPage() {
   };
 
   const handleCreateOrder = async () => {
-    if (!customerId || productRows.length === 0 || productRows.some(r => !r.productId) || !deliveryAddress.trim()) {
-      return;
-    }
-    setSubmitting(true);
+    if (!customerId || productRows.length === 0 || productRows.some(r => !r.productId) || !deliveryAddress.trim()) return;
     try {
-      await createOrder({
+      await createOrder.mutateAsync({
         customerId,
         items: productRows.map(r => ({ productId: r.productId, quantity: r.quantity })),
         deliveryAddress,
@@ -109,29 +78,17 @@ export default function OrdersPage() {
       showNotification({ title: 'Сәтті', message: 'Тапсырыс жасалды', color: 'green' });
       setOpened(false);
       resetForm();
-      fetchOrders();
     } catch (err: any) {
       const { showNotification } = await import('@mantine/notifications');
       showNotification({ title: 'Қате', message: err.message, color: 'red' });
-    } finally {
-      setSubmitting(false);
     }
-  };
-
-  const resetForm = () => {
-    setCustomerId(null);
-    setProductRows([{ productId: null, quantity: 1 }]);
-    setDeliveryAddress('');
-    setDeadline(null);
-    setNotes('');
   };
 
   const handleCancel = async (id: number) => {
     try {
-      await cancelOrder(id);
+      await cancelOrder.mutateAsync(id);
       const { showNotification } = await import('@mantine/notifications');
       showNotification({ title: 'Сәтті', message: 'Тапсырыс болдырылмады', color: 'green' });
-      fetchOrders();
     } catch (err: any) {
       const { showNotification } = await import('@mantine/notifications');
       showNotification({ title: 'Қате', message: err.message, color: 'red' });
@@ -140,18 +97,16 @@ export default function OrdersPage() {
 
   const canCancel = (status: string) => status !== 'Cancelled' && status !== 'Delivered';
 
-  const customerData = customers.map(c => ({ value: String(c.id), label: c.company || c.contactPerson }));
-  const productData = products.map(p => ({ value: String(p.id), label: `${p.name} (${p.sku})` }));
+  const customerData = customers.map((c: any) => ({ value: String(c.id), label: c.company || c.contactPerson }));
+  const productData = products.map((p: any) => ({ value: String(p.id), label: `${p.name} (${p.sku})` }));
 
-  if (loading && orders.length === 0) {
+  if (isLoading) {
     return (
       <Container size="xl">
         <Group justify="space-between" mb="md">
           <Title order={3}>Тапсырыстар</Title>
         </Group>
-        <Group justify="center" py="xl">
-          <Loader />
-        </Group>
+        <TableSkeleton rows={5} cols={7} />
       </Container>
     );
   }
@@ -160,7 +115,7 @@ export default function OrdersPage() {
     <Container size="xl">
       <Group justify="space-between" mb="md">
         <Title order={3}>Тапсырыстар</Title>
-        <Button leftSection={<IconPlus size={16} />} onClick={openModal}>
+        <Button leftSection={<IconPlus size={16} />} onClick={() => setOpened(true)}>
           Жаңа тапсырыс
         </Button>
       </Group>
@@ -178,12 +133,12 @@ export default function OrdersPage() {
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
-          {orders.map(order => (
+          {orders.map((order: any) => (
             <Table.Tr key={order.id}>
               <Table.Td>{order.id}</Table.Td>
               <Table.Td>{order.customer?.company || order.customer?.contactPerson || `#${order.customerId}`}</Table.Td>
               <Table.Td>
-                {order.items?.slice(0, 3).map(i => i.product?.name || `#${i.productId}`).join(', ')}
+                {order.items?.slice(0, 3).map((i: any) => i.product?.name || `#${i.productId}`).join(', ')}
                 {(order.items?.length ?? 0) > 3 ? '...' : ''}
               </Table.Td>
               <Table.Td>{order.totalAmount?.toLocaleString()} ₸</Table.Td>
@@ -209,6 +164,7 @@ export default function OrdersPage() {
                       size="xs"
                       leftSection={<IconX size={14} />}
                       onClick={() => handleCancel(order.id)}
+                      loading={cancelOrder.isPending && cancelOrder.variables === order.id}
                     >
                       Бас тарту
                     </Button>
@@ -312,7 +268,7 @@ export default function OrdersPage() {
         <Group justify="flex-end">
           <Button
             onClick={handleCreateOrder}
-            loading={submitting}
+            loading={createOrder.isPending}
             disabled={!customerId || productRows.some(r => !r.productId) || !deliveryAddress.trim()}
           >
             Тапсырыс жасау

@@ -1,37 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Grid, Card, Text, Group, Title, SimpleGrid, Table, RingProgress } from '@mantine/core';
+import React from 'react';
+import { Container, Grid, Card, Text, Group, Title, SimpleGrid, Table } from '@mantine/core';
 import { IconShoppingCart, IconCash, IconClock, IconPercentage } from '@tabler/icons-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import { getDashboard } from '../api';
+import { useDashboard } from '../api/hooks';
+import { CardSkeleton } from '../components/Skeleton';
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('kk-KZ', { style: 'currency', currency: 'KZT', minimumFractionDigits: 0 }).format(value);
 
 const COLORS = ['#1a237e', '#42a5f5', '#66bb6a', '#ffa726', '#ef5350', '#ab47bc', '#26c6da'];
 
-interface DashboardData {
-  totalOrdersToday: number;
-  revenueToday: number;
-  pendingOrders: number;
-  inventoryAccuracy: number;
-  ordersPerDay: { date: string; count: number; revenue: number }[];
-  orderStatusDistribution: { status: string; count: number }[];
-  revenueTrend: { date: string; revenue: number }[];
-  topProducts: { name: string; sku: string; totalQty: number; revenue: number }[];
-}
-
 export default function DashboardPage() {
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading } = useDashboard();
 
-  useEffect(() => {
-    getDashboard()
-      .then(setData)
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
+  if (isLoading) {
+    return (
+      <Container size="xl">
+        <Title order={3} mb="lg">Бүгінгі шолу</Title>
+        <CardSkeleton count={4} />
+      </Container>
+    );
+  }
 
-  if (loading) return <Container><Text>Жүктелуде...</Text></Container>;
   if (!data) return <Container><Text>Деректер жоқ</Text></Container>;
 
   const statCards = [
@@ -111,7 +101,7 @@ export default function DashboardPage() {
                   outerRadius={100}
                   label={({ status, count }) => `${status}: ${count}`}
                 >
-                  {data.orderStatusDistribution.map((_, index) => (
+                  {data.orderStatusDistribution.map((_item: any, index: number) => (
                     <Cell key={index} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
@@ -150,7 +140,7 @@ export default function DashboardPage() {
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
-                {data.topProducts.map((p) => (
+                {data.topProducts.map((p: any) => (
                   <Table.Tr key={p.sku}>
                     <Table.Td>{p.name}</Table.Td>
                     <Table.Td>{p.sku}</Table.Td>

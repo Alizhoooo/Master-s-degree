@@ -1,51 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
-  Container, Title, Group, Button, Table, Card, Text, Badge, Tabs, Loader,
+  Container, Title, Group, Button, Table, Card, Text, Badge, Tabs,
 } from '@mantine/core';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import { IconRefresh, IconAlertTriangle } from '@tabler/icons-react';
-import { getForecast, getAnomalies } from '../api';
-import { AiForecast, AnomalyAlert } from '../types';
+import { useForecast, useAnomalies } from '../api/hooks';
+import { TableSkeleton } from '../components/Skeleton';
 
 export default function AiPredictionsPage() {
-  const [forecast, setForecast] = useState<AiForecast[]>([]);
-  const [anomalies, setAnomalies] = useState<AnomalyAlert[]>([]);
-  const [loadingForecast, setLoadingForecast] = useState(true);
-  const [loadingAnomalies, setLoadingAnomalies] = useState(true);
+  const { data: forecast = [], isLoading: loadingForecast, refetch: refetchForecast } = useForecast();
+  const { data: anomalies = [], isLoading: loadingAnomalies, refetch: refetchAnomalies } = useAnomalies();
   const [activeTab, setActiveTab] = useState<string | null>('forecast');
 
-  const fetchForecast = async () => {
-    setLoadingForecast(true);
-    try {
-      const res = await getForecast();
-      setForecast(Array.isArray(res) ? res : res.data ?? res.forecast ?? []);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoadingForecast(false);
-    }
-  };
-
-  const fetchAnomalies = async () => {
-    setLoadingAnomalies(true);
-    try {
-      const res = await getAnomalies();
-      setAnomalies(Array.isArray(res) ? res : res.data ?? res.anomalies ?? []);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoadingAnomalies(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchForecast();
-    fetchAnomalies();
-  }, []);
-
-  const chartData = forecast.map(f => ({
+  const chartData = forecast.map((f: any) => ({
     name: f.productName,
     currentStock: f.currentStock,
     predictedDemand: f.predictedDemand,
@@ -70,17 +39,13 @@ export default function AiPredictionsPage() {
 
         <Tabs.Panel value="forecast">
           <Group justify="flex-end" mb="md">
-            <Button
-              leftSection={<IconRefresh size={16} />}
-              onClick={fetchForecast}
-              loading={loadingForecast}
-            >
+            <Button leftSection={<IconRefresh size={16} />} onClick={() => refetchForecast()} loading={loadingForecast}>
               Болжамды жаңарту
             </Button>
           </Group>
 
           {loadingForecast ? (
-            <Group justify="center" py="xl"><Loader /></Group>
+            <TableSkeleton rows={5} cols={6} />
           ) : (
             <>
               <Card withBorder shadow="sm" p="md" mb="lg">
@@ -109,7 +74,7 @@ export default function AiPredictionsPage() {
                   </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                  {forecast.map(f => (
+                  {forecast.map((f: any) => (
                     <Table.Tr key={f.productId}>
                       <Table.Td>{f.productName}</Table.Td>
                       <Table.Td>{f.sku}</Table.Td>
@@ -138,35 +103,25 @@ export default function AiPredictionsPage() {
 
         <Tabs.Panel value="anomalies">
           {loadingAnomalies ? (
-            <Group justify="center" py="xl"><Loader /></Group>
+            <TableSkeleton rows={3} cols={3} />
+          ) : anomalies.length === 0 ? (
+            <Text c="dimmed" ta="center" py="xl">Аномалиялар жоқ</Text>
           ) : (
-            <>
-              {anomalies.length === 0 ? (
-                <Text c="dimmed" ta="center" py="xl">Аномалиялар жоқ</Text>
-              ) : (
-                anomalies.map(a => (
-                  <Card key={a.orderId} withBorder shadow="sm" p="md" mb="sm">
-                    <Group justify="space-between" mb="xs">
-                      <Group>
-                        <Badge
-                          size="lg"
-                          color={anomalyColor(a.reason)}
-                          leftSection={<IconAlertTriangle size={12} />}
-                        >
-                          #{a.orderId}
-                        </Badge>
-                        <Text fw={500}>{a.customerName}</Text>
-                      </Group>
-                      <Text fw={700}>{a.amount.toLocaleString()} ₸</Text>
-                    </Group>
-                    <Text size="sm" c="dimmed">{a.reason}</Text>
-                    <Text size="xs" c="gray" mt="xs">
-                      {new Date(a.createdAt).toLocaleString()}
-                    </Text>
-                  </Card>
-                ))
-              )}
-            </>
+            anomalies.map((a: any) => (
+              <Card key={a.orderId} withBorder shadow="sm" p="md" mb="sm">
+                <Group justify="space-between" mb="xs">
+                  <Group>
+                    <Badge size="lg" color={anomalyColor(a.reason)} leftSection={<IconAlertTriangle size={12} />}>
+                      #{a.orderId}
+                    </Badge>
+                    <Text fw={500}>{a.customerName}</Text>
+                  </Group>
+                  <Text fw={700}>{a.amount.toLocaleString()} ₸</Text>
+                </Group>
+                <Text size="sm" c="dimmed">{a.reason}</Text>
+                <Text size="xs" c="gray" mt="xs">{new Date(a.createdAt).toLocaleString()}</Text>
+              </Card>
+            ))
           )}
         </Tabs.Panel>
       </Tabs>

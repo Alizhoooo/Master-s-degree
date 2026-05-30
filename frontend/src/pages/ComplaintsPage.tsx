@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
-  Table, Button, Modal, Select, TextInput, Textarea, Badge, Title, Group, Loader, Container, Text,
+  Table, Button, Modal, Select, TextInput, Textarea, Badge, Title, Group, Container, Text,
 } from '@mantine/core';
 import { IconPlus, IconEdit } from '@tabler/icons-react';
-import { getComplaints, createComplaint, updateComplaintStatus, getCustomers } from '../api';
-import { Complaint, Customer } from '../types';
+import { useComplaints, useCustomers, useCreateComplaint, useUpdateComplaintStatus } from '../api/hooks';
+import { TableSkeleton } from '../components/Skeleton';
 
 const statusColor: Record<string, string> = {
   Open: 'red',
@@ -12,98 +12,58 @@ const statusColor: Record<string, string> = {
   Resolved: 'green',
 };
 
-const defaultComplaintForm = { customerId: null as number | null, title: '', description: '' };
-
 export default function ComplaintsPage() {
-  const [complaints, setComplaints] = useState<Complaint[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: complaints = [], isLoading } = useComplaints();
+  const { data: customers = [] } = useCustomers();
+  const createComplaint = useCreateComplaint();
+  const updateStatus = useUpdateComplaintStatus();
+
   const [createOpened, setCreateOpened] = useState(false);
   const [statusOpened, setStatusOpened] = useState(false);
-  const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
+  const [selectedComplaint, setSelectedComplaint] = useState<any>(null);
   const [newStatus, setNewStatus] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const [customerId, setCustomerId] = useState<number | null>(null);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
 
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [form, setForm] = useState(defaultComplaintForm);
-
-  const fetchComplaints = async () => {
-    setLoading(true);
-    try {
-      const res = await getComplaints();
-      setComplaints(Array.isArray(res) ? res : res.data ?? res.complaints ?? []);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchComplaints();
-  }, []);
-
-  const openCreate = async () => {
-    setForm(defaultComplaintForm);
-    setCreateOpened(true);
-    if (customers.length === 0) {
-      try {
-        const res = await getCustomers();
-        setCustomers(Array.isArray(res) ? res : res.data ?? res.customers ?? []);
-      } catch (err) {
-        console.error(err);
-      }
-    }
-  };
-
-  const openStatusChange = (c: Complaint) => {
-    setSelectedComplaint(c);
-    setNewStatus(c.status);
-    setStatusOpened(true);
-  };
+  const customerData = customers.map((c: any) => ({ value: String(c.id), label: c.company || c.contactPerson }));
 
   const handleCreate = async () => {
-    if (!form.customerId || !form.title.trim() || !form.description.trim()) return;
-    setSubmitting(true);
+    if (!customerId || !title.trim() || !description.trim()) return;
     try {
-      await createComplaint({ customerId: form.customerId, title: form.title, description: form.description });
+      await createComplaint.mutateAsync({ customerId, title, description });
       const { showNotification } = await import('@mantine/notifications');
       showNotification({ title: 'Сәтті', message: 'Шағым қосылды', color: 'green' });
       setCreateOpened(false);
-      fetchComplaints();
+      setCustomerId(null);
+      setTitle('');
+      setDescription('');
     } catch (err: any) {
       const { showNotification } = await import('@mantine/notifications');
       showNotification({ title: 'Қате', message: err.message, color: 'red' });
-    } finally {
-      setSubmitting(false);
     }
   };
 
   const handleStatusUpdate = async () => {
     if (!selectedComplaint || !newStatus) return;
-    setSubmitting(true);
     try {
-      await updateComplaintStatus(selectedComplaint.id, newStatus);
+      await updateStatus.mutateAsync({ id: selectedComplaint.id, status: newStatus });
       const { showNotification } = await import('@mantine/notifications');
       showNotification({ title: 'Сәтті', message: 'Күй жаңартылды', color: 'green' });
       setStatusOpened(false);
-      fetchComplaints();
     } catch (err: any) {
       const { showNotification } = await import('@mantine/notifications');
       showNotification({ title: 'Қате', message: err.message, color: 'red' });
-    } finally {
-      setSubmitting(false);
     }
   };
 
-  const customerData = customers.map(c => ({ value: String(c.id), label: c.company || c.contactPerson }));
-
-  if (loading && complaints.length === 0) {
+  if (isLoading) {
     return (
       <Container size="xl">
         <Group justify="space-between" mb="md">
           <Title order={3}>Шағымдарды басқару</Title>
         </Group>
-        <Group justify="center" py="xl"><Loader /></Group>
+        <TableSkeleton rows={5} cols={7} />
       </Container>
     );
   }
@@ -112,7 +72,7 @@ export default function ComplaintsPage() {
     <Container size="xl">
       <Group justify="space-between" mb="md">
         <Title order={3}>Шағымдарды басқару</Title>
-        <Button leftSection={<IconPlus size={16} />} onClick={openCreate}>Жаңа шағым</Button>
+        <Button leftSection={<IconPlus size={16} />} onClick={() => setCreateOpened(true)}>Жаңа шағым</Button>
       </Group>
 
       <Table striped highlightOnHover withTableBorder>
@@ -128,7 +88,7 @@ export default function ComplaintsPage() {
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
-          {complaints.map(c => (
+          {complaints.map((c: any) => (
             <Table.Tr key={c.id}>
               <Table.Td>{c.id}</Table.Td>
               <Table.Td>{c.customer?.company || c.customer?.contactPerson || `#${c.customerId}`}</Table.Td>
@@ -143,7 +103,7 @@ export default function ComplaintsPage() {
                   variant="light"
                   size="xs"
                   leftSection={<IconEdit size={14} />}
-                  onClick={() => openStatusChange(c)}
+                  onClick={() => { setSelectedComplaint(c); setNewStatus(c.status); setStatusOpened(true); }}
                 >
                   Өңдеу
                 </Button>
@@ -163,51 +123,23 @@ export default function ComplaintsPage() {
           label="Клиент"
           placeholder="Клиентті таңдаңыз"
           data={customerData}
-          value={form.customerId !== null ? String(form.customerId) : null}
-          onChange={v => setForm({ ...form, customerId: v ? Number(v) : null })}
+          value={customerId !== null ? String(customerId) : null}
+          onChange={v => setCustomerId(v ? Number(v) : null)}
           searchable
           required
           mb="sm"
         />
-        <TextInput
-          label="Тақырып"
-          placeholder="Шағым тақырыбы"
-          value={form.title}
-          onChange={e => setForm({ ...form, title: e.currentTarget.value })}
-          required
-          mb="sm"
-        />
-        <Textarea
-          label="Сипаттама"
-          placeholder="Шағым сипаттамасы"
-          value={form.description}
-          onChange={e => setForm({ ...form, description: e.currentTarget.value })}
-          required
-          mb="lg"
-        />
+        <TextInput label="Тақырып" placeholder="Шағым тақырыбы" value={title} onChange={e => setTitle(e.currentTarget.value)} required mb="sm" />
+        <Textarea label="Сипаттама" placeholder="Шағым сипаттамасы" value={description} onChange={e => setDescription(e.currentTarget.value)} required mb="lg" />
         <Group justify="flex-end">
-          <Button
-            onClick={handleCreate}
-            loading={submitting}
-            disabled={!form.customerId || !form.title.trim() || !form.description.trim()}
-          >
-            Қосу
-          </Button>
+          <Button onClick={handleCreate} loading={createComplaint.isPending} disabled={!customerId || !title.trim() || !description.trim()}>Қосу</Button>
         </Group>
       </Modal>
 
       <Modal opened={statusOpened} onClose={() => setStatusOpened(false)} title="Шағым күйін өзгерту">
-        <Select
-          label="Күй"
-          data={['Open', 'InProgress', 'Resolved']}
-          value={newStatus}
-          onChange={setNewStatus}
-          mb="lg"
-        />
+        <Select label="Күй" data={['Open', 'InProgress', 'Resolved']} value={newStatus} onChange={setNewStatus} mb="lg" />
         <Group justify="flex-end">
-          <Button onClick={handleStatusUpdate} loading={submitting} disabled={!newStatus}>
-            Сақтау
-          </Button>
+          <Button onClick={handleStatusUpdate} loading={updateStatus.isPending} disabled={!newStatus}>Сақтау</Button>
         </Group>
       </Modal>
     </Container>

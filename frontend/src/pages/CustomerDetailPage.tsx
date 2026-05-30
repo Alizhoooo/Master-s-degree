@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
-  Title, Badge, Button, Card, Tabs, Table, Textarea, TextInput, Group, Text, Loader, Container, Alert,
+  Title, Badge, Button, Card, Tabs, Table, Textarea, TextInput, Group, Text, Container, Alert,
 } from '@mantine/core';
 import { IconArrowLeft, IconPlus } from '@tabler/icons-react';
-import { getCustomer, addContactLog, createComplaint } from '../api';
-import { Customer } from '../types';
+import { useCustomer, useAddContactLog, useCreateComplaint } from '../api/hooks';
+import { DetailSkeleton } from '../components/Skeleton';
 
 const tierColor: Record<string, string> = {
   VIP: 'yellow',
@@ -21,74 +21,42 @@ const complaintStatusColor: Record<string, string> = {
 
 export default function CustomerDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const [customer, setCustomer] = useState<Customer | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: customer, isLoading } = useCustomer(Number(id));
+  const contactLogMutation = useAddContactLog();
+  const complaintMutation = useCreateComplaint();
 
   const [contactNote, setContactNote] = useState('');
-
   const [compTitle, setCompTitle] = useState('');
   const [compDesc, setCompDesc] = useState('');
-  const [submittingContact, setSubmittingContact] = useState(false);
-  const [submittingComplaint, setSubmittingComplaint] = useState(false);
-
-  const fetchCustomer = async () => {
-    setLoading(true);
-    try {
-      const res = await getCustomer(Number(id));
-      setCustomer(res);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (id) fetchCustomer();
-  }, [id]);
 
   const handleAddContactLog = async () => {
     if (!contactNote.trim() || !customer) return;
-    setSubmittingContact(true);
     try {
-      await addContactLog(customer.id, contactNote);
+      await contactLogMutation.mutateAsync({ customerId: customer.id, note: contactNote });
       const { showNotification } = await import('@mantine/notifications');
       showNotification({ title: 'Сәтті', message: 'Жазба қосылды', color: 'green' });
       setContactNote('');
-      fetchCustomer();
     } catch (err: any) {
       const { showNotification } = await import('@mantine/notifications');
       showNotification({ title: 'Қате', message: err.message, color: 'red' });
-    } finally {
-      setSubmittingContact(false);
     }
   };
 
   const handleAddComplaint = async () => {
     if (!compTitle.trim() || !compDesc.trim() || !customer) return;
-    setSubmittingComplaint(true);
     try {
-      await createComplaint({ customerId: customer.id, title: compTitle, description: compDesc });
+      await complaintMutation.mutateAsync({ customerId: customer.id, title: compTitle, description: compDesc });
       const { showNotification } = await import('@mantine/notifications');
       showNotification({ title: 'Сәтті', message: 'Шағым қосылды', color: 'green' });
       setCompTitle('');
       setCompDesc('');
-      fetchCustomer();
     } catch (err: any) {
       const { showNotification } = await import('@mantine/notifications');
       showNotification({ title: 'Қате', message: err.message, color: 'red' });
-    } finally {
-      setSubmittingComplaint(false);
     }
   };
 
-  if (loading) {
-    return (
-      <Container size="xl">
-        <Group justify="center" py="xl"><Loader /></Group>
-      </Container>
-    );
-  }
+  if (isLoading) return <DetailSkeleton />;
 
   if (!customer) {
     return (
@@ -159,7 +127,7 @@ export default function CustomerDetailPage() {
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {customer.orders?.map(o => (
+              {customer.orders?.map((o: any) => (
                 <Table.Tr key={o.id}>
                   <Table.Td>{o.id}</Table.Td>
                   <Table.Td>
@@ -181,7 +149,7 @@ export default function CustomerDetailPage() {
         </Tabs.Panel>
 
         <Tabs.Panel value="contactLog" pt="md">
-          {customer.contactLogs?.map(log => (
+          {customer.contactLogs?.map((log: any) => (
             <Card key={log.id} withBorder shadow="sm" p="sm" mb="sm">
               <Group justify="space-between" mb={4}>
                 <Text size="xs" c="dimmed">{new Date(log.createdAt).toLocaleString()}</Text>
@@ -205,7 +173,7 @@ export default function CustomerDetailPage() {
           <Button
             leftSection={<IconPlus size={16} />}
             onClick={handleAddContactLog}
-            loading={submittingContact}
+            loading={contactLogMutation.isPending}
             disabled={!contactNote.trim()}
           >
             Қосу
@@ -213,7 +181,7 @@ export default function CustomerDetailPage() {
         </Tabs.Panel>
 
         <Tabs.Panel value="complaints" pt="md">
-          {customer.complaints?.map(c => (
+          {customer.complaints?.map((c: any) => (
             <Card key={c.id} withBorder shadow="sm" p="sm" mb="sm">
               <Group justify="space-between" mb={4}>
                 <Text fw={500}>{c.title}</Text>
@@ -245,7 +213,7 @@ export default function CustomerDetailPage() {
           <Button
             leftSection={<IconPlus size={16} />}
             onClick={handleAddComplaint}
-            loading={submittingComplaint}
+            loading={complaintMutation.isPending}
             disabled={!compTitle.trim() || !compDesc.trim()}
           >
             Шағым қосу
