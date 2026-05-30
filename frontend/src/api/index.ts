@@ -156,13 +156,37 @@ export async function getReports(filters?: Record<string, string>) {
   return request(`/reports${params}`);
 }
 
+async function downloadBlob(url: string, filename: string, type: string) {
+  const token = getToken();
+  const headers: any = {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(url, { headers });
+  const blob = await res.blob();
+  const objUrl = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = objUrl;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(objUrl);
+}
+
 export async function exportCsv(filters?: Record<string, string>) {
   const token = getToken();
   const params = filters ? '?' + new URLSearchParams(filters).toString() : '';
   const headers: any = {};
   if (token) headers['Authorization'] = `Bearer ${token}`;
-  const res = await fetch(`${API}/reports/export${params}`, { headers });
+  const res = await fetch(`${API}/reports/export/csv${params}`, { headers });
   return res.text();
+}
+
+export async function exportExcel(filters?: Record<string, string>) {
+  const params = filters ? '?' + new URLSearchParams(filters).toString() : '';
+  await downloadBlob(`${API}/reports/export/excel${params}`, 'report.xlsx', 'xlsx');
+}
+
+export async function exportPdf(filters?: Record<string, string>) {
+  const params = filters ? '?' + new URLSearchParams(filters).toString() : '';
+  await downloadBlob(`${API}/reports/export/pdf${params}`, 'report.pdf', 'pdf');
 }
 
 export async function getForecast() {

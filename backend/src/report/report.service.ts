@@ -128,4 +128,113 @@ export class ReportService {
     });
     return header + '\n' + rows.join('\n');
   }
+
+  async exportExcel(filters: { status?: string; customerId?: number; dateFrom?: string; dateTo?: string }) {
+    const ExcelJS = await import('exceljs');
+    const orders = await this.getReports(filters);
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Report');
+
+    sheet.columns = [
+      { header: 'Order ID', key: 'id', width: 10 },
+      { header: 'Customer', key: 'customer', width: 25 },
+      { header: 'Status', key: 'status', width: 15 },
+      { header: 'Total Amount', key: 'totalAmount', width: 15 },
+      { header: 'Cost Amount', key: 'costAmount', width: 15 },
+      { header: 'Delivery Address', key: 'deliveryAddress', width: 30 },
+      { header: 'Created At', key: 'createdAt', width: 20 },
+      { header: 'Deadline', key: 'deadline', width: 20 },
+      { header: 'Items', key: 'items', width: 40 },
+    ];
+
+    orders.forEach(o => {
+      sheet.addRow({
+        id: o.id,
+        customer: o.customer.company,
+        status: o.status,
+        totalAmount: o.totalAmount,
+        costAmount: o.costAmount,
+        deliveryAddress: o.deliveryAddress,
+        createdAt: o.createdAt.toISOString(),
+        deadline: o.deadline.toISOString(),
+        items: o.items.map(i => `${i.product.name}x${i.quantity}`).join(', '),
+      });
+    });
+
+    const headerRow = sheet.getRow(1);
+    headerRow.font = { bold: true };
+    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A237E' } };
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    return buffer;
+  }
+
+  async exportPdf(filters: { status?: string; customerId?: number; dateFrom?: string; dateTo?: string }) {
+    const PDFDocument = (await import('pdfkit')).default;
+    const orders = await this.getReports(filters);
+
+    return new Promise<Buffer>((resolve, reject) => {
+      try {
+        const doc = new PDFDocument({ margin: 30, size: 'A4', layout: 'landscape' });
+        const chunks: Buffer[] = [];
+        doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+        doc.on('end', () => resolve(Buffer.concat(chunks)));
+        doc.on('error', (err: Error) => reject(err));
+
+        doc.fontSize(18).text('SupplyFlow Report', { align: 'center' });
+        doc.moveDown();
+        doc.fontSize(10).text(`Generated: ${new Date().toLocaleString()}`, { align: 'right' });
+        doc.moveDown();
+
+        const headers = ['ID', 'Customer', 'Status', 'Amount', 'Address', 'Date'];
+        const colWidths = [30, 100, 60, 70, 150, 80];
+        const pageWidth = doc.page.width - 60;
+
+        doc.fontSize(9).font('Helvetica-Bold');
+        let x = 30;
+        let y = doc.y;
+        headers.forEach((h, i) => {
+          doc.text(h, x, y, { width: colWidths[i], align: 'left' });
+          x += colWidths[i];
+        });
+
+        doc.moveDown(0.5);
+        y = doc.y;
+        doc.font('Helvetica');
+
+        orders.forEach((o, rowIdx) => {
+          if (y > doc.page.height - 50) {
+            doc.addPage();
+            y = 30;
+          }
+
+          if (rowIdx % 2 === 0) {
+            doc.rect(30, y - 4, pageWidth, 14);
+            doc.fill('#f0f0f0');
+            doc.fillColor('#000');
+          }
+
+          x = 30;
+          const vals = [
+            String(o.id),
+            o.customer.company,
+            o.status,
+            `${o.totalAmount.toLocaleString()} ₸`,
+            o.deliveryAddress,
+            o.createdAt.toISOString().split('T')[0],
+          ];
+          vals.forEach((v, i) => {
+            doc.text(v, x, y, { width: colWidths[i], align: 'left' });
+            x += colWidths[i];
+          });
+          y += 14;
+        });
+
+        doc.end();
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
 }

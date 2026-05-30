@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import {
-  Container, Title, Group, Button, Table, Select, Collapse, Badge, Text,
+  Container, Title, Group, Button, Table, Select, Collapse, Badge, Text, Menu,
 } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
-import { IconFilter, IconDownload } from '@tabler/icons-react';
+import { IconFilter, IconDownload, IconFileSpreadsheet, IconFileTypePdf, IconFileText } from '@tabler/icons-react';
 import { useReports, useCustomers } from '../api/hooks';
 import { TableSkeleton } from '../components/Skeleton';
 
@@ -46,17 +46,26 @@ export default function ReportsPage() {
 
   const orders = Array.isArray(ordersRes) ? ordersRes : (ordersRes?.data ?? ordersRes?.orders ?? []);
 
-  const handleExportCsv = async () => {
+  const handleExport = async (format: 'csv' | 'excel' | 'pdf') => {
     try {
-      const { exportCsv } = await import('../api');
-      const csv = await exportCsv(buildFilters());
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'report.csv';
-      a.click();
-      URL.revokeObjectURL(url);
+      const filters = buildFilters();
+      const { exportCsv, exportExcel, exportPdf } = await import('../api');
+      if (format === 'csv') {
+        const csv = await exportCsv(filters);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'report.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+      } else if (format === 'excel') {
+        await exportExcel(filters);
+      } else {
+        await exportPdf(filters);
+      }
+      const { showNotification } = await import('@mantine/notifications');
+      showNotification({ title: 'Сәтті', message: `Есеп ${format.toUpperCase()} форматында жүктелді`, color: 'green' });
     } catch (err: any) {
       const { showNotification } = await import('@mantine/notifications');
       showNotification({ title: 'Қате', message: err.message, color: 'red' });
@@ -83,9 +92,24 @@ export default function ReportsPage() {
           <Button variant="light" leftSection={<IconFilter size={16} />} onClick={() => setFiltersOpen(o => !o)}>
             Сүзгілер
           </Button>
-          <Button leftSection={<IconDownload size={16} />} onClick={handleExportCsv}>
-            CSV экспорт
-          </Button>
+          <Menu shadow="md" width={180}>
+            <Menu.Target>
+              <Button leftSection={<IconDownload size={16} />}>
+                Экспорт
+              </Button>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Item leftSection={<IconFileText size={16} />} onClick={() => handleExport('csv')}>
+                CSV
+              </Menu.Item>
+              <Menu.Item leftSection={<IconFileSpreadsheet size={16} />} onClick={() => handleExport('excel')}>
+                Excel (XLSX)
+              </Menu.Item>
+              <Menu.Item leftSection={<IconFileTypePdf size={16} />} onClick={() => handleExport('pdf')}>
+                PDF
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
         </Group>
       </Group>
 

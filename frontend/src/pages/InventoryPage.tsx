@@ -4,15 +4,17 @@ import {
   Title, Group, Text, Loader, Container, Collapse, Alert, Card,
 } from '@mantine/core';
 import {
-  IconAdjustments, IconAlertTriangle, IconArchive, IconListDetails,
+  IconAdjustments, IconAlertTriangle, IconArchive, IconListDetails, IconWifi,
 } from '@tabler/icons-react';
 import { useProducts, usePriority, useStockAlerts, useReserveByPriority, useAdjustStock } from '../api/hooks';
 import { useAuth } from '../store/AuthContext';
 import { TableSkeleton } from '../components/Skeleton';
+import { useInventorySocket } from '../hooks/useSocket';
 
 export default function InventoryPage() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<string | null>('products');
+  const socketRef = useInventorySocket();
 
   const { data: products = [], isLoading: productsLoading } = useProducts();
   const { data: priorityData = [], isLoading: priorityLoading, refetch: refetchPriority } = usePriority();
@@ -71,7 +73,17 @@ export default function InventoryPage() {
   return (
     <Container size="xl">
       <Group justify="space-between" mb="md">
-        <Title order={3}>Қойма</Title>
+        <Group>
+          <Title order={3}>Қойма</Title>
+          <Badge
+            size="sm"
+            variant="dot"
+            color={socketRef.current?.connected ? 'green' : 'red'}
+            leftSection={<IconWifi size={10} />}
+          >
+            {socketRef.current?.connected ? 'Нақты уақыт' : 'Офлайн'}
+          </Badge>
+        </Group>
         <Group>
           {user?.role === 'Admin' && (
             <Button

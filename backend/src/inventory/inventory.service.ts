@@ -1,9 +1,13 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
+import { InventoryGateway } from './inventory.gateway';
 
 @Injectable()
 export class InventoryService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private gateway: InventoryGateway,
+  ) {}
 
   async findAll() {
     const products = await this.prisma.product.findMany();
@@ -32,7 +36,9 @@ export class InventoryService {
       data: { productId, userId, change, reason },
     });
 
-    return { ...updated, available: updated.quantityOnHand - updated.quantityReserved };
+    const result = { ...updated, available: updated.quantityOnHand - updated.quantityReserved };
+    this.gateway.emitStockUpdated(productId, result);
+    return result;
   }
 
   async getReservationPriority() {
@@ -120,7 +126,9 @@ export class InventoryService {
       }
     }
 
-    return { reserved: priorities.filter(p => p.items.every(i => i.canFulfill)).length, total: priorities.length };
+    const result = { reserved: priorities.filter(p => p.items.every(i => i.canFulfill)).length, total: priorities.length };
+    this.gateway.emitReservationCompleted(result);
+    return result;
   }
 
   async getStockAlerts() {

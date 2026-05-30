@@ -37,12 +37,8 @@ export class ReportController {
     });
   }
 
-  @Get('export')
+  @Get('export/csv')
   @ApiOperation({ summary: 'Export reports as CSV' })
-  @ApiQuery({ name: 'status', required: false })
-  @ApiQuery({ name: 'customerId', required: false })
-  @ApiQuery({ name: 'dateFrom', required: false })
-  @ApiQuery({ name: 'dateTo', required: false })
   async exportCsv(
     @Res() res: Response,
     @Query('status') status?: string,
@@ -51,13 +47,44 @@ export class ReportController {
     @Query('dateTo') dateTo?: string,
   ) {
     const csv = await this.reportService.exportCsv({
-      status,
-      customerId: customerId ? +customerId : undefined,
-      dateFrom,
-      dateTo,
+      status, customerId: customerId ? +customerId : undefined, dateFrom, dateTo,
     });
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', 'attachment; filename="report.csv"');
     res.send(csv);
+  }
+
+  @Get('export/excel')
+  @ApiOperation({ summary: 'Export reports as Excel (.xlsx)' })
+  async exportExcel(
+    @Res() res: Response,
+    @Query('status') status?: string,
+    @Query('customerId') customerId?: string,
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
+  ) {
+    const buffer = await this.reportService.exportExcel({
+      status, customerId: customerId ? +customerId : undefined, dateFrom, dateTo,
+    });
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="report.xlsx"');
+    res.send(buffer);
+  }
+
+  @Get('export/pdf')
+  @ApiOperation({ summary: 'Export reports as PDF' })
+  async exportPdf(
+    @Res() res: Response,
+    @Query('status') status?: string,
+    @Query('customerId') customerId?: string,
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
+  ) {
+    const buffer = await this.reportService.exportPdf({
+      status, customerId: customerId ? +customerId : undefined, dateFrom, dateTo,
+    });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="report.pdf"');
+    res.send(buffer);
   }
 }
