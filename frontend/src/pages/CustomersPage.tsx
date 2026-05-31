@@ -4,9 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import {
   Table, Button, Modal, TextInput, Select, Badge, Title, Group, Container, Text,
 } from '@mantine/core';
-import { IconPlus, IconEdit } from '@tabler/icons-react';
+import { IconPlus, IconEdit, IconUpload } from '@tabler/icons-react';
 import { useCustomers, useCreateCustomer, useUpdateCustomer } from '../api/hooks';
+import { importCustomersCsv } from '../api';
 import { TableSkeleton } from '../components/Skeleton';
+import CsvImportModal from '../components/CsvImportModal';
 
 const tierColor: Record<string, string> = {
   VIP: 'yellow',
@@ -24,6 +26,7 @@ export default function CustomersPage() {
   const updateCustomer = useUpdateCustomer();
 
   const [opened, setOpened] = useState(false);
+  const [importOpened, setImportOpened] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState(defaultForm);
 
@@ -71,7 +74,10 @@ export default function CustomersPage() {
     <Container size="xl">
       <Group justify="space-between" mb="md">
         <Title order={3}>{t('customer.title')}</Title>
-        <Button leftSection={<IconPlus size={16} />} onClick={openCreate}>{t('customer.newCustomer')}</Button>
+        <Group>
+          <Button variant="light" leftSection={<IconUpload size={16} />} onClick={() => setImportOpened(true)}>CSV импорт</Button>
+          <Button leftSection={<IconPlus size={16} />} onClick={openCreate}>{t('customer.newCustomer')}</Button>
+        </Group>
       </Group>
 
       <Table striped highlightOnHover withTableBorder>
@@ -124,6 +130,14 @@ export default function CustomersPage() {
           </Button>
         </Group>
       </Modal>
+
+      <CsvImportModal
+        opened={importOpened}
+        onClose={() => setImportOpened(false)}
+        title="CSV импорт — клиенттер"
+        importFn={importCustomersCsv}
+        expectedFields={['company', 'contactPerson', 'phone', 'email', 'tier']}
+      />
     </Container>
   );
 }

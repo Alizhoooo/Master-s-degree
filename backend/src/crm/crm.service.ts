@@ -1,9 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
+import { CsvImportService } from '../common/csv-import.service';
 
 @Injectable()
 export class CrmService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private csvImport: CsvImportService,
+  ) {}
 
   async findAllCustomers() {
     return this.prisma.customer.findMany({
@@ -37,6 +41,23 @@ export class CrmService {
         tier: dto.tier || 'Regular',
       },
     });
+  }
+
+  async importCustomers(file: Express.Multer.File): Promise<{ imported: number; errors: string[] }> {
+    const rows = await this.csvImport.parseCsv<{
+      company: string; contactPerson: string; phone: string; email: string; tier?: string;
+    }>(file);
+    let imported = 0;
+    const errors: string[] = [];
+    for (let i = 0; i < rows.length; i++) {
+      try {
+        await this.createCustomer(rows[i]);
+        imported++;
+      } catch (e: any) {
+        errors.push(`Row ${i + 2}: ${e.message}`);
+      }
+    }
+    return { imported, errors };
   }
 
   async updateCustomer(id: number, dto: { company?: string; contactPerson?: string; phone?: string; email?: string; tier?: string }) {

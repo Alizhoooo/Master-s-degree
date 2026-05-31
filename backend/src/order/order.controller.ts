@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards, Request, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards, Request, HttpCode, HttpStatus, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { OrderService } from './order.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -73,6 +74,16 @@ export class OrderController {
   @ApiParam({ name: 'id', type: Number })
   getTimeline(@Param('id') id: string) {
     return this.orderService.getTimeline(+id);
+  }
+
+  @Get(':id/invoice')
+  @ApiOperation({ summary: 'Generate PDF invoice for order' })
+  @ApiParam({ name: 'id', type: Number })
+  async getInvoice(@Param('id') id: string, @Res() res: Response) {
+    const buffer = await this.orderService.generateInvoice(+id);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="invoice-${id}.pdf"`);
+    res.send(buffer);
   }
 
   @Get(':id/pick-list')

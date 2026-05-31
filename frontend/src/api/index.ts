@@ -69,6 +69,26 @@ export async function getInventoryLogs() {
   return request('/inventory/logs');
 }
 
+async function uploadFile(url: string, file: File): Promise<any> {
+  const token = getToken();
+  const formData = new FormData();
+  formData.append('file', file);
+  const headers: any = {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(`${API}${url}`, { method: 'POST', headers, body: formData });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Upload failed');
+  return data;
+}
+
+export async function importCustomersCsv(file: File) {
+  return uploadFile('/crm/customers/import', file);
+}
+
+export async function importProductsCsv(file: File) {
+  return uploadFile('/inventory/import', file);
+}
+
 export async function getCustomers() {
   return request('/crm/customers');
 }
@@ -156,6 +176,20 @@ export async function getPickList(id: number) {
 
 export async function getOrderTimeline(id: number) {
   return request(`/orders/${id}/timeline`);
+}
+
+export async function downloadInvoice(id: number) {
+  const token = getToken();
+  const headers: any = {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(`${API}/orders/${id}/invoice`, { headers });
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `invoice-${id}.pdf`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 export async function getDashboard(filters?: Record<string, string>) {

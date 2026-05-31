@@ -5,12 +5,14 @@ import {
   Title, Group, Text, Loader, Container, Collapse, Alert, Card,
 } from '@mantine/core';
 import {
-  IconAdjustments, IconAlertTriangle, IconArchive, IconListDetails, IconWifi,
+  IconAdjustments, IconAlertTriangle, IconArchive, IconListDetails, IconWifi, IconUpload,
 } from '@tabler/icons-react';
 import { useProducts, usePriority, useStockAlerts, useReserveByPriority, useAdjustStock } from '../api/hooks';
+import { importProductsCsv } from '../api';
 import { useAuth } from '../store/AuthContext';
 import { TableSkeleton } from '../components/Skeleton';
 import { useInventorySocket } from '../hooks/useSocket';
+import CsvImportModal from '../components/CsvImportModal';
 
 export default function InventoryPage() {
   const { t } = useTranslation();
@@ -25,6 +27,7 @@ export default function InventoryPage() {
   const adjustMutation = useAdjustStock();
 
   const [adjustOpened, setAdjustOpened] = useState(false);
+  const [importOpened, setImportOpened] = useState(false);
   const [adjustProduct, setAdjustProduct] = useState<number | null>(null);
   const [adjustChange, setAdjustChange] = useState<number | ''>('');
   const [adjustReason, setAdjustReason] = useState('');
@@ -87,6 +90,14 @@ export default function InventoryPage() {
           </Badge>
         </Group>
         <Group>
+          <Button
+            variant="light"
+            color="gray"
+            leftSection={<IconUpload size={16} />}
+            onClick={() => setImportOpened(true)}
+          >
+            CSV импорт
+          </Button>
           {user?.role === 'Admin' && (
             <Button
               variant="light"
@@ -324,6 +335,14 @@ export default function InventoryPage() {
           </Button>
         </Group>
       </Modal>
+
+      <CsvImportModal
+        opened={importOpened}
+        onClose={() => setImportOpened(false)}
+        title="CSV импорт — өнімдер"
+        importFn={importProductsCsv}
+        expectedFields={['sku', 'name', 'category', 'unitPrice', 'quantityOnHand', 'reorderPoint']}
+      />
     </Container>
   );
 }

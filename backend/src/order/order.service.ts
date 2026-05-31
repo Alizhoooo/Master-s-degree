@@ -234,6 +234,84 @@ export class OrderService {
     });
   }
 
+  async generateInvoice(id: number): Promise<Buffer> {
+    const order = await this.findOne(id);
+    const PDFDocument = (await import('pdfkit')).default;
+
+    return new Promise<Buffer>((resolve, reject) => {
+      try {
+        const doc = new PDFDocument({ margin: 40, size: 'A4' });
+        const chunks: Buffer[] = [];
+        doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+        doc.on('end', () => resolve(Buffer.concat(chunks)));
+        doc.on('error', reject);
+
+        const pageWidth = doc.page.width - 80;
+        let y = 40;
+
+        doc.fontSize(20).font('Helvetica-Bold').text('INVOICE', 40, y);
+        doc.fontSize(10).font('Helvetica').text(`#${order.id}`, 40, doc.y + 4);
+        y = doc.y + 20;
+
+        doc.fontSize(9).font('Helvetica-Bold').text('SupplyFlow BPM', 40, y);
+        doc.fontSize(8).font('Helvetica').text('Business Process Management', 40, doc.y + 10);
+        y = doc.y + 25;
+
+        doc.fontSize(9).font('Helvetica-Bold').text('Bill To:', 40, y);
+        doc.fontSize(8).font('Helvetica');
+        doc.text(order.customer.company, 40, doc.y + 10);
+        doc.text(`Contact: ${order.customer.contactPerson}`, 40, doc.y + 10);
+        doc.text(`Phone: ${order.customer.phone}`, 40, doc.y + 10);
+        doc.text(`Email: ${order.customer.email}`, 40, doc.y + 10);
+        y = doc.y + 15;
+
+        doc.fontSize(8).font('Helvetica').text(`Order Date: ${order.createdAt.toLocaleDateString()}`, 350, 40);
+        doc.text(`Deadline: ${order.deadline.toLocaleDateString()}`, 350, doc.y + 10);
+        doc.text(`Status: ${order.status}`, 350, doc.y + 10);
+        doc.text(`Delivery: ${order.deliveryAddress}`, 350, doc.y + 10);
+        y = Math.max(y, doc.y + 15);
+
+        doc.rect(40, y, pageWidth, 20).fill('#1a237e');
+        doc.fillColor('#fff').fontSize(8).font('Helvetica-Bold');
+        doc.text('Item', 50, y + 5);
+        doc.text('SKU', 250, y + 5);
+        doc.text('Qty', 320, y + 5, { width: 40, align: 'right' });
+        doc.text('Price', 370, y + 5, { width: 60, align: 'right' });
+        doc.text('Total', 440, y + 5, { width: 70, align: 'right' });
+        y += 20;
+
+        doc.fillColor('#000').font('Helvetica').fontSize(8);
+        for (const item of order.items) {
+          if (y > doc.page.height - 60) {
+            doc.addPage();
+            y = 40;
+          }
+          const itemTotal = item.unitPrice * item.quantity;
+          doc.text(item.product?.name || `#${item.productId}`, 50, y);
+          doc.text(item.product?.sku || '-', 250, y);
+          doc.text(String(item.quantity), 320, y, { width: 40, align: 'right' });
+          doc.text(`${item.unitPrice.toLocaleString()} ₸`, 370, y, { width: 60, align: 'right' });
+          doc.text(`${itemTotal.toLocaleString()} ₸`, 440, y, { width: 70, align: 'right' });
+          y += 16;
+        }
+
+        y += 10;
+        doc.moveTo(40, y).lineTo(40 + pageWidth, y).stroke('#ccc');
+        y += 10;
+        doc.fontSize(10).font('Helvetica-Bold');
+        doc.text(`Total: ${order.totalAmount.toLocaleString()} ₸`, 440, y, { width: 70, align: 'right' });
+
+        y = doc.page.height - 60;
+        doc.fontSize(7).font('Helvetica').fillColor('#999');
+        doc.text('SupplyFlow BPM · Generated automatically', 40, y, { align: 'center' });
+
+        doc.end();
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
   async getPickList(id: number) {
     const order = await this.prisma.order.findUnique({
       where: { id },

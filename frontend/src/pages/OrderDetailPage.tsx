@@ -4,8 +4,9 @@ import { useTranslation } from 'react-i18next';
 import {
   Title, Badge, Button, Card, Table, Group, Text, Container, Alert, Modal,
 } from '@mantine/core';
-import { IconArrowLeft, IconPackage, IconHistory } from '@tabler/icons-react';
+import { IconArrowLeft, IconPackage, IconHistory, IconFileTypePdf } from '@tabler/icons-react';
 import { useOrder, useUpdateOrderStatus, useCancelOrder, usePickList, useOrderTimeline } from '../api/hooks';
+import { downloadInvoice } from '../api';
 import { useAuth } from '../store/AuthContext';
 import { DetailSkeleton } from '../components/Skeleton';
 import OrderTimeline from '../components/OrderTimeline';
@@ -84,6 +85,9 @@ export default function OrderDetailPage() {
         <Group>
           <Button variant="light" color="cyan" leftSection={<IconPackage size={16} />} onClick={() => setPickModalOpened(true)}>
             {t('order.pickList')}
+          </Button>
+          <Button variant="light" color="red" leftSection={<IconFileTypePdf size={16} />} onClick={() => downloadInvoice(order.id)}>
+            PDF инвойс
           </Button>
         </Group>
       </Group>

@@ -1,11 +1,13 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
+import { CsvImportService } from '../common/csv-import.service';
 import { InventoryGateway } from './inventory.gateway';
 
 @Injectable()
 export class InventoryService {
   constructor(
     private prisma: PrismaService,
+    private csvImport: CsvImportService,
     private gateway: InventoryGateway,
   ) {}
 
@@ -21,6 +23,32 @@ export class InventoryService {
     const product = await this.prisma.product.findUnique({ where: { id } });
     if (!product) throw new NotFoundException('Product not found');
     return { ...product, available: product.quantityOnHand - product.quantityReserved };
+  }
+
+  async importProducts(file: Express.Multer.File): Promise<{ imported: number; errors: string[] }> {
+    const rows = await this.csvImport.parseCsv<{
+      sku: string; name: string; category: string; unitPrice: number; quantityOnHand: number; reorderPoint: number;
+    }>(file);
+    let imported = 0;
+    const errors: string[] = [];
+    for (let i = 0; i < rows.length; i++) {
+      try {
+        await this.prisma.product.create({
+          data: {
+            sku: rows[i].sku,
+            name: rows[i].name,
+            category: rows[i].category,
+            unitPrice: Number(rows[i].unitPrice),
+            quantityOnHand: Number(rows[i].quantityOnHand),
+            reorderPoint: Number(rows[i].reorderPoint),
+          },
+        });
+        imported++;
+      } catch (e: any) {
+        errors.push(`Row ${i + 2}: ${e.message}`);
+      }
+    }
+    return { imported, errors };
   }
 
   async adjustStock(productId: number, userId: number, change: number, reason: string) {

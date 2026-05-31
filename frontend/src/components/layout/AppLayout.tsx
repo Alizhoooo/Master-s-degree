@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AppShell, Group, Text, NavLink, ActionIcon, Avatar, Menu, Box, ScrollArea } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../store/AuthContext';
@@ -112,7 +113,17 @@ export default function AppLayout() {
       </AppShell.Navbar>
 
       <AppShell.Main>
-        <Outlet />
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
       </AppShell.Main>
     </AppShell>
   );

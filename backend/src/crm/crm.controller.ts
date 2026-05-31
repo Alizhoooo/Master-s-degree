@@ -1,5 +1,6 @@
-import { Controller, Get, Post, Patch, Body, Param, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
+import { Controller, Get, Post, Patch, Body, Param, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiParam, ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { CrmService } from './crm.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -27,6 +28,15 @@ export class CrmController {
   @ApiOperation({ summary: 'Create new customer' })
   createCustomer(@Body() body: { company: string; contactPerson: string; phone: string; email: string; tier?: string }) {
     return this.crmService.createCustomer(body);
+  }
+
+  @Post('customers/import')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiOperation({ summary: 'Import customers from CSV' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({ schema: { type: 'object', properties: { file: { type: 'string', format: 'binary' } } } })
+  importCustomers(@UploadedFile() file: Express.Multer.File) {
+    return this.crmService.importCustomers(file);
   }
 
   @Patch('customers/:id')
