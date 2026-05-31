@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Table, Button, Modal, Select, TextInput, Textarea, Badge, Title, Group, Container, Text,
 } from '@mantine/core';
@@ -13,6 +14,7 @@ const statusColor: Record<string, string> = {
 };
 
 export default function ComplaintsPage() {
+  const { t } = useTranslation();
   const { data: complaints = [], isLoading } = useComplaints();
   const { data: customers = [] } = useCustomers();
   const createComplaint = useCreateComplaint();
@@ -33,14 +35,14 @@ export default function ComplaintsPage() {
     try {
       await createComplaint.mutateAsync({ customerId, title, description });
       const { showNotification } = await import('@mantine/notifications');
-      showNotification({ title: 'Сәтті', message: 'Шағым қосылды', color: 'green' });
+      showNotification({ title: t('notification.success'), message: t('complaint.successCreated'), color: 'green' });
       setCreateOpened(false);
       setCustomerId(null);
       setTitle('');
       setDescription('');
     } catch (err: any) {
       const { showNotification } = await import('@mantine/notifications');
-      showNotification({ title: 'Қате', message: err.message, color: 'red' });
+      showNotification({ title: t('notification.error'), message: err.message, color: 'red' });
     }
   };
 
@@ -49,11 +51,11 @@ export default function ComplaintsPage() {
     try {
       await updateStatus.mutateAsync({ id: selectedComplaint.id, status: newStatus });
       const { showNotification } = await import('@mantine/notifications');
-      showNotification({ title: 'Сәтті', message: 'Күй жаңартылды', color: 'green' });
+      showNotification({ title: t('notification.success'), message: t('complaint.successUpdated'), color: 'green' });
       setStatusOpened(false);
     } catch (err: any) {
       const { showNotification } = await import('@mantine/notifications');
-      showNotification({ title: 'Қате', message: err.message, color: 'red' });
+      showNotification({ title: t('notification.error'), message: err.message, color: 'red' });
     }
   };
 
@@ -61,7 +63,7 @@ export default function ComplaintsPage() {
     return (
       <Container size="xl">
         <Group justify="space-between" mb="md">
-          <Title order={3}>Шағымдарды басқару</Title>
+          <Title order={3}>{t('complaint.title')}</Title>
         </Group>
         <TableSkeleton rows={5} cols={7} />
       </Container>
@@ -71,20 +73,20 @@ export default function ComplaintsPage() {
   return (
     <Container size="xl">
       <Group justify="space-between" mb="md">
-        <Title order={3}>Шағымдарды басқару</Title>
-        <Button leftSection={<IconPlus size={16} />} onClick={() => setCreateOpened(true)}>Жаңа шағым</Button>
+        <Title order={3}>{t('complaint.title')}</Title>
+        <Button leftSection={<IconPlus size={16} />} onClick={() => setCreateOpened(true)}>{t('complaint.newComplaint')}</Button>
       </Group>
 
       <Table striped highlightOnHover withTableBorder>
         <Table.Thead>
           <Table.Tr>
-            <Table.Th>ID</Table.Th>
-            <Table.Th>Клиент</Table.Th>
-            <Table.Th>Тақырып</Table.Th>
-            <Table.Th>Сипаттама</Table.Th>
-            <Table.Th>Күй</Table.Th>
-            <Table.Th>Күні</Table.Th>
-            <Table.Th>Әрекеттер</Table.Th>
+            <Table.Th>{t('complaint.id')}</Table.Th>
+            <Table.Th>{t('complaint.customer')}</Table.Th>
+            <Table.Th>{t('complaint.fieldTitle')}</Table.Th>
+            <Table.Th>{t('complaint.description')}</Table.Th>
+            <Table.Th>{t('complaint.status')}</Table.Th>
+            <Table.Th>{t('complaint.date')}</Table.Th>
+            <Table.Th>{t('complaint.actions')}</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
@@ -105,23 +107,23 @@ export default function ComplaintsPage() {
                   leftSection={<IconEdit size={14} />}
                   onClick={() => { setSelectedComplaint(c); setNewStatus(c.status); setStatusOpened(true); }}
                 >
-                  Өңдеу
+                  {t('complaint.edit')}
                 </Button>
               </Table.Td>
             </Table.Tr>
           ))}
           {complaints.length === 0 && (
             <Table.Tr>
-              <Table.Td colSpan={7}><Text c="dimmed" ta="center" py="md">Шағымдар жоқ</Text></Table.Td>
+              <Table.Td colSpan={7}><Text c="dimmed" ta="center" py="md">{t('complaint.noComplaints')}</Text></Table.Td>
             </Table.Tr>
           )}
         </Table.Tbody>
       </Table>
 
-      <Modal opened={createOpened} onClose={() => setCreateOpened(false)} title="Жаңа шағым">
+      <Modal opened={createOpened} onClose={() => setCreateOpened(false)} title={t('complaint.newComplaint')}>
         <Select
-          label="Клиент"
-          placeholder="Клиентті таңдаңыз"
+          label={t('complaint.customer')}
+          placeholder={t('complaint.selectCustomer')}
           data={customerData}
           value={customerId !== null ? String(customerId) : null}
           onChange={v => setCustomerId(v ? Number(v) : null)}
@@ -129,17 +131,17 @@ export default function ComplaintsPage() {
           required
           mb="sm"
         />
-        <TextInput label="Тақырып" placeholder="Шағым тақырыбы" value={title} onChange={e => setTitle(e.currentTarget.value)} required mb="sm" />
-        <Textarea label="Сипаттама" placeholder="Шағым сипаттамасы" value={description} onChange={e => setDescription(e.currentTarget.value)} required mb="lg" />
+        <TextInput label={t('complaint.complaintTitle')} placeholder={t('complaint.complaintTitle')} value={title} onChange={e => setTitle(e.currentTarget.value)} required mb="sm" />
+        <Textarea label={t('complaint.complaintDesc')} placeholder={t('complaint.complaintDesc')} value={description} onChange={e => setDescription(e.currentTarget.value)} required mb="lg" />
         <Group justify="flex-end">
-          <Button onClick={handleCreate} loading={createComplaint.isPending} disabled={!customerId || !title.trim() || !description.trim()}>Қосу</Button>
+          <Button onClick={handleCreate} loading={createComplaint.isPending} disabled={!customerId || !title.trim() || !description.trim()}>{t('complaint.add')}</Button>
         </Group>
       </Modal>
 
-      <Modal opened={statusOpened} onClose={() => setStatusOpened(false)} title="Шағым күйін өзгерту">
-        <Select label="Күй" data={['Open', 'InProgress', 'Resolved']} value={newStatus} onChange={setNewStatus} mb="lg" />
+      <Modal opened={statusOpened} onClose={() => setStatusOpened(false)} title={t('complaint.changeStatus')}>
+        <Select label={t('complaint.status')} data={['Open', 'InProgress', 'Resolved']} value={newStatus} onChange={setNewStatus} mb="lg" />
         <Group justify="flex-end">
-          <Button onClick={handleStatusUpdate} loading={updateStatus.isPending} disabled={!newStatus}>Сақтау</Button>
+          <Button onClick={handleStatusUpdate} loading={updateStatus.isPending} disabled={!newStatus}>{t('complaint.save')}</Button>
         </Group>
       </Modal>
     </Container>

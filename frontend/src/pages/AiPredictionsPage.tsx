@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Container, Title, Group, Button, Table, Card, Text, Badge, Tabs,
 } from '@mantine/core';
@@ -10,6 +11,7 @@ import { useForecast, useAnomalies } from '../api/hooks';
 import { TableSkeleton } from '../components/Skeleton';
 
 export default function AiPredictionsPage() {
+  const { t } = useTranslation();
   const { data: forecast = [], isLoading: loadingForecast, refetch: refetchForecast } = useForecast();
   const { data: anomalies = [], isLoading: loadingAnomalies, refetch: refetchAnomalies } = useAnomalies();
   const [activeTab, setActiveTab] = useState<string | null>('forecast');
@@ -27,20 +29,20 @@ export default function AiPredictionsPage() {
 
   return (
     <Container size="xl">
-      <Title order={3} mb="md">ЖИ болжамдар</Title>
+      <Title order={3} mb="md">{t('ai.title')}</Title>
 
       <Tabs value={activeTab} onChange={setActiveTab}>
         <Tabs.List mb="md">
-          <Tabs.Tab value="forecast">Сұраныс болжамы</Tabs.Tab>
+          <Tabs.Tab value="forecast">{t('ai.forecast')}</Tabs.Tab>
           <Tabs.Tab value="anomalies" leftSection={<IconAlertTriangle size={14} />}>
-            Аномалиялар
+            {t('ai.anomalies')}
           </Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="forecast">
           <Group justify="flex-end" mb="md">
             <Button leftSection={<IconRefresh size={16} />} onClick={() => refetchForecast()} loading={loadingForecast}>
-              Болжамды жаңарту
+              {t('ai.refreshForecast')}
             </Button>
           </Group>
 
@@ -49,15 +51,15 @@ export default function AiPredictionsPage() {
           ) : (
             <>
               <Card withBorder shadow="sm" p="md" mb="lg">
-                <Title order={5} mb="md">Сұраныс болжамы және ағымдағы қор</Title>
+                <Title order={5} mb="md">{t('ai.forecastChart')}</Title>
                 <ResponsiveContainer width="100%" height={350}>
                   <BarChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                     <YAxis tick={{ fontSize: 12 }} />
                     <Tooltip />
-                    <Bar dataKey="currentStock" fill="#228be6" radius={[4, 4, 0, 0]} name="Ағымдағы қор" />
-                    <Bar dataKey="predictedDemand" fill="#fa5252" radius={[4, 4, 0, 0]} name="Болжамды сұраныс" />
+                    <Bar dataKey="currentStock" fill="#228be6" radius={[4, 4, 0, 0]} name={t('ai.currentStock')} />
+                    <Bar dataKey="predictedDemand" fill="#fa5252" radius={[4, 4, 0, 0]} name={t('ai.predictedDemand')} />
                   </BarChart>
                 </ResponsiveContainer>
               </Card>
@@ -65,12 +67,12 @@ export default function AiPredictionsPage() {
               <Table striped highlightOnHover withTableBorder>
                 <Table.Thead>
                   <Table.Tr>
-                    <Table.Th>Өнім</Table.Th>
-                    <Table.Th>SKU</Table.Th>
-                    <Table.Th>Ағымдағы қор</Table.Th>
-                    <Table.Th>Орташа айлық сатылым</Table.Th>
-                    <Table.Th>Болжамды сұраныс</Table.Th>
-                    <Table.Th>Ұсынылатын тапсырыс</Table.Th>
+                    <Table.Th>{t('inventory.name')}</Table.Th>
+                    <Table.Th>{t('inventory.sku')}</Table.Th>
+                    <Table.Th>{t('ai.currentStock')}</Table.Th>
+                    <Table.Th>{t('ai.avgSales')}</Table.Th>
+                    <Table.Th>{t('ai.predicted')}</Table.Th>
+                    <Table.Th>{t('ai.reorder')}</Table.Th>
                   </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
@@ -91,7 +93,7 @@ export default function AiPredictionsPage() {
                   {forecast.length === 0 && (
                     <Table.Tr>
                       <Table.Td colSpan={6}>
-                        <Text c="dimmed" ta="center" py="md">Болжамдар жоқ</Text>
+                        <Text c="dimmed" ta="center" py="md">{t('ai.noForecasts')}</Text>
                       </Table.Td>
                     </Table.Tr>
                   )}
@@ -105,7 +107,7 @@ export default function AiPredictionsPage() {
           {loadingAnomalies ? (
             <TableSkeleton rows={3} cols={3} />
           ) : anomalies.length === 0 ? (
-            <Text c="dimmed" ta="center" py="xl">Аномалиялар жоқ</Text>
+            <Text c="dimmed" ta="center" py="xl">{t('ai.noAnomalies')}</Text>
           ) : (
             anomalies.map((a: any) => (
               <Card key={a.orderId} withBorder shadow="sm" p="md" mb="sm">

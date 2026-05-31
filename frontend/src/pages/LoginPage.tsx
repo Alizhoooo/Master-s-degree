@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { TextInput, PasswordInput, Button, Paper, Title, Text, Anchor, Center, Box } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../store/AuthContext';
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,8 +21,8 @@ export default function LoginPage() {
     } catch (err: any) {
       const { showNotification } = await import('@mantine/notifications');
       showNotification({
-        title: 'Қате',
-        message: err.message || 'Кіру кезінде қате орын алды',
+        title: t('common.error'),
+        message: err.message || t('auth.loginError'),
         color: 'red',
       });
     } finally {
@@ -40,11 +42,11 @@ export default function LoginPage() {
     >
       <Paper withBorder shadow="xl" p="xl" radius="lg" style={{ width: 420, background: '#fff' }}>
         <Center mb="md">
-          <Title order={2} c="blue.9">SupplyFlow жүйесіне кіру</Title>
+          <Title order={2} c="blue.9">{t('auth.title')}</Title>
         </Center>
         <form onSubmit={handleSubmit}>
           <TextInput
-            label="Электронды пошта"
+            label={t('auth.email')}
             placeholder="email@example.com"
             value={email}
             onChange={(e) => setEmail(e.currentTarget.value)}
@@ -52,22 +54,22 @@ export default function LoginPage() {
             mb="sm"
           />
           <PasswordInput
-            label="Құпия сөз"
-            placeholder="Құпия сөзіңізді енгізіңіз"
+            label={t('auth.password')}
+            placeholder={t('auth.passwordPlaceholder')}
             value={password}
             onChange={(e) => setPassword(e.currentTarget.value)}
             required
             mb="lg"
           />
           <Button type="submit" fullWidth loading={loading}>
-            Кіру
+            {t('auth.login')}
           </Button>
         </form>
         <Center mt="md">
           <Text size="sm">
-            Аккаунтыңыз жоқ па?{' '}
+            {t('auth.noAccount')}{' '}
             <Anchor component={Link} to="/register" fw={500}>
-              Тіркелу
+              {t('auth.register')}
             </Anchor>
           </Text>
         </Center>

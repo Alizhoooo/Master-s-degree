@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { TextInput, PasswordInput, Button, Paper, Title, Text, Anchor, Center, Box, Select } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../store/AuthContext';
 
 export default function RegisterPage() {
+  const { t } = useTranslation();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,16 +22,16 @@ export default function RegisterPage() {
       await register(email, password, fullName, role);
       const { showNotification } = await import('@mantine/notifications');
       showNotification({
-        title: 'Сәтті тіркелу',
-        message: 'Аккаунтыңыз сәтті құрылды. Жүйеге кіріңіз.',
+        title: t('auth.registerSuccess'),
+        message: t('auth.registerSuccessMsg'),
         color: 'green',
       });
       navigate('/login');
     } catch (err: any) {
       const { showNotification } = await import('@mantine/notifications');
       showNotification({
-        title: 'Қате',
-        message: err.message || 'Тіркелу кезінде қате орын алды',
+        title: t('common.error'),
+        message: err.message || t('auth.registerError'),
         color: 'red',
       });
     } finally {
@@ -49,19 +51,19 @@ export default function RegisterPage() {
     >
       <Paper withBorder shadow="xl" p="xl" radius="lg" style={{ width: 420, background: '#fff' }}>
         <Center mb="md">
-          <Title order={2} c="blue.9">Тіркелу</Title>
+          <Title order={2} c="blue.9">{t('auth.registerTitle')}</Title>
         </Center>
         <form onSubmit={handleSubmit}>
           <TextInput
-            label="Толық аты-жөні"
-            placeholder="Аты-жөніңізді енгізіңіз"
+            label={t('auth.fullNameLabel')}
+            placeholder={t('auth.fullNamePlaceholder')}
             value={fullName}
             onChange={(e) => setFullName(e.currentTarget.value)}
             required
             mb="sm"
           />
           <TextInput
-            label="Электронды пошта"
+            label={t('auth.email')}
             placeholder="email@example.com"
             value={email}
             onChange={(e) => setEmail(e.currentTarget.value)}
@@ -69,19 +71,19 @@ export default function RegisterPage() {
             mb="sm"
           />
           <PasswordInput
-            label="Құпия сөз"
-            placeholder="Құпия сөзіңізді енгізіңіз"
+            label={t('auth.password')}
+            placeholder={t('auth.passwordPlaceholder')}
             value={password}
             onChange={(e) => setPassword(e.currentTarget.value)}
             required
             mb="sm"
           />
           <Select
-            label="Рөл"
+            label={t('auth.role')}
             data={[
-              { value: 'Admin', label: 'Админ' },
-              { value: 'Manager', label: 'Менеджер' },
-              { value: 'Warehouse', label: 'Қоймашы' },
+              { value: 'Admin', label: t('auth.admin') },
+              { value: 'Manager', label: t('auth.manager') },
+              { value: 'Warehouse', label: t('auth.warehouse') },
             ]}
             value={role}
             onChange={setRole}
@@ -89,14 +91,14 @@ export default function RegisterPage() {
             mb="lg"
           />
           <Button type="submit" fullWidth loading={loading}>
-            Тіркелу
+            {t('auth.register')}
           </Button>
         </form>
         <Center mt="md">
           <Text size="sm">
-            Аккаунтыңыз бар ма?{' '}
+            {t('auth.hasAccount')}{' '}
             <Anchor component={Link} to="/login" fw={500}>
-              Кіру
+              {t('auth.login')}
             </Anchor>
           </Text>
         </Center>

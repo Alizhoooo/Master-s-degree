@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Container, Title, Group, Button, Table, Select, Collapse, Badge, Text, Menu,
 } from '@mantine/core';
@@ -12,24 +13,25 @@ const statusColor: Record<string, string> = {
   Picked: 'orange', Shipped: 'indigo', Delivered: 'green', Cancelled: 'red',
 };
 
-const statusOptions = [
-  { value: '', label: 'Барлығы' },
-  { value: 'Pending', label: 'Pending' },
-  { value: 'Confirmed', label: 'Confirmed' },
-  { value: 'Reserved', label: 'Reserved' },
-  { value: 'Paid', label: 'Paid' },
-  { value: 'Picked', label: 'Picked' },
-  { value: 'Shipped', label: 'Shipped' },
-  { value: 'Delivered', label: 'Delivered' },
-  { value: 'Cancelled', label: 'Cancelled' },
-];
-
 export default function ReportsPage() {
+  const { t } = useTranslation();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [dateFrom, setDateFrom] = useState<Date | null>(null);
   const [dateTo, setDateTo] = useState<Date | null>(null);
   const [status, setStatus] = useState<string>('');
   const [customerId, setCustomerId] = useState<string | null>(null);
+
+  const statusOptions = [
+    { value: '', label: t('report.allStatuses') },
+    { value: 'Pending', label: 'Pending' },
+    { value: 'Confirmed', label: 'Confirmed' },
+    { value: 'Reserved', label: 'Reserved' },
+    { value: 'Paid', label: 'Paid' },
+    { value: 'Picked', label: 'Picked' },
+    { value: 'Shipped', label: 'Shipped' },
+    { value: 'Delivered', label: 'Delivered' },
+    { value: 'Cancelled', label: 'Cancelled' },
+  ];
 
   const buildFilters = () => {
     const f: Record<string, string> = {};
@@ -65,10 +67,10 @@ export default function ReportsPage() {
         await exportPdf(filters);
       }
       const { showNotification } = await import('@mantine/notifications');
-      showNotification({ title: 'Сәтті', message: `Есеп ${format.toUpperCase()} форматында жүктелді`, color: 'green' });
+      showNotification({ title: t('notification.success'), message: t('report.exportSuccess', { format: format.toUpperCase() }), color: 'green' });
     } catch (err: any) {
       const { showNotification } = await import('@mantine/notifications');
-      showNotification({ title: 'Қате', message: err.message, color: 'red' });
+      showNotification({ title: t('notification.error'), message: err.message, color: 'red' });
     }
   };
 
@@ -87,15 +89,15 @@ export default function ReportsPage() {
   return (
     <Container size="xl">
       <Group justify="space-between" mb="md">
-        <Title order={3}>Есептер</Title>
+        <Title order={3}>{t('report.title')}</Title>
         <Group>
           <Button variant="light" leftSection={<IconFilter size={16} />} onClick={() => setFiltersOpen(o => !o)}>
-            Сүзгілер
+            {t('report.filters')}
           </Button>
           <Menu shadow="md" width={180}>
             <Menu.Target>
               <Button leftSection={<IconDownload size={16} />}>
-                Экспорт
+                {t('common.export')}
               </Button>
             </Menu.Target>
             <Menu.Dropdown>
@@ -115,12 +117,12 @@ export default function ReportsPage() {
 
       <Collapse in={filtersOpen}>
         <Group mb="md" gap="sm" wrap="wrap">
-          <DatePickerInput label="Басталу күні" placeholder="Басталу күні" value={dateFrom} onChange={setDateFrom} clearable />
-          <DatePickerInput label="Аяқталу күні" placeholder="Аяқталу күні" value={dateTo} onChange={setDateTo} clearable />
-          <Select label="Күй" placeholder="Күй" data={statusOptions} value={status} onChange={v => setStatus(v ?? '')} clearable />
-          <Select label="Клиент" placeholder="Клиент" data={customerData} value={customerId} onChange={setCustomerId} searchable clearable />
-          <Button onClick={() => refetch()} mt="xl">Сүзгілеу</Button>
-          <Button variant="light" color="gray" mt="xl" onClick={clearFilters}>Тазалау</Button>
+          <DatePickerInput label={t('report.dateFrom')} placeholder={t('report.dateFrom')} value={dateFrom} onChange={setDateFrom} clearable />
+          <DatePickerInput label={t('report.dateTo')} placeholder={t('report.dateTo')} value={dateTo} onChange={setDateTo} clearable />
+          <Select label={t('report.filterStatus')} placeholder={t('report.filterStatus')} data={statusOptions} value={status} onChange={v => setStatus(v ?? '')} clearable />
+          <Select label={t('report.filterCustomer')} placeholder={t('report.filterCustomer')} data={customerData} value={customerId} onChange={setCustomerId} searchable clearable />
+          <Button onClick={() => refetch()} mt="xl">{t('report.applyFilter')}</Button>
+          <Button variant="light" color="gray" mt="xl" onClick={clearFilters}>{t('common.clear')}</Button>
         </Group>
       </Collapse>
 
@@ -131,11 +133,11 @@ export default function ReportsPage() {
           <Table.Thead>
             <Table.Tr>
               <Table.Th>ID</Table.Th>
-              <Table.Th>Клиент</Table.Th>
-              <Table.Th>Күй</Table.Th>
-              <Table.Th>Сома</Table.Th>
-              <Table.Th>Мекен-жай</Table.Th>
-              <Table.Th>Күні</Table.Th>
+              <Table.Th>{t('order.customer')}</Table.Th>
+              <Table.Th>{t('common.status')}</Table.Th>
+              <Table.Th>{t('order.amount')}</Table.Th>
+              <Table.Th>{t('order.address')}</Table.Th>
+              <Table.Th>{t('order.date')}</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -151,7 +153,7 @@ export default function ReportsPage() {
             ))}
             {orders.length === 0 && (
               <Table.Tr>
-                <Table.Td colSpan={6}><Text c="dimmed" ta="center" py="md">Есептер жоқ</Text></Table.Td>
+                <Table.Td colSpan={6}><Text c="dimmed" ta="center" py="md">{t('report.noReports')}</Text></Table.Td>
               </Table.Tr>
             )}
           </Table.Tbody>

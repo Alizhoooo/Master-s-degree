@@ -1,6 +1,7 @@
 import React from 'react';
 import { Container, Paper, Title, Text, Button, Group } from '@mantine/core';
 import { IconAlertCircle, IconRefresh } from '@tabler/icons-react';
+import i18n from '../i18n';
 
 interface Props {
   children: React.ReactNode;
@@ -31,16 +32,16 @@ export default class ErrorBoundary extends React.Component<Props, State> {
         <Container size="sm" py="xl">
           <Paper withBorder shadow="sm" p="xl" ta="center">
             <IconAlertCircle size={48} color="var(--mantine-color-red-6)" />
-            <Title order={3} mt="md">Қате орын алды</Title>
+            <Title order={3} mt="md">{i18n.t('common.error')}</Title>
             <Text c="dimmed" size="sm" mt="sm">
-              {this.state.error?.message || 'Белгісіз қате'}
+              {this.state.error?.message || i18n.t('common.errorUnknown')}
             </Text>
             <Group justify="center" mt="lg">
               <Button
                 leftSection={<IconRefresh size={16} />}
                 onClick={this.handleRetry}
               >
-                Қайталау
+                {i18n.t('common.retry')}
               </Button>
             </Group>
           </Paper>

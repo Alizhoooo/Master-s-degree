@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Title, Badge, Button, Card, Table, Group, Text, Container, Alert, Modal,
 } from '@mantine/core';
@@ -27,6 +28,7 @@ const TRANSITIONS: Record<string, string[]> = {
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const { data: order, isLoading } = useOrder(Number(id));
   const updateStatus = useUpdateOrderStatus();
   const cancel = useCancelOrder();
@@ -43,10 +45,10 @@ export default function OrderDetailPage() {
         await updateStatus.mutateAsync({ id: order.id, status: newStatus });
       }
       const { showNotification } = await import('@mantine/notifications');
-      showNotification({ title: 'Сәтті', message: 'Күй жаңартылды', color: 'green' });
+      showNotification({ title: t('notification.success'), message: t('order.successUpdated'), color: 'green' });
     } catch (err: any) {
       const { showNotification } = await import('@mantine/notifications');
-      showNotification({ title: 'Қате', message: err.message, color: 'red' });
+      showNotification({ title: t('notification.error'), message: err.message, color: 'red' });
     }
   };
 
@@ -55,7 +57,7 @@ export default function OrderDetailPage() {
   if (!order) {
     return (
       <Container size="xl">
-        <Alert color="red">Тапсырыс табылмады</Alert>
+        <Alert color="red">{t('order.notFound')}</Alert>
       </Container>
     );
   }
@@ -68,54 +70,54 @@ export default function OrderDetailPage() {
     <Container size="xl">
       <Group mb="md">
         <Button component={Link} to="/orders" variant="subtle" leftSection={<IconArrowLeft size={16} />}>
-          Артқа
+          {t('common.back')}
         </Button>
       </Group>
 
       <Group justify="space-between" mb="lg">
         <Group>
-          <Title order={3}>Тапсырыс #{order.id}</Title>
+          <Title order={3}>{t('order.detail')} #{order.id}</Title>
           <Badge size="lg" color={statusColor[order.status] || 'gray'}>{order.status}</Badge>
         </Group>
         <Group>
           <Button variant="light" color="cyan" leftSection={<IconPackage size={16} />} onClick={() => setPickModalOpened(true)}>
-            Пик-парақ
+            {t('order.pickList')}
           </Button>
         </Group>
       </Group>
 
       <Card withBorder shadow="sm" p="md" mb="md">
-        <Title order={5} mb="sm">Тапсырыс ақпараты</Title>
+        <Title order={5} mb="sm">{t('order.orderInfo')}</Title>
         <Group>
           <div style={{ flex: 1 }}>
-            <Text size="sm" c="dimmed">Клиент</Text>
+            <Text size="sm" c="dimmed">{t('order.customer')}</Text>
             <Text fw={500}>{order.customer?.company || order.customer?.contactPerson || `#${order.customerId}`}</Text>
           </div>
           <div style={{ flex: 1 }}>
-            <Text size="sm" c="dimmed">Жеткізу мекенжайы</Text>
+            <Text size="sm" c="dimmed">{t('order.deliveryAddress')}</Text>
             <Text fw={500}>{order.deliveryAddress}</Text>
           </div>
           <div style={{ flex: 1 }}>
-            <Text size="sm" c="dimmed">Мерзім</Text>
+            <Text size="sm" c="dimmed">{t('order.deadline')}</Text>
             <Text fw={500}>{order.deadline ? new Date(order.deadline).toLocaleDateString() : '-'}</Text>
           </div>
           <div style={{ flex: 1 }}>
-            <Text size="sm" c="dimmed">Құрылған уақыт</Text>
+            <Text size="sm" c="dimmed">{t('order.createdDate')}</Text>
             <Text fw={500}>{new Date(order.createdAt).toLocaleString()}</Text>
           </div>
         </Group>
       </Card>
 
       <Card withBorder shadow="sm" p="md" mb="md">
-        <Title order={5} mb="sm">Тауарлар</Title>
+        <Title order={5} mb="sm">{t('order.items')}</Title>
         <Table striped highlightOnHover withTableBorder>
           <Table.Thead>
             <Table.Tr>
-              <Table.Th>Өнім</Table.Th>
-              <Table.Th>SKU</Table.Th>
-              <Table.Th>Саны</Table.Th>
-              <Table.Th>Бағасы</Table.Th>
-              <Table.Th>Сома</Table.Th>
+              <Table.Th>{t('order.name')}</Table.Th>
+              <Table.Th>{t('order.sku')}</Table.Th>
+              <Table.Th>{t('order.quantity')}</Table.Th>
+              <Table.Th>{t('order.price')}</Table.Th>
+              <Table.Th>{t('order.amount')}</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -130,22 +132,22 @@ export default function OrderDetailPage() {
             ))}
             {(!order.items || order.items.length === 0) && (
               <Table.Tr>
-                <Table.Td colSpan={5}><Text c="dimmed" ta="center">Тауарлар жоқ</Text></Table.Td>
+                <Table.Td colSpan={5}><Text c="dimmed" ta="center">{t('order.noItems')}</Text></Table.Td>
               </Table.Tr>
             )}
           </Table.Tbody>
         </Table>
         <Group justify="flex-end" mt="sm">
-          <Text size="sm" c="dimmed">Жалпы сома: </Text>
+          <Text size="sm" c="dimmed">{t('order.totalAmount')}: </Text>
           <Text fw={700}>{totalAmount.toLocaleString()} ₸</Text>
-          <Text size="sm" c="dimmed" ml="lg">Өзіндік құн: </Text>
+          <Text size="sm" c="dimmed" ml="lg">{t('order.costAmount')}: </Text>
           <Text fw={700}>{totalCost.toLocaleString()} ₸</Text>
         </Group>
       </Card>
 
       {order.status !== 'Cancelled' && order.status !== 'Delivered' && (
         <Card withBorder shadow="sm" p="md" mb="md">
-          <Title order={5} mb="sm">Күйді өзгерту</Title>
+          <Title order={5} mb="sm">{t('order.changeStatus')}</Title>
           <Group>
             {availableNext.map((nextStatus: string) => (
               <Button
@@ -154,26 +156,26 @@ export default function OrderDetailPage() {
                 onClick={() => handleStatusUpdate(nextStatus)}
                 loading={updateStatus.isPending || cancel.isPending}
               >
-                {nextStatus === 'Cancelled' ? 'Бас тарту' : nextStatus}
+                {nextStatus === 'Cancelled' ? t('order.cancel') : nextStatus}
               </Button>
             ))}
           </Group>
         </Card>
       )}
 
-      <Modal opened={pickModalOpened} onClose={() => setPickModalOpened(false)} title="Пик-парақ" size="lg">
+      <Modal opened={pickModalOpened} onClose={() => setPickModalOpened(false)} title={t('order.pickList')} size="lg">
         {pickLoading ? (
-          <Text ta="center" py="md">Жүктелуде...</Text>
+          <Text ta="center" py="md">{t('common.loading')}...</Text>
         ) : pickList.length === 0 ? (
-          <Text c="dimmed" ta="center" py="md">Пик-парақ деректері жоқ</Text>
+          <Text c="dimmed" ta="center" py="md">{t('order.pickListEmpty')}</Text>
         ) : (
           <Table striped withTableBorder>
             <Table.Thead>
               <Table.Tr>
-                <Table.Th>Өнім</Table.Th>
-                <Table.Th>SKU</Table.Th>
-                <Table.Th>Саны</Table.Th>
-                <Table.Th>Орналасуы</Table.Th>
+                <Table.Th>{t('inventory.name')}</Table.Th>
+                <Table.Th>{t('inventory.sku')}</Table.Th>
+                <Table.Th>{t('dashboard.quantity')}</Table.Th>
+                <Table.Th>{t('order.location')}</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>

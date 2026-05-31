@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Table, Button, Modal, Select, NumberInput, TextInput, Textarea, Badge,
   Group, Title, Loader, Pagination, Container, Text,
@@ -21,6 +22,7 @@ const statusColor: Record<string, string> = {
 };
 
 export default function OrdersPage() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [opened, setOpened] = useState(false);
   const limit = 20;
@@ -75,12 +77,12 @@ export default function OrdersPage() {
         notes: notes || undefined,
       });
       const { showNotification } = await import('@mantine/notifications');
-      showNotification({ title: 'Сәтті', message: 'Тапсырыс жасалды', color: 'green' });
+      showNotification({ title: t('notification.success'), message: t('order.successCreated'), color: 'green' });
       setOpened(false);
       resetForm();
     } catch (err: any) {
       const { showNotification } = await import('@mantine/notifications');
-      showNotification({ title: 'Қате', message: err.message, color: 'red' });
+      showNotification({ title: t('common.error'), message: err.message, color: 'red' });
     }
   };
 
@@ -88,10 +90,10 @@ export default function OrdersPage() {
     try {
       await cancelOrder.mutateAsync(id);
       const { showNotification } = await import('@mantine/notifications');
-      showNotification({ title: 'Сәтті', message: 'Тапсырыс болдырылмады', color: 'green' });
+      showNotification({ title: t('notification.success'), message: t('order.successCancelled'), color: 'green' });
     } catch (err: any) {
       const { showNotification } = await import('@mantine/notifications');
-      showNotification({ title: 'Қате', message: err.message, color: 'red' });
+      showNotification({ title: t('common.error'), message: err.message, color: 'red' });
     }
   };
 
@@ -104,7 +106,7 @@ export default function OrdersPage() {
     return (
       <Container size="xl">
         <Group justify="space-between" mb="md">
-          <Title order={3}>Тапсырыстар</Title>
+          <Title order={3}>{t('order.title')}</Title>
         </Group>
         <TableSkeleton rows={5} cols={7} />
       </Container>
@@ -114,22 +116,22 @@ export default function OrdersPage() {
   return (
     <Container size="xl">
       <Group justify="space-between" mb="md">
-        <Title order={3}>Тапсырыстар</Title>
+        <Title order={3}>{t('order.title')}</Title>
         <Button leftSection={<IconPlus size={16} />} onClick={() => setOpened(true)}>
-          Жаңа тапсырыс
+          {t('order.create')}
         </Button>
       </Group>
 
       <Table striped highlightOnHover withTableBorder>
         <Table.Thead>
           <Table.Tr>
-            <Table.Th>ID</Table.Th>
-            <Table.Th>Клиент</Table.Th>
-            <Table.Th>Өнімдер</Table.Th>
-            <Table.Th>Сома</Table.Th>
-            <Table.Th>Күй</Table.Th>
-            <Table.Th>Мерзім</Table.Th>
-            <Table.Th>Әрекеттер</Table.Th>
+            <Table.Th>{t('order.id')}</Table.Th>
+            <Table.Th>{t('order.customer')}</Table.Th>
+            <Table.Th>{t('order.products')}</Table.Th>
+            <Table.Th>{t('order.amount')}</Table.Th>
+            <Table.Th>{t('common.status')}</Table.Th>
+            <Table.Th>{t('order.deadline')}</Table.Th>
+            <Table.Th>{t('common.actions')}</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
@@ -155,7 +157,7 @@ export default function OrdersPage() {
                     size="xs"
                     leftSection={<IconEye size={14} />}
                   >
-                    Қарау
+                    {t('order.view')}
                   </Button>
                   {canCancel(order.status) && (
                     <Button
@@ -166,7 +168,7 @@ export default function OrdersPage() {
                       onClick={() => handleCancel(order.id)}
                       loading={cancelOrder.isPending && cancelOrder.variables === order.id}
                     >
-                      Бас тарту
+                      {t('order.cancel')}
                     </Button>
                   )}
                 </Group>
@@ -176,7 +178,7 @@ export default function OrdersPage() {
           {orders.length === 0 && (
             <Table.Tr>
               <Table.Td colSpan={7}>
-                <Text c="dimmed" ta="center" py="md">Тапсырыстар жоқ</Text>
+                <Text c="dimmed" ta="center" py="md">{t('order.noOrders')}</Text>
               </Table.Td>
             </Table.Tr>
           )}
@@ -192,12 +194,12 @@ export default function OrdersPage() {
       <Modal
         opened={opened}
         onClose={() => { setOpened(false); resetForm(); }}
-        title="Жаңа тапсырыс"
+        title={t('order.create')}
         size="lg"
       >
         <Select
-          label="Клиент"
-          placeholder="Клиентті таңдаңыз"
+          label={t('order.customer')}
+          placeholder={t('order.selectCustomer')}
           data={customerData}
           value={customerId !== null ? String(customerId) : null}
           onChange={v => setCustomerId(v ? Number(v) : null)}
@@ -209,8 +211,8 @@ export default function OrdersPage() {
         {productRows.map((row, i) => (
           <Group key={i} align="flex-end" mb="xs">
             <Select
-              label={i === 0 ? 'Өнім' : undefined}
-              placeholder="Өнімді таңдаңыз"
+              label={i === 0 ? t('inventory.name') : undefined}
+              placeholder={t('order.selectProduct')}
               data={productData}
               value={row.productId !== null ? String(row.productId) : null}
               onChange={v => updateProductRow(i, 'productId', v ? Number(v) : null)}
@@ -219,8 +221,8 @@ export default function OrdersPage() {
               style={{ flex: 1 }}
             />
             <NumberInput
-              label={i === 0 ? 'Саны' : undefined}
-              placeholder="Саны"
+              label={i === 0 ? t('dashboard.quantity') : undefined}
+              placeholder={t('dashboard.quantity')}
               value={row.quantity}
               onChange={v => updateProductRow(i, 'quantity', Number(v) || 1)}
               min={1}
@@ -236,12 +238,12 @@ export default function OrdersPage() {
         ))}
 
         <Button variant="subtle" leftSection={<IconPlus size={14} />} onClick={addProductRow} mb="sm" size="sm">
-          +Өнім қосу
+          {t('order.addProduct')}
         </Button>
 
         <TextInput
-          label="Жеткізу мекенжайы"
-          placeholder="Мекенжайды енгізіңіз"
+          label={t('order.deliveryAddress')}
+          placeholder={t('order.enterAddress')}
           value={deliveryAddress}
           onChange={e => setDeliveryAddress(e.currentTarget.value)}
           required
@@ -249,8 +251,8 @@ export default function OrdersPage() {
         />
 
         <DatePickerInput
-          label="Мерзім"
-          placeholder="Мерзімді таңдаңыз"
+          label={t('order.deadline')}
+          placeholder={t('order.selectDeadline')}
           value={deadline}
           onChange={setDeadline}
           mb="sm"
@@ -258,8 +260,8 @@ export default function OrdersPage() {
         />
 
         <Textarea
-          label="Ескертпелер"
-          placeholder="Қосымша ақпарат (міндетті емес)"
+          label={t('order.notes')}
+          placeholder={t('order.optionalInfo')}
           value={notes}
           onChange={e => setNotes(e.currentTarget.value)}
           mb="lg"
@@ -271,7 +273,7 @@ export default function OrdersPage() {
             loading={createOrder.isPending}
             disabled={!customerId || productRows.some(r => !r.productId) || !deliveryAddress.trim()}
           >
-            Тапсырыс жасау
+            {t('order.createOrder')}
           </Button>
         </Group>
       </Modal>

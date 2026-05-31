@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Container, Title, Group, Button, Table, Modal, TextInput, PasswordInput,
   Select, NumberInput, Badge, Text, Tabs,
@@ -14,6 +15,7 @@ const roleOptions = [
 ];
 
 export default function AdminPanelPage() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<string | null>('users');
   const { data: users = [], isLoading: loadingUsers, error: usersErr } = useUsers();
   const { data: logs = [], isLoading: loadingLogs } = useSystemLogs();
@@ -36,19 +38,19 @@ export default function AdminPanelPage() {
   const [roleEditModal, setRoleEditModal] = useState<{ user: any; role: string } | null>(null);
   const [betaEdit, setBetaEdit] = useState<number>(betaValue);
 
-  const error = usersErr ? (usersErr as any).message || 'Қате орын алды' : null;
+  const error = usersErr ? (usersErr as any).message || t('common.error') : null;
 
   const handleCreateUser = async () => {
     if (!newEmail || !newPassword || !newFullName || !newRole) return;
     try {
       await createUser.mutateAsync({ email: newEmail, password: newPassword, fullName: newFullName, role: newRole });
       const { showNotification } = await import('@mantine/notifications');
-      showNotification({ title: 'Сәтті', message: 'Пайдаланушы қосылды', color: 'green' });
+      showNotification({ title: t('notification.success'), message: t('admin.successCreated'), color: 'green' });
       setAddModal(false);
       setNewEmail(''); setNewPassword(''); setNewFullName(''); setNewRole('Manager');
     } catch (err: any) {
       const { showNotification } = await import('@mantine/notifications');
-      showNotification({ title: 'Қате', message: err.message, color: 'red' });
+      showNotification({ title: t('notification.error'), message: err.message, color: 'red' });
     }
   };
 
@@ -57,11 +59,11 @@ export default function AdminPanelPage() {
     try {
       await updateRole.mutateAsync({ id: roleEditModal.user.id, role: roleEditModal.role });
       const { showNotification } = await import('@mantine/notifications');
-      showNotification({ title: 'Сәтті', message: 'Рөл жаңартылды', color: 'green' });
+      showNotification({ title: t('notification.success'), message: t('admin.successRole'), color: 'green' });
       setRoleEditModal(null);
     } catch (err: any) {
       const { showNotification } = await import('@mantine/notifications');
-      showNotification({ title: 'Қате', message: err.message, color: 'red' });
+      showNotification({ title: t('notification.error'), message: err.message, color: 'red' });
     }
   };
 
@@ -69,33 +71,33 @@ export default function AdminPanelPage() {
     try {
       await setConfigMutation.mutateAsync({ key: 'beta', value: String(betaEdit) });
       const { showNotification } = await import('@mantine/notifications');
-      showNotification({ title: 'Сәтті', message: 'Конфигурация сақталды', color: 'green' });
+      showNotification({ title: t('notification.success'), message: t('admin.successConfig'), color: 'green' });
     } catch (err: any) {
       const { showNotification } = await import('@mantine/notifications');
-      showNotification({ title: 'Қате', message: err.message, color: 'red' });
+      showNotification({ title: t('notification.error'), message: err.message, color: 'red' });
     }
   };
 
   return (
     <Container size="xl">
-      <Title order={3} mb="md">Әкімші панелі</Title>
+      <Title order={3} mb="md">{t('admin.title')}</Title>
 
       {error && (
         <Text c="red" mb="md" p="xs" style={{ background: '#fff0f0', borderRadius: 4 }}>
-          Қате: {error}
+          {t('common.error')}: {error}
         </Text>
       )}
 
       <Tabs value={activeTab} onChange={setActiveTab}>
         <Tabs.List mb="md">
-          <Tabs.Tab value="users" leftSection={<IconUser size={14} />}>Пайдаланушылар</Tabs.Tab>
-          <Tabs.Tab value="config">Жүйе конфигурациясы</Tabs.Tab>
-          <Tabs.Tab value="logs">Жүйе журналы</Tabs.Tab>
+          <Tabs.Tab value="users" leftSection={<IconUser size={14} />}>{t('admin.users')}</Tabs.Tab>
+          <Tabs.Tab value="config">{t('admin.config')}</Tabs.Tab>
+          <Tabs.Tab value="logs">{t('admin.logs')}</Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="users">
           <Group justify="flex-end" mb="md">
-            <Button leftSection={<IconPlus size={16} />} onClick={() => setAddModal(true)}>Пайдаланушы қосу</Button>
+            <Button leftSection={<IconPlus size={16} />} onClick={() => setAddModal(true)}>{t('admin.addUser')}</Button>
           </Group>
 
           {loadingUsers ? (
@@ -104,12 +106,12 @@ export default function AdminPanelPage() {
             <Table striped highlightOnHover withTableBorder>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>ID</Table.Th>
-                  <Table.Th>Email</Table.Th>
-                  <Table.Th>Аты-жөні</Table.Th>
-                  <Table.Th>Рөлі</Table.Th>
-                  <Table.Th>Құрылған күні</Table.Th>
-                  <Table.Th>Әрекеттер</Table.Th>
+                  <Table.Th>{t('admin.id')}</Table.Th>
+                  <Table.Th>{t('admin.email')}</Table.Th>
+                  <Table.Th>{t('admin.fullName')}</Table.Th>
+                  <Table.Th>{t('admin.role')}</Table.Th>
+                  <Table.Th>{t('admin.createdDate')}</Table.Th>
+                  <Table.Th>{t('admin.actions')}</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -122,14 +124,14 @@ export default function AdminPanelPage() {
                     <Table.Td>{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '-'}</Table.Td>
                     <Table.Td>
                       <Button variant="light" size="xs" onClick={() => setRoleEditModal({ user: u, role: u.role })}>
-                        Рөлді өзгерту
+                        {t('admin.changeRole')}
                       </Button>
                     </Table.Td>
                   </Table.Tr>
                 ))}
                 {users.length === 0 && (
                   <Table.Tr>
-                    <Table.Td colSpan={6}><Text c="dimmed" ta="center" py="md">Пайдаланушылар жоқ</Text></Table.Td>
+                    <Table.Td colSpan={6}><Text c="dimmed" ta="center" py="md">{t('admin.noUsers')}</Text></Table.Td>
                   </Table.Tr>
                 )}
               </Table.Tbody>
@@ -143,16 +145,16 @@ export default function AdminPanelPage() {
           ) : (
             <Group mb="md" align="flex-end">
               <NumberInput
-                label="Beta мәні"
-                placeholder="Beta"
+                label={t('admin.betaLabel')}
+                placeholder={t('admin.betaLabel')}
                 value={betaEdit}
                 onChange={v => setBetaEdit(Number(v) || 0)}
                 decimalScale={4}
                 step={0.01}
                 style={{ width: 200 }}
               />
-              <Button onClick={handleSaveBeta} loading={setConfigMutation.isPending}>Сақтау</Button>
-              <Text size="sm" c="dimmed" ml="md">Компания атауы: {companyName}</Text>
+              <Button onClick={handleSaveBeta} loading={setConfigMutation.isPending}>{t('admin.save')}</Button>
+              <Text size="sm" c="dimmed" ml="md">{t('admin.companyName')}: {companyName}</Text>
             </Group>
           )}
         </Tabs.Panel>
@@ -164,10 +166,10 @@ export default function AdminPanelPage() {
             <Table striped highlightOnHover withTableBorder>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>Уақыты</Table.Th>
-                  <Table.Th>Пайдаланушы</Table.Th>
-                  <Table.Th>Әрекет</Table.Th>
-                  <Table.Th>Мәлімет</Table.Th>
+                  <Table.Th>{t('admin.time')}</Table.Th>
+                  <Table.Th>{t('admin.user')}</Table.Th>
+                  <Table.Th>{t('admin.action')}</Table.Th>
+                  <Table.Th>{t('admin.details')}</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -181,7 +183,7 @@ export default function AdminPanelPage() {
                 ))}
                 {logs.length === 0 && (
                   <Table.Tr>
-                    <Table.Td colSpan={4}><Text c="dimmed" ta="center" py="md">Журнал жазбалары жоқ</Text></Table.Td>
+                    <Table.Td colSpan={4}><Text c="dimmed" ta="center" py="md">{t('admin.noLogs')}</Text></Table.Td>
                   </Table.Tr>
                 )}
               </Table.Tbody>
@@ -190,23 +192,23 @@ export default function AdminPanelPage() {
         </Tabs.Panel>
       </Tabs>
 
-      <Modal opened={addModal} onClose={() => setAddModal(false)} title="Пайдаланушы қосу">
-        <TextInput label="Email" placeholder="Email" value={newEmail} onChange={e => setNewEmail(e.currentTarget.value)} required mb="sm" />
-        <PasswordInput label="Құпия сөз" placeholder="Құпия сөз" value={newPassword} onChange={e => setNewPassword(e.currentTarget.value)} required mb="sm" />
-        <TextInput label="Аты-жөні" placeholder="Аты-жөні" value={newFullName} onChange={e => setNewFullName(e.currentTarget.value)} required mb="sm" />
-        <Select label="Рөлі" data={roleOptions} value={newRole} onChange={setNewRole} mb="lg" />
+      <Modal opened={addModal} onClose={() => setAddModal(false)} title={t('admin.addUser')}>
+        <TextInput label={t('admin.email')} placeholder={t('admin.email')} value={newEmail} onChange={e => setNewEmail(e.currentTarget.value)} required mb="sm" />
+        <PasswordInput label={t('admin.password')} placeholder={t('admin.password')} value={newPassword} onChange={e => setNewPassword(e.currentTarget.value)} required mb="sm" />
+        <TextInput label={t('admin.fullName')} placeholder={t('admin.fullName')} value={newFullName} onChange={e => setNewFullName(e.currentTarget.value)} required mb="sm" />
+        <Select label={t('admin.role')} data={roleOptions} value={newRole} onChange={setNewRole} mb="lg" />
         <Group justify="flex-end">
-          <Button onClick={handleCreateUser} loading={createUser.isPending}>Қосу</Button>
+          <Button onClick={handleCreateUser} loading={createUser.isPending}>{t('admin.add')}</Button>
         </Group>
       </Modal>
 
-      <Modal opened={!!roleEditModal} onClose={() => setRoleEditModal(null)} title="Рөлді өзгерту">
+      <Modal opened={!!roleEditModal} onClose={() => setRoleEditModal(null)} title={t('admin.changeRole')}>
         {roleEditModal && (
           <>
-            <Text mb="sm">Пайдаланушы: {roleEditModal.user.fullName} ({roleEditModal.user.email})</Text>
-            <Select label="Жаңа рөл" data={roleOptions} value={roleEditModal.role} onChange={v => setRoleEditModal({ ...roleEditModal, role: v ?? 'Manager' })} mb="lg" />
+            <Text mb="sm">{t('admin.user')}: {roleEditModal.user.fullName} ({roleEditModal.user.email})</Text>
+            <Select label={t('admin.newRole')} data={roleOptions} value={roleEditModal.role} onChange={v => setRoleEditModal({ ...roleEditModal, role: v ?? 'Manager' })} mb="lg" />
             <Group justify="flex-end">
-              <Button onClick={handleRoleEdit} loading={updateRole.isPending}>Сақтау</Button>
+              <Button onClick={handleRoleEdit} loading={updateRole.isPending}>{t('admin.save')}</Button>
             </Group>
           </>
         )}

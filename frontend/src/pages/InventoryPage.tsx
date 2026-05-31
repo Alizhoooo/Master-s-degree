@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Tabs, Table, Button, Modal, Select, NumberInput, TextInput, Badge,
   Title, Group, Text, Loader, Container, Collapse, Alert, Card,
@@ -12,6 +13,7 @@ import { TableSkeleton } from '../components/Skeleton';
 import { useInventorySocket } from '../hooks/useSocket';
 
 export default function InventoryPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<string | null>('products');
   const socketRef = useInventorySocket();
@@ -38,14 +40,14 @@ export default function InventoryPage() {
         reason: adjustReason,
       });
       const { showNotification } = await import('@mantine/notifications');
-      showNotification({ title: 'Сәтті', message: 'Қор түзетілді', color: 'green' });
+      showNotification({ title: t('notification.success'), message: t('inventory.successAdjusted'), color: 'green' });
       setAdjustOpened(false);
       setAdjustProduct(null);
       setAdjustChange('');
       setAdjustReason('');
     } catch (err: any) {
       const { showNotification } = await import('@mantine/notifications');
-      showNotification({ title: 'Қате', message: err.message, color: 'red' });
+      showNotification({ title: t('notification.error'), message: err.message, color: 'red' });
     }
   };
 
@@ -59,7 +61,7 @@ export default function InventoryPage() {
 
   const productSelectData = products.map((p: any) => ({
     value: String(p.id),
-    label: `${p.name} (${p.sku}) — қолда: ${p.quantityOnHand}`,
+    label: `${p.name} (${p.sku}) — ${t('inventory.stock')}: ${p.quantityOnHand}`,
   }));
 
   const rowBg = (p: any): string | undefined => {
@@ -74,14 +76,14 @@ export default function InventoryPage() {
     <Container size="xl">
       <Group justify="space-between" mb="md">
         <Group>
-          <Title order={3}>Қойма</Title>
+          <Title order={3}>{t('inventory.title')}</Title>
           <Badge
             size="sm"
             variant="dot"
             color={socketRef.current?.connected ? 'green' : 'red'}
             leftSection={<IconWifi size={10} />}
           >
-            {socketRef.current?.connected ? 'Нақты уақыт' : 'Офлайн'}
+            {socketRef.current?.connected ? t('inventory.realtime') : t('inventory.offline')}
           </Badge>
         </Group>
         <Group>
@@ -91,7 +93,7 @@ export default function InventoryPage() {
               leftSection={<IconAdjustments size={16} />}
               onClick={() => setAdjustOpened(true)}
             >
-              Қорды түзету
+              {t('inventory.adjustStock')}
             </Button>
           )}
           <Button
@@ -100,7 +102,7 @@ export default function InventoryPage() {
             leftSection={<IconListDetails size={16} />}
             onClick={() => setActiveTab('priority')}
           >
-            Резервтеу приоритеті
+            {t('inventory.reservePriority')}
           </Button>
           <Button
             variant="light"
@@ -108,18 +110,18 @@ export default function InventoryPage() {
             leftSection={<IconAlertTriangle size={16} />}
             onClick={toggleAlerts}
           >
-            Қор ескертулері
+            {t('inventory.alerts')}
           </Button>
         </Group>
       </Group>
 
       <Collapse in={alertsOpened} mb="md">
         <Card withBorder shadow="sm" p="md">
-          <Title order={5} mb="sm">Қор ескертулері</Title>
+          <Title order={5} mb="sm">{t('inventory.alerts')}</Title>
           {alertsLoading ? (
             <Loader size="sm" />
           ) : stockAlerts.length === 0 ? (
-            <Text c="dimmed">Ескертулер жоқ</Text>
+            <Text c="dimmed">{t('inventory.noAlerts')}</Text>
           ) : (
             <Group>
               {stockAlerts.map((p: any) => {
@@ -131,7 +133,7 @@ export default function InventoryPage() {
                     variant="filled"
                     size="lg"
                   >
-                    {p.name} — {avail} дана
+                    {p.name} — {avail}
                   </Badge>
                 );
               })}
@@ -143,10 +145,10 @@ export default function InventoryPage() {
       <Tabs value={activeTab} onChange={setActiveTab}>
         <Tabs.List mb="md">
           <Tabs.Tab value="products" leftSection={<IconArchive size={16} />}>
-            Өнімдер
+            {t('inventory.products')}
           </Tabs.Tab>
           <Tabs.Tab value="priority" leftSection={<IconListDetails size={16} />}>
-            Резервтеу приоритеті
+            {t('inventory.reservePriority')}
           </Tabs.Tab>
         </Tabs.List>
 
@@ -157,14 +159,14 @@ export default function InventoryPage() {
             <Table striped highlightOnHover withTableBorder>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>SKU</Table.Th>
-                  <Table.Th>Атауы</Table.Th>
-                  <Table.Th>Санаты</Table.Th>
-                  <Table.Th>Бағасы</Table.Th>
-                  <Table.Th>Қолдағы</Table.Th>
-                  <Table.Th>Резервтелген</Table.Th>
-                  <Table.Th>Қолжетімді</Table.Th>
-                  <Table.Th>Тапсырыс нүктесі</Table.Th>
+                  <Table.Th>{t('inventory.sku')}</Table.Th>
+                  <Table.Th>{t('inventory.name')}</Table.Th>
+                  <Table.Th>{t('inventory.category')}</Table.Th>
+                  <Table.Th>{t('inventory.price')}</Table.Th>
+                  <Table.Th>{t('inventory.stock')}</Table.Th>
+                  <Table.Th>{t('inventory.reserved')}</Table.Th>
+                  <Table.Th>{t('inventory.available')}</Table.Th>
+                  <Table.Th>{t('inventory.orderNum')}</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -189,7 +191,7 @@ export default function InventoryPage() {
                 })}
                 {products.length === 0 && (
                   <Table.Tr>
-                    <Table.Td colSpan={8}><Text c="dimmed" ta="center" py="md">Өнімдер жоқ</Text></Table.Td>
+                    <Table.Td colSpan={8}><Text c="dimmed" ta="center" py="md">{t('inventory.noProducts')}</Text></Table.Td>
                   </Table.Tr>
                 )}
               </Table.Tbody>
@@ -204,11 +206,11 @@ export default function InventoryPage() {
               onClick={() => reserveMutation.mutate()}
               loading={reserveMutation.isPending}
             >
-              Приоритет бойынша резервтеу
+              {t('inventory.reserveByPriority')}
             </Button>
             {priorityData.length === 0 && (
               <Button variant="light" onClick={() => refetchPriority()}>
-                Деректерді жүктеу
+                {t('inventory.loadData')}
               </Button>
             )}
           </Group>
@@ -220,7 +222,7 @@ export default function InventoryPage() {
               <Card key={item.orderId} withBorder shadow="sm" p="md" mb="md">
                 <Group justify="space-between" mb="xs">
                   <Group>
-                    <Text fw={700}>Тапсырыс #{item.orderId}</Text>
+                    <Text fw={700}>{t('inventory.orderNum')} #{item.orderId}</Text>
                     <Badge size="lg" color="blue" variant="filled" style={{ fontSize: '1.2rem', padding: '0.2rem 0.8rem' }}>
                       α = {item.alpha.toFixed(4)}
                     </Badge>
@@ -228,21 +230,21 @@ export default function InventoryPage() {
                   <Badge
                     color={item.hoursUntilDeadline < 24 ? 'red' : item.hoursUntilDeadline < 72 ? 'orange' : 'green'}
                   >
-                    {item.hoursUntilDeadline.toFixed(1)} сағ
+                    {item.hoursUntilDeadline.toFixed(1)} {t('inventory.hours')}
                   </Badge>
                 </Group>
 
                 <Group mb="sm">
                   <div style={{ flex: 1 }}>
-                    <Text size="sm" c="dimmed">Клиент</Text>
+                    <Text size="sm" c="dimmed">{t('inventory.customer')}</Text>
                     <Text>{item.customerName}</Text>
                   </div>
                   <div style={{ flex: 1 }}>
-                    <Text size="sm" c="dimmed">Тиер</Text>
+                    <Text size="sm" c="dimmed">{t('inventory.available')}</Text>
                     <Text>{item.deadline ? new Date(item.deadline).toLocaleDateString() : '-'}</Text>
                   </div>
                   <div style={{ flex: 1 }}>
-                    <Text size="sm" c="dimmed">Маржа</Text>
+                    <Text size="sm" c="dimmed">{t('inventory.margin')}</Text>
                     <Text>{item.margin?.toLocaleString()} ₸</Text>
                   </div>
                 </Group>
@@ -250,11 +252,11 @@ export default function InventoryPage() {
                 <Table striped withTableBorder>
                   <Table.Thead>
                     <Table.Tr>
-                      <Table.Th>Өнім</Table.Th>
-                      <Table.Th>SKU</Table.Th>
-                      <Table.Th>Сұралған</Table.Th>
-                      <Table.Th>Қолжетімді</Table.Th>
-                      <Table.Th>Мүмкін бе?</Table.Th>
+                      <Table.Th>{t('inventory.products')}</Table.Th>
+                      <Table.Th>{t('inventory.sku')}</Table.Th>
+                      <Table.Th>{t('inventory.requested')}</Table.Th>
+                      <Table.Th>{t('inventory.available')}</Table.Th>
+                      <Table.Th>{t('inventory.possible')}</Table.Th>
                     </Table.Tr>
                   </Table.Thead>
                   <Table.Tbody>
@@ -276,7 +278,7 @@ export default function InventoryPage() {
               </Card>
             ))
           ) : (
-            <Alert color="blue">Приоритет деректері жоқ. Деректерді жүктеу үшін батырманы басыңыз.</Alert>
+            <Alert color="blue">{t('inventory.noPriorityData')} {t('inventory.loadPriorityData')}</Alert>
           )}
         </Tabs.Panel>
       </Tabs>
@@ -284,11 +286,11 @@ export default function InventoryPage() {
       <Modal
         opened={adjustOpened}
         onClose={() => { setAdjustOpened(false); setAdjustProduct(null); setAdjustChange(''); setAdjustReason(''); }}
-        title="Қорды түзету"
+        title={t('inventory.adjustStock')}
       >
         <Select
-          label="Өнім"
-          placeholder="Өнімді таңдаңыз"
+          label={t('inventory.selectProduct')}
+          placeholder={t('inventory.selectProduct')}
           data={productSelectData}
           value={adjustProduct !== null ? String(adjustProduct) : null}
           onChange={v => setAdjustProduct(v ? Number(v) : null)}
@@ -297,16 +299,16 @@ export default function InventoryPage() {
           mb="sm"
         />
         <NumberInput
-          label="Өзгеріс мөлшері (+/-)"
-          placeholder="Мысалы: 10 немесе -5"
+          label={t('inventory.changeAmount')}
+          placeholder={t('inventory.exampleChange')}
           value={adjustChange}
           onChange={v => setAdjustChange(v === '' ? '' : Number(v))}
           required
           mb="sm"
         />
         <TextInput
-          label="Себебі"
-          placeholder="Түзету себебін енгізіңіз"
+          label={t('inventory.reason')}
+          placeholder={t('inventory.enterReason')}
           value={adjustReason}
           onChange={e => setAdjustReason(e.currentTarget.value)}
           required
@@ -318,7 +320,7 @@ export default function InventoryPage() {
             loading={adjustMutation.isPending}
             disabled={!adjustProduct || adjustChange === '' || !adjustReason.trim()}
           >
-            Сақтау
+            {t('common.save')}
           </Button>
         </Group>
       </Modal>

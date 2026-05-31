@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../store/AuthContext';
 import ThemeToggle from '../ThemeToggle';
 import LanguageToggle from '../LanguageToggle';
+import AlmatyTime from '../AlmatyTime';
 import {
   IconLayoutDashboard, IconShoppingCart, IconPackage, IconUsers, IconReport,
   IconRobot, IconSettings, IconLogout, IconMenu2, IconAlertCircle, IconUser
@@ -53,6 +54,7 @@ export default function AppLayout() {
             <Text size="xs" c="dimmed">{t('app.subtitle')}</Text>
           </Group>
           <Group gap="xs">
+            <AlmatyTime />
             <LanguageToggle />
             <ThemeToggle />
             <Menu shadow="md" width={200}>

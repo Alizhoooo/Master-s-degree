@@ -2,6 +2,7 @@ import React from 'react';
 import { Container, Grid, Card, Text, Group, Title, SimpleGrid, Table } from '@mantine/core';
 import { IconShoppingCart, IconCash, IconClock, IconPercentage } from '@tabler/icons-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { useTranslation } from 'react-i18next';
 import { useDashboard } from '../api/hooks';
 import { CardSkeleton } from '../components/Skeleton';
 
@@ -11,40 +12,41 @@ const formatCurrency = (value: number) =>
 const COLORS = ['#1a237e', '#42a5f5', '#66bb6a', '#ffa726', '#ef5350', '#ab47bc', '#26c6da'];
 
 export default function DashboardPage() {
+  const { t } = useTranslation();
   const { data, isLoading } = useDashboard();
 
   if (isLoading) {
     return (
       <Container size="xl">
-        <Title order={3} mb="lg">Бүгінгі шолу</Title>
+        <Title order={3} mb="lg">{t('dashboard.title')}</Title>
         <CardSkeleton count={4} />
       </Container>
     );
   }
 
-  if (!data) return <Container><Text>Деректер жоқ</Text></Container>;
+  if (!data) return <Container><Text>{t('common.noData')}</Text></Container>;
 
   const statCards = [
     {
-      label: 'Бүгінгі тапсырыстар',
+      label: t('dashboard.todayOrders'),
       value: data.totalOrdersToday,
       icon: IconShoppingCart,
       color: 'blue',
     },
     {
-      label: 'Бүгінгі кіріс',
+      label: t('dashboard.todayRevenue'),
       value: formatCurrency(data.revenueToday),
       icon: IconCash,
       color: 'green',
     },
     {
-      label: 'Күтілетін тапсырыстар',
+      label: t('dashboard.pendingOrders'),
       value: data.pendingOrders,
       icon: IconClock,
       color: 'orange',
     },
     {
-      label: 'Қойма дәлдігі',
+      label: t('dashboard.inventoryAccuracy'),
       value: `${data.inventoryAccuracy}%`,
       icon: IconPercentage,
       color: 'teal',
@@ -53,7 +55,7 @@ export default function DashboardPage() {
 
   return (
     <Container size="xl">
-      <Title order={3} mb="lg">Бүгінгі шолу</Title>
+      <Title order={3} mb="lg">{t('dashboard.title')}</Title>
 
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} mb="xl">
         {statCards.map((card) => {
@@ -75,7 +77,7 @@ export default function DashboardPage() {
       <Grid mb="xl">
         <Grid.Col span={{ base: 12, md: 6 }}>
           <Card withBorder shadow="sm" p="md">
-            <Title order={5} mb="md">Күнделікті тапсырыстар</Title>
+            <Title order={5} mb="md">{t('dashboard.dailyOrders')}</Title>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={data.ordersPerDay}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -89,7 +91,7 @@ export default function DashboardPage() {
         </Grid.Col>
         <Grid.Col span={{ base: 12, md: 6 }}>
           <Card withBorder shadow="sm" p="md">
-            <Title order={5} mb="md">Тапсырыс күйі бойынша бөлініс</Title>
+            <Title order={5} mb="md">{t('dashboard.orderStatusBreakdown')}</Title>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -115,7 +117,7 @@ export default function DashboardPage() {
       <Grid>
         <Grid.Col span={{ base: 12, md: 6 }}>
           <Card withBorder shadow="sm" p="md">
-            <Title order={5} mb="md">Кіріс динамикасы</Title>
+            <Title order={5} mb="md">{t('dashboard.revenueTrend')}</Title>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={data.revenueTrend}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -129,14 +131,14 @@ export default function DashboardPage() {
         </Grid.Col>
         <Grid.Col span={{ base: 12, md: 6 }}>
           <Card withBorder shadow="sm" p="md">
-            <Title order={5} mb="md">Үздік өнімдер</Title>
+            <Title order={5} mb="md">{t('dashboard.topProducts')}</Title>
             <Table>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>Өнім</Table.Th>
+                  <Table.Th>{t('inventory.name')}</Table.Th>
                   <Table.Th>SKU</Table.Th>
-                  <Table.Th>Саны</Table.Th>
-                  <Table.Th>Кіріс</Table.Th>
+                  <Table.Th>{t('dashboard.quantity')}</Table.Th>
+                  <Table.Th>{t('dashboard.revenue')}</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>

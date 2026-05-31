@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, Link } from 'react-router-dom';
 import {
   Title, Badge, Button, Card, Tabs, Table, Textarea, TextInput, Group, Text, Container, Alert,
@@ -20,6 +21,7 @@ const complaintStatusColor: Record<string, string> = {
 };
 
 export default function CustomerDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const { data: customer, isLoading } = useCustomer(Number(id));
   const contactLogMutation = useAddContactLog();
@@ -34,11 +36,11 @@ export default function CustomerDetailPage() {
     try {
       await contactLogMutation.mutateAsync({ customerId: customer.id, note: contactNote });
       const { showNotification } = await import('@mantine/notifications');
-      showNotification({ title: 'Сәтті', message: 'Жазба қосылды', color: 'green' });
+      showNotification({ title: t('notification.success'), message: t('customer.successCreated'), color: 'green' });
       setContactNote('');
     } catch (err: any) {
       const { showNotification } = await import('@mantine/notifications');
-      showNotification({ title: 'Қате', message: err.message, color: 'red' });
+      showNotification({ title: t('notification.error'), message: err.message, color: 'red' });
     }
   };
 
@@ -47,12 +49,12 @@ export default function CustomerDetailPage() {
     try {
       await complaintMutation.mutateAsync({ customerId: customer.id, title: compTitle, description: compDesc });
       const { showNotification } = await import('@mantine/notifications');
-      showNotification({ title: 'Сәтті', message: 'Шағым қосылды', color: 'green' });
+      showNotification({ title: t('notification.success'), message: t('customer.successCreated'), color: 'green' });
       setCompTitle('');
       setCompDesc('');
     } catch (err: any) {
       const { showNotification } = await import('@mantine/notifications');
-      showNotification({ title: 'Қате', message: err.message, color: 'red' });
+      showNotification({ title: t('notification.error'), message: err.message, color: 'red' });
     }
   };
 
@@ -61,7 +63,7 @@ export default function CustomerDetailPage() {
   if (!customer) {
     return (
       <Container size="xl">
-        <Alert color="red">Клиент табылмады</Alert>
+        <Alert color="red">{t('customer.notFound')}</Alert>
       </Container>
     );
   }
@@ -70,7 +72,7 @@ export default function CustomerDetailPage() {
     <Container size="xl">
       <Group mb="md">
         <Button component={Link} to="/customers" variant="subtle" leftSection={<IconArrowLeft size={16} />}>
-          Артқа
+          {t('common.back')}
         </Button>
       </Group>
 
@@ -80,30 +82,30 @@ export default function CustomerDetailPage() {
       </Group>
 
       <Card withBorder shadow="sm" p="md" mb="md">
-        <Title order={5} mb="sm">Клиент ақпараты</Title>
+        <Title order={5} mb="sm">{t('customer.info')}</Title>
         <Group>
           <div style={{ flex: 1 }}>
-            <Text size="sm" c="dimmed">Байланыс тұлға</Text>
+            <Text size="sm" c="dimmed">{t('customer.contactPerson')}</Text>
             <Text fw={500}>{customer.contactPerson}</Text>
           </div>
           <div style={{ flex: 1 }}>
-            <Text size="sm" c="dimmed">Телефон</Text>
+            <Text size="sm" c="dimmed">{t('customer.phone')}</Text>
             <Text fw={500}>{customer.phone}</Text>
           </div>
           <div style={{ flex: 1 }}>
-            <Text size="sm" c="dimmed">Email</Text>
+            <Text size="sm" c="dimmed">{t('customer.email')}</Text>
             <Text fw={500}>{customer.email}</Text>
           </div>
           <div style={{ flex: 1 }}>
-            <Text size="sm" c="dimmed">Тапсырыстар саны</Text>
+            <Text size="sm" c="dimmed">{t('customer.orderHistory')}</Text>
             <Text fw={500}>{customer.totalOrders}</Text>
           </div>
           <div style={{ flex: 1 }}>
-            <Text size="sm" c="dimmed">Соңғы тапсырыс</Text>
+            <Text size="sm" c="dimmed">{t('customer.info')}</Text>
             <Text fw={500}>{customer.lastOrderDate ? new Date(customer.lastOrderDate).toLocaleDateString() : '-'}</Text>
           </div>
           <div style={{ flex: 1 }}>
-            <Text size="sm" c="dimmed">Құрылған уақыт</Text>
+            <Text size="sm" c="dimmed">{t('customer.createdDate')}</Text>
             <Text fw={500}>{new Date(customer.createdAt).toLocaleString()}</Text>
           </div>
         </Group>
@@ -111,9 +113,9 @@ export default function CustomerDetailPage() {
 
       <Tabs defaultValue="orders">
         <Tabs.List>
-          <Tabs.Tab value="orders">Тапсырыс тарихы</Tabs.Tab>
-          <Tabs.Tab value="contactLog">Байланыс журналы</Tabs.Tab>
-          <Tabs.Tab value="complaints">Шағымдар</Tabs.Tab>
+          <Tabs.Tab value="orders">{t('customer.orderHistory')}</Tabs.Tab>
+          <Tabs.Tab value="contactLog">{t('customer.contactLog')}</Tabs.Tab>
+          <Tabs.Tab value="complaints">{t('customer.complaints')}</Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="orders" pt="md">
@@ -121,9 +123,9 @@ export default function CustomerDetailPage() {
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>ID</Table.Th>
-                <Table.Th>Күй</Table.Th>
-                <Table.Th>Сома</Table.Th>
-                <Table.Th>Күні</Table.Th>
+                <Table.Th>{t('order.status')}</Table.Th>
+                <Table.Th>{t('order.amount')}</Table.Th>
+                <Table.Th>{t('order.date')}</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -141,7 +143,7 @@ export default function CustomerDetailPage() {
               ))}
               {(!customer.orders || customer.orders.length === 0) && (
                 <Table.Tr>
-                  <Table.Td colSpan={4}><Text c="dimmed" ta="center" py="md">Тапсырыстар жоқ</Text></Table.Td>
+                  <Table.Td colSpan={4}><Text c="dimmed" ta="center" py="md">{t('customer.noOrders')}</Text></Table.Td>
                 </Table.Tr>
               )}
             </Table.Tbody>
@@ -158,12 +160,12 @@ export default function CustomerDetailPage() {
             </Card>
           ))}
           {(!customer.contactLogs || customer.contactLogs.length === 0) && (
-            <Text c="dimmed" ta="center" py="md">Байланыс жазбалары жоқ</Text>
+            <Text c="dimmed" ta="center" py="md">{t('customer.noContactLogs')}</Text>
           )}
 
           <Textarea
-            label="Жаңа жазба"
-            placeholder="Жазба мәтіні"
+            label={t('customer.newContactLog')}
+            placeholder={t('customer.contactLogPlaceholder')}
             value={contactNote}
             onChange={e => setContactNote(e.currentTarget.value)}
             minRows={3}
@@ -176,7 +178,7 @@ export default function CustomerDetailPage() {
             loading={contactLogMutation.isPending}
             disabled={!contactNote.trim()}
           >
-            Қосу
+            {t('common.add')}
           </Button>
         </Tabs.Panel>
 
@@ -192,19 +194,19 @@ export default function CustomerDetailPage() {
             </Card>
           ))}
           {(!customer.complaints || customer.complaints.length === 0) && (
-            <Text c="dimmed" ta="center" py="md">Шағымдар жоқ</Text>
+            <Text c="dimmed" ta="center" py="md">{t('customer.noComplaints')}</Text>
           )}
 
           <TextInput
-            label="Жаңа шағым"
-            placeholder="Тақырыбы"
+            label={t('customer.newComplaint')}
+            placeholder={t('customer.complaintTitle')}
             value={compTitle}
             onChange={e => setCompTitle(e.currentTarget.value)}
             mb="sm"
             mt="md"
           />
           <Textarea
-            placeholder="Сипаттамасы"
+            placeholder={t('customer.complaintDesc')}
             value={compDesc}
             onChange={e => setCompDesc(e.currentTarget.value)}
             minRows={3}
@@ -216,7 +218,7 @@ export default function CustomerDetailPage() {
             loading={complaintMutation.isPending}
             disabled={!compTitle.trim() || !compDesc.trim()}
           >
-            Шағым қосу
+            {t('customer.addComplaint')}
           </Button>
         </Tabs.Panel>
       </Tabs>
