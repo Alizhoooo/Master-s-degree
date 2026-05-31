@@ -1,28 +1,36 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { AppShell, Group, Text, NavLink, ActionIcon, Avatar, Menu, Box, ScrollArea } from '@mantine/core';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../store/AuthContext';
+import ThemeToggle from '../ThemeToggle';
+import LanguageToggle from '../LanguageToggle';
 import {
   IconLayoutDashboard, IconShoppingCart, IconPackage, IconUsers, IconReport,
   IconRobot, IconSettings, IconLogout, IconMenu2, IconAlertCircle, IconUser
 } from '@tabler/icons-react';
 
-const navItems = [
-  { label: 'Бақылау тақтасы', icon: IconLayoutDashboard, path: '/' },
-  { label: 'Тапсырыстар', icon: IconShoppingCart, path: '/orders' },
-  { label: 'Қойма', icon: IconPackage, path: '/inventory' },
-  { label: 'Клиенттер', icon: IconUsers, path: '/customers' },
-  { label: 'Шағымдар', icon: IconAlertCircle, path: '/complaints' },
-  { label: 'Есептер', icon: IconReport, path: '/reports' },
-  { label: 'ЖИ болжамдар', icon: IconRobot, path: '/ai' },
-  { label: 'Админ', icon: IconSettings, path: '/admin' },
-];
+const useNavItems = () => {
+  const { t } = useTranslation();
+  return [
+    { label: t('nav.dashboard'), icon: IconLayoutDashboard, path: '/' },
+    { label: t('nav.orders'), icon: IconShoppingCart, path: '/orders' },
+    { label: t('nav.inventory'), icon: IconPackage, path: '/inventory' },
+    { label: t('nav.customers'), icon: IconUsers, path: '/customers' },
+    { label: t('nav.complaints'), icon: IconAlertCircle, path: '/complaints' },
+    { label: t('nav.reports'), icon: IconReport, path: '/reports' },
+    { label: t('nav.ai'), icon: IconRobot, path: '/ai' },
+    { label: t('nav.admin'), icon: IconSettings, path: '/admin' },
+  ];
+};
 
 export default function AppLayout() {
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const [opened, setOpened] = useState(false);
+  const navItems = useNavItems();
 
   const handleLogout = () => {
     logout();
@@ -42,9 +50,12 @@ export default function AppLayout() {
               <IconMenu2 size={20} />
             </ActionIcon>
             <Text fw={700} size="lg" c="blue.9">SupplyFlow</Text>
-            <Text size="xs" c="dimmed">Бизнес процестерді басқару жүйесі</Text>
+            <Text size="xs" c="dimmed">{t('app.subtitle')}</Text>
           </Group>
-          <Menu shadow="md" width={200}>
+          <Group gap="xs">
+            <LanguageToggle />
+            <ThemeToggle />
+            <Menu shadow="md" width={200}>
             <Menu.Target>
               <Group style={{ cursor: 'pointer' }} gap="xs">
                 <Avatar size="sm" color="blue" radius="xl">
@@ -61,10 +72,11 @@ export default function AppLayout() {
                 {user?.fullName}
               </Menu.Item>
               <Menu.Item leftSection={<IconLogout size={14} />} color="red" onClick={handleLogout}>
-                Шығу
+                {t('auth.logout')}
               </Menu.Item>
             </Menu.Dropdown>
           </Menu>
+        </Group>
         </Group>
       </AppShell.Header>
 
