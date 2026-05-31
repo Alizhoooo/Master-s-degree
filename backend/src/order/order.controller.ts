@@ -53,12 +53,26 @@ export class OrderController {
     return this.orderService.updateStatus(+id, body.status, req.user.id);
   }
 
+  @Post('bulk-status')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Bulk update order statuses' })
+  bulkStatus(@Body() body: { ids: number[]; status: string }, @Request() req) {
+    return this.orderService.bulkUpdateStatus(body.ids, body.status, req.user.id);
+  }
+
   @Post(':id/cancel')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Cancel order' })
   @ApiParam({ name: 'id', type: Number })
   cancelOrder(@Param('id') id: string) {
     return this.orderService.cancelOrder(+id);
+  }
+
+  @Get(':id/timeline')
+  @ApiOperation({ summary: 'Get order status change timeline' })
+  @ApiParam({ name: 'id', type: Number })
+  getTimeline(@Param('id') id: string) {
+    return this.orderService.getTimeline(+id);
   }
 
   @Get(':id/pick-list')

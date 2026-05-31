@@ -12,9 +12,14 @@ export class ReportController {
   constructor(private reportService: ReportService) {}
 
   @Get('dashboard')
-  @ApiOperation({ summary: 'Get dashboard statistics' })
-  getDashboard() {
-    return this.reportService.getDashboard();
+  @ApiOperation({ summary: 'Get dashboard statistics with optional date range' })
+  @ApiQuery({ name: 'dateFrom', required: false })
+  @ApiQuery({ name: 'dateTo', required: false })
+  getDashboard(
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
+  ) {
+    return this.reportService.getDashboard(dateFrom, dateTo);
   }
 
   @Get()

@@ -1,6 +1,7 @@
-import React from 'react';
-import { Container, Grid, Card, Text, Group, Title, SimpleGrid, Table } from '@mantine/core';
-import { IconShoppingCart, IconCash, IconClock, IconPercentage } from '@tabler/icons-react';
+import React, { useState } from 'react';
+import { Container, Grid, Card, Text, Group, Title, SimpleGrid, Table, Button } from '@mantine/core';
+import { DatePickerInput } from '@mantine/dates';
+import { IconShoppingCart, IconCash, IconClock, IconPercentage, IconFilter, IconX } from '@tabler/icons-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { useTranslation } from 'react-i18next';
 import { useDashboard } from '../api/hooks';
@@ -13,7 +14,22 @@ const COLORS = ['#1a237e', '#42a5f5', '#66bb6a', '#ffa726', '#ef5350', '#ab47bc'
 
 export default function DashboardPage() {
   const { t } = useTranslation();
-  const { data, isLoading } = useDashboard();
+  const [dateFrom, setDateFrom] = useState<Date | null>(null);
+  const [dateTo, setDateTo] = useState<Date | null>(null);
+
+  const buildFilters = () => {
+    const f: Record<string, string> = {};
+    if (dateFrom) f.dateFrom = dateFrom.toISOString();
+    if (dateTo) f.dateTo = dateTo.toISOString();
+    return Object.keys(f).length > 0 ? f : undefined;
+  };
+
+  const { data, isLoading, refetch } = useDashboard(buildFilters());
+
+  const clearFilters = () => {
+    setDateFrom(null);
+    setDateTo(null);
+  };
 
   if (isLoading) {
     return (
@@ -55,7 +71,19 @@ export default function DashboardPage() {
 
   return (
     <Container size="xl">
-      <Title order={3} mb="lg">{t('dashboard.title')}</Title>
+      <Group justify="space-between" mb="lg">
+        <Title order={3}>{t('dashboard.title')}</Title>
+        <Group gap="xs">
+          <DatePickerInput placeholder={t('report.dateFrom')} value={dateFrom} onChange={setDateFrom} clearable size="xs" />
+          <DatePickerInput placeholder={t('report.dateTo')} value={dateTo} onChange={setDateTo} clearable size="xs" />
+          <Button size="xs" leftSection={<IconFilter size={14} />} onClick={() => refetch()}>{t('report.applyFilter')}</Button>
+          {(dateFrom || dateTo) && (
+            <Button size="xs" variant="light" color="gray" leftSection={<IconX size={14} />} onClick={clearFilters}>
+              {t('common.clear')}
+            </Button>
+          )}
+        </Group>
+      </Group>
 
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} mb="xl">
         {statCards.map((card) => {

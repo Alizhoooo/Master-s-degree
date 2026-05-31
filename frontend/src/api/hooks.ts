@@ -5,7 +5,7 @@ import {
   getDashboard, getReports, exportCsv,
   getCustomers, getCustomer, createCustomer, updateCustomer, addContactLog,
   getComplaints, createComplaint, updateComplaintStatus,
-  getOrders, getOrder, createOrder, updateOrderStatus, cancelOrder, getPickList,
+  getOrders, getOrder, createOrder, updateOrderStatus, cancelOrder, getPickList, getOrderTimeline, bulkUpdateOrderStatus,
   getForecast, getAnomalies,
   getUsers, createUser, updateUserRole,
   getConfig, setConfig, getSystemLogs,
@@ -54,10 +54,10 @@ export function useInventoryLogs() {
   });
 }
 
-export function useDashboard() {
+export function useDashboard(filters?: Record<string, string>) {
   return useQuery({
-    queryKey: ['dashboard'],
-    queryFn: getDashboard,
+    queryKey: ['dashboard', filters],
+    queryFn: () => getDashboard(filters),
     staleTime: 30000,
   });
 }
@@ -118,6 +118,14 @@ export function usePickList(id: number) {
   return useQuery({
     queryKey: ['pickList', id],
     queryFn: () => getPickList(id),
+    enabled: !!id,
+  });
+}
+
+export function useOrderTimeline(id: number) {
+  return useQuery({
+    queryKey: ['orderTimeline', id],
+    queryFn: () => getOrderTimeline(id),
     enabled: !!id,
   });
 }
@@ -222,6 +230,17 @@ export function useCancelOrder() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => cancelOrder(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+  });
+}
+
+export function useBulkUpdateStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ ids, status }: { ids: number[]; status: string }) => bulkUpdateOrderStatus(ids, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });

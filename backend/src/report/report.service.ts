@@ -5,17 +5,19 @@ import { PrismaService } from '../common/prisma.service';
 export class ReportService {
   constructor(private prisma: PrismaService) {}
 
-  async getDashboard() {
+  async getDashboard(dateFrom?: string, dateTo?: string) {
     const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+    const df = dateFrom ? new Date(dateFrom) : new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const dt = dateTo ? new Date(dateTo) : new Date(df.getTime() + 24 * 60 * 60 * 1000);
 
-    const todayOrders = await this.prisma.order.findMany({
-      where: { createdAt: { gte: todayStart, lt: todayEnd } },
+    const rangeOrders = await this.prisma.order.findMany({
+      where: {
+        createdAt: { gte: df, lt: dt },
+      },
     });
 
-    const totalOrdersToday = todayOrders.length;
-    const revenueToday = todayOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+    const totalOrdersInRange = rangeOrders.length;
+    const revenueInRange = rangeOrders.reduce((sum, o) => sum + o.totalAmount, 0);
 
     const pendingOrders = await this.prisma.order.count({
       where: { status: 'Pending' },
@@ -26,17 +28,21 @@ export class ReportService {
     const accurateProducts = products.filter(p => p.quantityOnHand >= 0).length;
     const inventoryAccuracy = totalProducts > 0 ? (accurateProducts / totalProducts) * 100 : 100;
 
-    const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const ordersLast7 = await this.prisma.order.findMany({
-      where: { createdAt: { gte: last7Days } },
+    const windowStart = dateFrom ? new Date(dateFrom) : new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const windowEnd = dateTo ? new Date(dateTo) : now;
+    const ordersInWindow = await this.prisma.order.findMany({
+      where: {
+        createdAt: { gte: windowStart, lte: windowEnd },
+      },
       orderBy: { createdAt: 'asc' },
     });
 
+    const dayCount = Math.max(1, Math.ceil((windowEnd.getTime() - windowStart.getTime()) / (24 * 60 * 60 * 1000)));
     const ordersPerDay: { date: string; count: number; revenue: number }[] = [];
-    for (let i = 6; i >= 0; i--) {
-      const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    for (let i = dayCount - 1; i >= 0; i--) {
+      const dayStart = new Date(windowEnd.getTime() - i * 24 * 60 * 60 * 1000);
       const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
-      const dayOrders = ordersLast7.filter(o => o.createdAt >= dayStart && o.createdAt < dayEnd);
+      const dayOrders = ordersInWindow.filter(o => o.createdAt >= dayStart && o.createdAt < dayEnd);
       ordersPerDay.push({
         date: dayStart.toISOString().split('T')[0],
         count: dayOrders.length,
@@ -44,24 +50,37 @@ export class ReportService {
       });
     }
 
-    const allOrders = await this.prisma.order.findMany();
+    const allOrders = dateFrom || dateTo
+      ? await this.prisma.order.findMany({
+          where: {
+            createdAt: {
+              ...(dateFrom ? { gte: new Date(dateFrom) } : {}),
+              ...(dateTo ? { lte: new Date(dateTo) } : {}),
+            },
+          },
+        })
+      : await this.prisma.order.findMany();
     const statuses = ['Pending', 'Confirmed', 'Reserved', 'Paid', 'Picked', 'Shipped', 'Delivered', 'Cancelled'];
     const orderStatusDistribution = statuses.map(status => ({
       status,
       count: allOrders.filter(o => o.status === status).length,
     }));
 
-    const last30Days = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    const ordersLast30 = await this.prisma.order.findMany({
-      where: { createdAt: { gte: last30Days } },
+    const trendStart = dateFrom ? new Date(dateFrom) : new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const trendEnd = dateTo ? new Date(dateTo) : now;
+    const ordersTrend = await this.prisma.order.findMany({
+      where: {
+        createdAt: { gte: trendStart, lte: trendEnd },
+      },
       orderBy: { createdAt: 'asc' },
     });
 
+    const trendDayCount = Math.max(1, Math.ceil((trendEnd.getTime() - trendStart.getTime()) / (24 * 60 * 60 * 1000)));
     const revenueTrend: { date: string; revenue: number }[] = [];
-    for (let i = 29; i >= 0; i--) {
-      const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    for (let i = trendDayCount - 1; i >= 0; i--) {
+      const dayStart = new Date(trendEnd.getTime() - i * 24 * 60 * 60 * 1000);
       const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
-      const dayOrders = ordersLast30.filter(o => o.createdAt >= dayStart && o.createdAt < dayEnd);
+      const dayOrders = ordersTrend.filter(o => o.createdAt >= dayStart && o.createdAt < dayEnd);
       revenueTrend.push({
         date: dayStart.toISOString().split('T')[0],
         revenue: dayOrders.reduce((sum, o) => sum + o.totalAmount, 0),
@@ -91,8 +110,8 @@ export class ReportService {
       .slice(0, 5);
 
     return {
-      totalOrdersToday,
-      revenueToday,
+      totalOrdersToday: totalOrdersInRange,
+      revenueToday: revenueInRange,
       pendingOrders,
       inventoryAccuracy: Math.round(inventoryAccuracy * 100) / 100,
       ordersPerDay,

@@ -166,6 +166,19 @@ export class OrderService {
     return updated;
   }
 
+  async bulkUpdateStatus(ids: number[], status: string, userId: number) {
+    const results = [];
+    for (const id of ids) {
+      try {
+        const updated = await this.updateStatus(id, status, userId);
+        results.push({ id, success: true, order: updated });
+      } catch (e: any) {
+        results.push({ id, success: false, error: e.message });
+      }
+    }
+    return results;
+  }
+
   async cancelOrder(id: number) {
     const order = await this.prisma.order.findUnique({
       where: { id },
@@ -196,6 +209,28 @@ export class OrderService {
     return this.prisma.order.update({
       where: { id },
       data: { status: 'Cancelled' },
+    });
+  }
+
+  async getTimeline(id: number) {
+    const logs = await this.prisma.systemLog.findMany({
+      where: {
+        action: { contains: `Order #${id} status changed` },
+      },
+      include: { user: true },
+      orderBy: { createdAt: 'asc' },
+    });
+    return logs.map(log => {
+      const match = log.details?.match(/From (\w+) to (\w+)/);
+      return {
+        id: log.id,
+        fromStatus: match ? match[1] : null,
+        toStatus: match ? match[2] : null,
+        action: log.action,
+        details: log.details,
+        user: log.user ? { id: log.user.id, fullName: log.user.fullName } : null,
+        createdAt: log.createdAt,
+      };
     });
   }
 

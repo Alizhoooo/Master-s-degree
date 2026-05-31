@@ -6,8 +6,8 @@ import {
   Group, Title, Loader, Pagination, Container, Text,
 } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
-import { IconPlus, IconEye, IconX } from '@tabler/icons-react';
-import { useOrders, useCustomers, useProducts, useCreateOrder, useCancelOrder } from '../api/hooks';
+import { IconPlus, IconEye, IconX, IconCheck } from '@tabler/icons-react';
+import { useOrders, useCustomers, useProducts, useCreateOrder, useCancelOrder, useBulkUpdateStatus } from '../api/hooks';
 import { TableSkeleton } from '../components/Skeleton';
 
 const statusColor: Record<string, string> = {
@@ -27,11 +27,40 @@ export default function OrdersPage() {
   const [opened, setOpened] = useState(false);
   const limit = 20;
 
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [bulkStatus, setBulkStatus] = useState<string | null>('Confirmed');
+
   const { data: ordersRes, isLoading } = useOrders({ page: String(page), limit: String(limit) });
   const { data: customers = [] } = useCustomers();
   const { data: products = [] } = useProducts();
   const createOrder = useCreateOrder();
   const cancelOrder = useCancelOrder();
+  const bulkUpdate = useBulkUpdateStatus();
+
+  const toggleSelect = (id: number) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === orders.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(orders.map((o: any) => o.id));
+    }
+  };
+
+  const handleBulkStatus = async () => {
+    if (!bulkStatus || selectedIds.length === 0) return;
+    try {
+      await bulkUpdate.mutateAsync({ ids: selectedIds, status: bulkStatus });
+      const { showNotification } = await import('@mantine/notifications');
+      showNotification({ title: t('notification.success'), message: `${selectedIds.length} тапсырыс жаңартылды`, color: 'green' });
+      setSelectedIds([]);
+    } catch (err: any) {
+      const { showNotification } = await import('@mantine/notifications');
+      showNotification({ title: t('common.error'), message: err.message, color: 'red' });
+    }
+  };
 
   const orders = Array.isArray(ordersRes) ? ordersRes : (ordersRes?.data ?? ordersRes?.orders ?? []);
   const total = ordersRes?.total ?? orders.length;
@@ -108,7 +137,7 @@ export default function OrdersPage() {
         <Group justify="space-between" mb="md">
           <Title order={3}>{t('order.title')}</Title>
         </Group>
-        <TableSkeleton rows={5} cols={7} />
+        <TableSkeleton rows={5} cols={8} />
       </Container>
     );
   }
@@ -122,9 +151,28 @@ export default function OrdersPage() {
         </Button>
       </Group>
 
+      {selectedIds.length > 0 && (
+        <Group mb="sm" p="xs" style={{ background: 'var(--mantine-color-blue-0)', borderRadius: 8 }}>
+          <Text size="sm" fw={500}>{selectedIds.length} таңдалды</Text>
+          <Select
+            size="xs"
+            data={['Confirmed', 'Reserved', 'Paid', 'Picked', 'Shipped', 'Delivered', 'Cancelled']}
+            value={bulkStatus}
+            onChange={setBulkStatus}
+            style={{ width: 140 }}
+          />
+          <Button size="xs" leftSection={<IconCheck size={14} />} onClick={handleBulkStatus} loading={bulkUpdate.isPending}>
+            {t('order.changeStatus')}
+          </Button>
+        </Group>
+      )}
+
       <Table striped highlightOnHover withTableBorder>
         <Table.Thead>
           <Table.Tr>
+            <Table.Th>
+              <input type="checkbox" checked={selectedIds.length === orders.length && orders.length > 0} onChange={toggleSelectAll} />
+            </Table.Th>
             <Table.Th>{t('order.id')}</Table.Th>
             <Table.Th>{t('order.customer')}</Table.Th>
             <Table.Th>{t('order.products')}</Table.Th>
@@ -136,7 +184,10 @@ export default function OrdersPage() {
         </Table.Thead>
         <Table.Tbody>
           {orders.map((order: any) => (
-            <Table.Tr key={order.id}>
+            <Table.Tr key={order.id} style={{ background: selectedIds.includes(order.id) ? 'var(--mantine-color-blue-0)' : undefined }}>
+              <Table.Td>
+                <input type="checkbox" checked={selectedIds.includes(order.id)} onChange={() => toggleSelect(order.id)} />
+              </Table.Td>
               <Table.Td>{order.id}</Table.Td>
               <Table.Td>{order.customer?.company || order.customer?.contactPerson || `#${order.customerId}`}</Table.Td>
               <Table.Td>
@@ -177,7 +228,7 @@ export default function OrdersPage() {
           ))}
           {orders.length === 0 && (
             <Table.Tr>
-              <Table.Td colSpan={7}>
+              <Table.Td colSpan={8}>
                 <Text c="dimmed" ta="center" py="md">{t('order.noOrders')}</Text>
               </Table.Td>
             </Table.Tr>

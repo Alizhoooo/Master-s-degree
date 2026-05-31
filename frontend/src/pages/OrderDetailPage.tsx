@@ -4,10 +4,11 @@ import { useTranslation } from 'react-i18next';
 import {
   Title, Badge, Button, Card, Table, Group, Text, Container, Alert, Modal,
 } from '@mantine/core';
-import { IconArrowLeft, IconPackage } from '@tabler/icons-react';
-import { useOrder, useUpdateOrderStatus, useCancelOrder, usePickList } from '../api/hooks';
+import { IconArrowLeft, IconPackage, IconHistory } from '@tabler/icons-react';
+import { useOrder, useUpdateOrderStatus, useCancelOrder, usePickList, useOrderTimeline } from '../api/hooks';
 import { useAuth } from '../store/AuthContext';
 import { DetailSkeleton } from '../components/Skeleton';
+import OrderTimeline from '../components/OrderTimeline';
 
 const STATUS_ORDER = ['Pending', 'Confirmed', 'Reserved', 'Paid', 'Picked', 'Shipped', 'Delivered'];
 
@@ -33,6 +34,7 @@ export default function OrderDetailPage() {
   const updateStatus = useUpdateOrderStatus();
   const cancel = useCancelOrder();
   const { data: pickList = [], isLoading: pickLoading } = usePickList(Number(id));
+  const { data: timeline = [] } = useOrderTimeline(Number(id));
 
   const [pickModalOpened, setPickModalOpened] = useState(false);
 
@@ -143,6 +145,16 @@ export default function OrderDetailPage() {
           <Text size="sm" c="dimmed" ml="lg">{t('order.costAmount')}: </Text>
           <Text fw={700}>{totalCost.toLocaleString()} ₸</Text>
         </Group>
+      </Card>
+
+      <Card withBorder shadow="sm" p="md" mb="md">
+        <Title order={5} mb="sm">
+          <Group gap="xs">
+            <IconHistory size={18} />
+            {t('order.timeline')}
+          </Group>
+        </Title>
+        <OrderTimeline events={timeline} />
       </Card>
 
       {order.status !== 'Cancelled' && order.status !== 'Delivered' && (

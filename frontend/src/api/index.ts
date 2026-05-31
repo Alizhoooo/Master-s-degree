@@ -143,12 +143,24 @@ export async function cancelOrder(id: number) {
   return request(`/orders/${id}/cancel`, { method: 'POST' });
 }
 
+export async function bulkUpdateOrderStatus(ids: number[], status: string) {
+  return request('/orders/bulk-status', {
+    method: 'POST',
+    body: JSON.stringify({ ids, status }),
+  });
+}
+
 export async function getPickList(id: number) {
   return request(`/orders/${id}/pick-list`);
 }
 
-export async function getDashboard() {
-  return request('/reports/dashboard');
+export async function getOrderTimeline(id: number) {
+  return request(`/orders/${id}/timeline`);
+}
+
+export async function getDashboard(filters?: Record<string, string>) {
+  const params = filters ? '?' + new URLSearchParams(filters).toString() : '';
+  return request(`/reports/dashboard${params}`);
 }
 
 export async function getReports(filters?: Record<string, string>) {
