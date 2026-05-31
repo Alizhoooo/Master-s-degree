@@ -5,10 +5,12 @@ import { Type } from 'class-transformer';
 export class OrderItemDto {
   @ApiProperty({ example: 1, description: 'Product ID' })
   @IsInt()
+  @Type(() => Number)
   productId: number;
 
   @ApiProperty({ example: 2, description: 'Quantity', minimum: 1 })
   @IsInt()
+  @Type(() => Number)
   @Min(1)
   quantity: number;
 }
@@ -16,6 +18,7 @@ export class OrderItemDto {
 export class CreateOrderDto {
   @ApiProperty({ example: 1, description: 'Customer ID' })
   @IsInt()
+  @Type(() => Number)
   customerId: number;
 
   @ApiProperty({ type: [OrderItemDto], description: 'Order items' })
@@ -29,9 +32,10 @@ export class CreateOrderDto {
   @IsString()
   deliveryAddress: string;
 
-  @ApiProperty({ example: '2026-06-05T00:00:00Z', description: 'Order deadline' })
+  @ApiProperty({ example: '2026-06-05T00:00:00Z', description: 'Order deadline', required: false })
+  @IsOptional()
   @IsString()
-  deadline: string;
+  deadline?: string;
 
   @ApiProperty({ required: false, description: 'Order notes' })
   @IsOptional()

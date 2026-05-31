@@ -39,7 +39,7 @@ export class OrderService {
     return order;
   }
 
-  async create(dto: { customerId: number; items: { productId: number; quantity: number }[]; deliveryAddress: string; deadline: string; notes?: string }, userId: number) {
+  async create(dto: { customerId: number; items: { productId: number; quantity: number }[]; deliveryAddress: string; deadline?: string; notes?: string }, userId: number) {
     const products = await this.prisma.product.findMany({
       where: { id: { in: dto.items.map(i => i.productId) } },
     });
@@ -83,7 +83,7 @@ export class OrderService {
         totalAmount,
         costAmount,
         deliveryAddress: dto.deliveryAddress,
-        deadline: new Date(dto.deadline),
+        deadline: dto.deadline ? new Date(dto.deadline) : new Date(),
         notes: dto.notes,
         items: {
           create: itemsData,
