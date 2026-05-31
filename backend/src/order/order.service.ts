@@ -167,7 +167,7 @@ export class OrderService {
   }
 
   async bulkUpdateStatus(ids: number[], status: string, userId: number) {
-    const results = [];
+    const results: { id: number; success: boolean; order?: any; error?: string }[] = [];
     for (const id of ids) {
       try {
         const updated = await this.updateStatus(id, status, userId);
