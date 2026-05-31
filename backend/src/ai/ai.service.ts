@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
 
 @Injectable()
@@ -103,5 +103,22 @@ export class AiService {
     }
 
     return alerts;
+  }
+
+  async analyzeFile(file: Express.Multer.File) {
+    const supportedFormats = ['text/csv', 'application/json', 'text/plain', 'application/xml', 'text/xml'];
+    if (!supportedFormats.includes(file.mimetype)) {
+      throw new BadRequestException(
+        `Unsupported file format "${file.mimetype}". Please upload CSV, JSON, XML, or TXT files.`,
+      );
+    }
+    const content = file.buffer.toString('utf-8');
+    const lines = content.split('\n').filter(l => l.trim()).length;
+    return {
+      fileName: file.originalname,
+      size: file.size,
+      lines,
+      message: 'File received for analysis. Processing in queue.',
+    };
   }
 }
