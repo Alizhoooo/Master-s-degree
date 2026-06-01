@@ -3,7 +3,11 @@ import { registerAs } from '@nestjs/config';
 export default registerAs('app', () => {
   const corsOrigin = (process.env.CORS_ORIGIN || 'http://localhost:5173')
     .split(',')
-    .map(s => s.trim());
+    .map(s => s.trim())
+    .concat([
+      'https://master-s-degree.vercel.app',
+      'https://master-s-degree.onrender.com',
+    ]);
 
   return {
     port: parseInt(process.env.PORT || '3001', 10),
