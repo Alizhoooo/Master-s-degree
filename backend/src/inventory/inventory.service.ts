@@ -118,7 +118,7 @@ export class InventoryService {
     return priorities;
   }
 
-  async reserveByPriority() {
+  async reserveByPriority(userId: number) {
     const priorities = await this.getReservationPriority();
 
     for (const p of priorities) {
@@ -145,7 +145,7 @@ export class InventoryService {
           await this.prisma.inventoryLog.create({
             data: {
               productId: item.productId,
-              userId: 0,
+              userId,
               change: -item.requested,
               reason: `Reserved for Order #${p.orderId}`,
             },

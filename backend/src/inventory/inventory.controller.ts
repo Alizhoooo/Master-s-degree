@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards, HttpCode, HttpStatus, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, HttpCode, HttpStatus, UseInterceptors, UploadedFile, Request } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { InventoryService } from './inventory.service';
@@ -38,8 +38,8 @@ export class InventoryController {
   @Post('reserve')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Execute priority-based stock reservation' })
-  reserve() {
-    return this.inventoryService.reserveByPriority();
+  reserve(@Request() req) {
+    return this.inventoryService.reserveByPriority(req.user.id);
   }
 
   @Post('adjust')

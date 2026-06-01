@@ -179,7 +179,7 @@ export class OrderService {
     return results;
   }
 
-  async cancelOrder(id: number) {
+  async cancelOrder(id: number, userId: number) {
     const order = await this.prisma.order.findUnique({
       where: { id },
       include: { items: true },
@@ -199,7 +199,7 @@ export class OrderService {
       await this.prisma.inventoryLog.create({
         data: {
           productId: item.productId,
-          userId: 0,
+          userId,
           change: item.quantity,
           reason: `Stock released from cancelled Order #${id}`,
         },

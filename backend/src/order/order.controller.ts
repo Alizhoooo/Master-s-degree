@@ -65,8 +65,8 @@ export class OrderController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Cancel order' })
   @ApiParam({ name: 'id', type: Number })
-  cancelOrder(@Param('id') id: string) {
-    return this.orderService.cancelOrder(+id);
+  cancelOrder(@Param('id') id: string, @Request() req) {
+    return this.orderService.cancelOrder(+id, req.user.id);
   }
 
   @Get(':id/timeline')
