@@ -22,6 +22,12 @@ export class ReportController {
     return this.reportService.getDashboard(dateFrom, dateTo);
   }
 
+  @Get('dashboard/erp-summary')
+  @ApiOperation({ summary: 'Get 1C-style ERP summary: cash, bank, payroll, stock, production' })
+  async getErpSummary() {
+    return this.reportService.getErpSummary();
+  }
+
   @Get()
   @ApiOperation({ summary: 'Get filtered reports' })
   @ApiQuery({ name: 'status', required: false })

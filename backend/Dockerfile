@@ -17,5 +17,7 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/dist-seed ./dist-seed
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/scripts/deploy-migrate.sh ./scripts/deploy-migrate.sh
+RUN chmod +x ./scripts/deploy-migrate.sh
 EXPOSE 3001
-CMD npx prisma db push && node dist-seed/seed.js && node dist/main.js
+CMD ["./scripts/deploy-migrate.sh"]

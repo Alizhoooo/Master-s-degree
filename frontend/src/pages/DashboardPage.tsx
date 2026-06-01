@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Container, Grid, Card, Text, Group, Title, SimpleGrid, Table, Button } from '@mantine/core';
+import { Container, Grid, Card, Text, Group, Title, SimpleGrid, Table, Button, Badge, Stack, Progress } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
-import { IconShoppingCart, IconCash, IconClock, IconPercentage, IconFilter, IconX } from '@tabler/icons-react';
+import { IconShoppingCart, IconCash, IconClock, IconPercentage, IconFilter, IconX, IconBuildingBank, IconWallet, IconUsersGroup, IconPackage, IconBuildingFactory, IconClipboardList, IconBell, IconAlertTriangle } from '@tabler/icons-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { useTranslation } from 'react-i18next';
-import { useDashboard } from '../api/hooks';
+import { useNavigate } from 'react-router-dom';
+import { useDashboard, useErpSummary } from '../api/hooks';
 import { CardSkeleton } from '../components/Skeleton';
 
 const formatCurrency = (value: number) =>
@@ -14,6 +15,7 @@ const COLORS = ['#1a237e', '#42a5f5', '#66bb6a', '#ffa726', '#ef5350', '#ab47bc'
 
 export default function DashboardPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [dateFrom, setDateFrom] = useState<Date | null>(null);
   const [dateTo, setDateTo] = useState<Date | null>(null);
 
@@ -25,6 +27,7 @@ export default function DashboardPage() {
   };
 
   const { data, isLoading, refetch } = useDashboard(buildFilters());
+  const { data: erp } = useErpSummary() as any;
 
   const clearFilters = () => {
     setDateFrom(null);
@@ -101,6 +104,118 @@ export default function DashboardPage() {
           );
         })}
       </SimpleGrid>
+
+      {erp && (
+        <Card withBorder shadow="sm" p="md" mb="xl">
+          <Title order={4} mb="md">📊 1C-style ERP Overview</Title>
+          <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} mb="md">
+            <Card withBorder p="sm" style={{ cursor: 'pointer' }} onClick={() => navigate('/cash')}>
+              <Group>
+                <IconWallet size={32} color="var(--mantine-color-green-6)" />
+                <Stack gap={0}>
+                  <Text size="xs" c="dimmed">Касса (наличные)</Text>
+                  <Text fw={700} size="lg">{formatCurrency(erp.cash.totalBalance)}</Text>
+                  <Text size="xs" c="dimmed">{erp.cash.registersCount} касс</Text>
+                </Stack>
+              </Group>
+            </Card>
+            <Card withBorder p="sm" style={{ cursor: 'pointer' }} onClick={() => navigate('/bank')}>
+              <Group>
+                <IconBuildingBank size={32} color="var(--mantine-color-blue-6)" />
+                <Stack gap={0}>
+                  <Text size="xs" c="dimmed">Банк (безналичные)</Text>
+                  <Text fw={700} size="lg">{formatCurrency(erp.bank.totalBalance)}</Text>
+                  <Text size="xs" c="dimmed">{erp.bank.accountsCount} счетов</Text>
+                </Stack>
+              </Group>
+            </Card>
+            <Card withBorder p="sm" style={{ cursor: 'pointer' }} onClick={() => navigate('/hr')}>
+              <Group>
+                <IconUsersGroup size={32} color="var(--mantine-color-violet-6)" />
+                <Stack gap={0}>
+                  <Text size="xs" c="dimmed">Зарплата к выплате</Text>
+                  <Text fw={700} size="lg">{formatCurrency(erp.payroll.totalDue)}</Text>
+                  <Text size="xs" c="dimmed">
+                    {erp.payroll.unpaidCount} невыплачено
+                    {erp.payroll.overdueCount > 0 && <Badge color="red" size="xs" ml="xs">{erp.payroll.overdueCount} просрочено</Badge>}
+                  </Text>
+                </Stack>
+              </Group>
+            </Card>
+            <Card withBorder p="sm" style={{ cursor: 'pointer' }} onClick={() => navigate('/warehouse')}>
+              <Group>
+                <IconPackage size={32} color="var(--mantine-color-teal-6)" />
+                <Stack gap={0}>
+                  <Text size="xs" c="dimmed">Складские остатки</Text>
+                  <Text fw={700} size="lg">{formatCurrency(erp.stock.totalValue)}</Text>
+                  <Text size="xs" c="dimmed">
+                    {erp.stock.positionsCount} позиций
+                    {erp.stock.lowStockItems > 0 && <Badge color="orange" size="xs" ml="xs">{erp.stock.lowStockItems} {'< 10'}</Badge>}
+                  </Text>
+                </Stack>
+              </Group>
+            </Card>
+          </SimpleGrid>
+
+          <Grid>
+            <Grid.Col span={{ base: 12, md: 6 }}>
+              <Card withBorder p="sm" style={{ cursor: 'pointer' }} onClick={() => navigate('/production')}>
+                <Group justify="space-between" mb="xs">
+                  <Group gap="xs">
+                    <IconBuildingFactory size={20} color="var(--mantine-color-orange-6)" />
+                    <Text fw={600}>Производство</Text>
+                  </Group>
+                  <Badge color="orange">{erp.production.activeOrders} активных</Badge>
+                </Group>
+                <Group gap="xl">
+                  <Stack gap={0}>
+                    <Text size="xs" c="dimmed">Запланировано</Text>
+                    <Text fw={600}>{erp.production.planned}</Text>
+                  </Stack>
+                  <Stack gap={0}>
+                    <Text size="xs" c="dimmed">В работе</Text>
+                    <Text fw={600}>{erp.production.inProgress}</Text>
+                  </Stack>
+                </Group>
+                <Progress.Root size="lg" mt="xs">
+                  <Progress.Section value={(erp.production.inProgress / Math.max(erp.production.activeOrders, 1)) * 100} color="orange" />
+                </Progress.Root>
+              </Card>
+            </Grid.Col>
+
+            <Grid.Col span={{ base: 12, md: 6 }}>
+              <Card withBorder p="sm">
+                <Group justify="space-between" mb="xs">
+                  <Group gap="xs">
+                    <IconAlertTriangle size={20} color="var(--mantine-color-red-6)" />
+                    <Text fw={600}>Уведомления и задачи</Text>
+                  </Group>
+                </Group>
+                <Group gap="xl">
+                  <Card withBorder p="xs" style={{ cursor: 'pointer', flex: 1 }} onClick={() => navigate('/tasks')}>
+                    <Group gap="xs">
+                      <IconClipboardList size={20} color="var(--mantine-color-orange-6)" />
+                      <Stack gap={0}>
+                        <Text size="xs" c="dimmed">Открытых задач</Text>
+                        <Text fw={700} size="lg">{erp.alerts.openTasks}</Text>
+                      </Stack>
+                    </Group>
+                  </Card>
+                  <Card withBorder p="xs" style={{ cursor: 'pointer', flex: 1 }} onClick={() => navigate('/notifications')}>
+                    <Group gap="xs">
+                      <IconBell size={20} color="var(--mantine-color-red-6)" />
+                      <Stack gap={0}>
+                        <Text size="xs" c="dimmed">Непрочитанных</Text>
+                        <Text fw={700} size="lg">{erp.alerts.unreadNotifications}</Text>
+                      </Stack>
+                    </Group>
+                  </Card>
+                </Group>
+              </Card>
+            </Grid.Col>
+          </Grid>
+        </Card>
+      )}
 
       <Grid mb="xl">
         <Grid.Col span={{ base: 12, md: 6 }}>

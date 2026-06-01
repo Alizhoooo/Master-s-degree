@@ -256,4 +256,60 @@ export class ReportService {
       }
     });
   }
+
+  async getErpSummary() {
+    const currentPeriod = new Date().toISOString().slice(0, 7);
+    const [cashRegisters, bankAccounts, payroll, stockBalances, productionOrders, openTasks, unreadNotifications, overduePayroll] = await Promise.all([
+      this.prisma.cashRegister.findMany(),
+      this.prisma.bankAccount.findMany(),
+      this.prisma.payrollEntry.findMany({ where: { paidAt: null } }),
+      this.prisma.stockBalance.findMany({ include: { product: true } }),
+      this.prisma.productionOrder.findMany({ where: { status: { in: ['Planned', 'InProgress'] } } }),
+      this.prisma.task.count({ where: { status: { in: ['New', 'InProgress'] } } }),
+      this.prisma.notification.count({ where: { read: false } }),
+      this.prisma.payrollEntry.count({ where: { paidAt: null, period: { lt: currentPeriod } } }),
+    ]);
+
+    const totalCash = cashRegisters.reduce((s: number, c: any) => s + c.balance, 0);
+    const totalBank = bankAccounts.reduce((s: number, b: any) => s + b.balance, 0);
+    const totalPayrollDue = payroll.reduce((s: number, p: any) => s + p.netPay, 0);
+    const totalStockValue = stockBalances.reduce((s: number, w: any) => s + w.quantity * (w.product?.price || 0), 0);
+    const lowStockItems = stockBalances.filter((w: any) => w.quantity < 10).length;
+
+    return {
+      cash: {
+        totalBalance: totalCash,
+        registersCount: cashRegisters.length,
+        registers: cashRegisters.map((c: any) => ({ id: c.id, name: c.name, balance: c.balance, currency: c.currency })),
+      },
+      bank: {
+        totalBalance: totalBank,
+        accountsCount: bankAccounts.length,
+        accounts: bankAccounts.map((b: any) => ({ id: b.id, name: b.name, bankName: b.bankName, balance: b.balance, currency: b.currency })),
+      },
+      payroll: {
+        totalDue: totalPayrollDue,
+        unpaidCount: payroll.length,
+        overdueCount: overduePayroll,
+        pendingEntries: payroll.slice(0, 5).map((p: any) => ({
+          id: p.id, employeeId: p.employeeId, period: p.period, netPay: p.netPay,
+        })),
+      },
+      stock: {
+        totalValue: totalStockValue,
+        positionsCount: stockBalances.length,
+        lowStockItems,
+      },
+      production: {
+        activeOrders: productionOrders.length,
+        planned: productionOrders.filter((p: any) => p.status === 'Planned').length,
+        inProgress: productionOrders.filter((p: any) => p.status === 'InProgress').length,
+      },
+      alerts: {
+        openTasks,
+        unreadNotifications,
+        overduePayroll,
+      },
+    };
+  }
 }

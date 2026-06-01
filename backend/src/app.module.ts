@@ -13,6 +13,19 @@ import { ReportModule } from './report/report.module';
 import { AiModule } from './ai/ai.module';
 import { AdminModule } from './admin/admin.module';
 import { HealthModule } from './health/health.module';
+import { AccountingModule } from './accounting/accounting.module';
+import { CashModule } from './cash/cash.module';
+import { BankModule } from './bank/bank.module';
+import { WarehouseModule } from './warehouse/warehouse.module';
+import { ProductionModule } from './production/production.module';
+import { HrModule } from './hr/hr.module';
+import { DocumentModule } from './document/document.module';
+import { RbacModule } from './rbac/rbac.module';
+import { TaskModule } from './task/task.module';
+import { NotificationModule } from './notification/notification.module';
+import { SchedulerModule } from './scheduler/scheduler.module';
+import { ConfiguratorModule } from './configurator/configurator.module';
+import { SearchModule } from './search/search.module';
 import appConfig from './common/env.config';
 
 @Module({
@@ -40,6 +53,19 @@ import appConfig from './common/env.config';
     AiModule,
     AdminModule,
     HealthModule,
+    AccountingModule,
+    CashModule,
+    BankModule,
+    WarehouseModule,
+    ProductionModule,
+    HrModule,
+    DocumentModule,
+    RbacModule,
+    TaskModule,
+    NotificationModule,
+    SchedulerModule,
+    ConfiguratorModule,
+    SearchModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

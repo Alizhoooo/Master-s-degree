@@ -14,6 +14,18 @@ import ComplaintsPage from './pages/ComplaintsPage';
 import ReportsPage from './pages/ReportsPage';
 import AiPredictionsPage from './pages/AiPredictionsPage';
 import AdminPanelPage from './pages/AdminPanelPage';
+import AccountingPage from './pages/AccountingPage';
+import CashPage from './pages/CashPage';
+import BankPage from './pages/BankPage';
+import WarehousePage from './pages/WarehousePage';
+import ProductionPage from './pages/ProductionPage';
+import HrPage from './pages/HrPage';
+import DocumentsPage from './pages/DocumentsPage';
+import TasksPage from './pages/TasksPage';
+import NotificationsPage from './pages/NotificationsPage';
+import SchedulerPage from './pages/SchedulerPage';
+import ConfiguratorPage from './pages/ConfiguratorPage';
+import RbacPage from './pages/RbacPage';
 
 function ProtectedRoute({ children, roles }: { children: React.ReactNode; roles?: string[] }) {
   const { isAuthenticated, user } = useAuth();
@@ -36,9 +48,21 @@ function AppRoutes() {
         <Route path="orders" element={<OrdersPage />} />
         <Route path="orders/:id" element={<OrderDetailPage />} />
         <Route path="inventory" element={<InventoryPage />} />
+        <Route path="warehouse" element={<WarehousePage />} />
+        <Route path="production" element={<ProductionPage />} />
         <Route path="customers" element={<CustomersPage />} />
         <Route path="customers/:id" element={<CustomerDetailPage />} />
         <Route path="complaints" element={<ComplaintsPage />} />
+        <Route path="documents" element={<DocumentsPage />} />
+        <Route path="accounting" element={<AccountingPage />} />
+        <Route path="cash" element={<CashPage />} />
+        <Route path="bank" element={<BankPage />} />
+        <Route path="hr" element={<HrPage />} />
+        <Route path="tasks" element={<TasksPage />} />
+        <Route path="notifications" element={<NotificationsPage />} />
+        <Route path="scheduler" element={<SchedulerPage />} />
+        <Route path="configurator" element={<ProtectedRoute roles={['Admin']}><ConfiguratorPage /></ProtectedRoute>} />
+        <Route path="rbac" element={<ProtectedRoute roles={['Admin']}><RbacPage /></ProtectedRoute>} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="ai" element={<AiPredictionsPage />} />
         <Route path="admin" element={<ProtectedRoute roles={['Admin']}><AdminPanelPage /></ProtectedRoute>} />

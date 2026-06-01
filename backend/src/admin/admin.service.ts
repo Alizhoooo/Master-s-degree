@@ -21,7 +21,7 @@ export class AdminService {
         email: dto.email,
         password: hashedPassword,
         fullName: dto.fullName,
-        role: dto.role,
+        role: dto.role as any,
       },
       select: { id: true, email: true, fullName: true, role: true, createdAt: true },
     });
@@ -32,7 +32,7 @@ export class AdminService {
     if (!user) throw new NotFoundException('User not found');
     return this.prisma.user.update({
       where: { id },
-      data: { role },
+      data: { role: role as any },
       select: { id: true, email: true, fullName: true, role: true, createdAt: true },
     });
   }

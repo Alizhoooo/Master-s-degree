@@ -35,7 +35,7 @@ async function main() {
     { email: 'warehouse1@supplyflow.kz', password: bcrypt.hashSync('warehouse123', 10), fullName: 'Нұржан Қайратов', role: 'Warehouse' },
     { email: 'warehouse2@supplyflow.kz', password: bcrypt.hashSync('warehouse123', 10), fullName: 'Гүлмира Ахметова', role: 'Warehouse' },
   ];
-  const users = await Promise.all(userSeeds.map((u) => prisma.user.create({ data: u })));
+  const users = await Promise.all(userSeeds.map((u) => prisma.user.create({ data: u as any })));
   console.log(`Created ${users.length} users`);
 
   // ── Customers ──

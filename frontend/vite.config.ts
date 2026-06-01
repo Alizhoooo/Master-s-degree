@@ -20,5 +20,26 @@ export default defineConfig({
   },
   build: {
     sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'mantine-vendor': [
+            '@mantine/core',
+            '@mantine/hooks',
+            '@mantine/notifications',
+            '@mantine/modals',
+            '@mantine/dates',
+            'dayjs',
+          ],
+          'charts-vendor': ['recharts'],
+          'icons-vendor': ['@tabler/icons-react'],
+          'query-vendor': ['@tanstack/react-query'],
+          'i18n-vendor': ['i18next', 'react-i18next'],
+          'sentry-vendor': ['@sentry/react'],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 800,
   },
 })

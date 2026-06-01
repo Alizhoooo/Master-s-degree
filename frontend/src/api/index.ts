@@ -197,6 +197,10 @@ export async function getDashboard(filters?: Record<string, string>) {
   return request(`/reports/dashboard${params}`);
 }
 
+export async function getErpSummary() {
+  return request('/reports/dashboard/erp-summary');
+}
+
 export async function getReports(filters?: Record<string, string>) {
   const params = filters ? '?' + new URLSearchParams(filters).toString() : '';
   return request(`/reports${params}`);
@@ -274,4 +278,144 @@ export async function setConfig(key: string, value: string) {
 
 export async function getSystemLogs() {
   return request('/admin/logs');
+}
+
+export async function listAccounts() { return request('/accounting/accounts'); }
+export async function getAccount(id: number) { return request(`/accounting/accounts/${id}`); }
+export async function createAccount(data: any) { return request('/accounting/accounts', { method: 'POST', body: JSON.stringify(data) }); }
+export async function updateAccount(id: number, data: any) { return request(`/accounting/accounts/${id}`, { method: 'PATCH', body: JSON.stringify(data) }); }
+export async function deleteAccount(id: number) { return request(`/accounting/accounts/${id}`, { method: 'DELETE' }); }
+export async function seedStandardPlan() { return request('/accounting/accounts/seed', { method: 'POST' }); }
+export async function listEntries(filters?: Record<string, string>) {
+  const params = filters ? '?' + new URLSearchParams(filters).toString() : '';
+  return request(`/accounting/entries${params}`);
+}
+export async function createEntry(data: any) { return request('/accounting/entries', { method: 'POST', body: JSON.stringify(data) }); }
+export async function getTurnover(periodFrom: string, periodTo: string) {
+  return request(`/accounting/turnover?periodFrom=${periodFrom}&periodTo=${periodTo}`);
+}
+export async function getTrialBalance(period: string) {
+  return request(`/accounting/trial-balance?period=${period}`);
+}
+
+export async function listCashRegisters() { return request('/cash/registers'); }
+export async function createCashRegister(data: any) { return request('/cash/registers', { method: 'POST', body: JSON.stringify(data) }); }
+export async function listCashOrders(filters?: Record<string, string>) {
+  const params = filters ? '?' + new URLSearchParams(filters).toString() : '';
+  return request(`/cash/orders${params}`);
+}
+export async function createCashOrder(data: any) { return request('/cash/orders', { method: 'POST', body: JSON.stringify(data) }); }
+export async function getCashBalance(id: number) { return request(`/cash/registers/${id}/balance`); }
+
+export async function listBankAccounts() { return request('/bank/accounts'); }
+export async function createBankAccount(data: any) { return request('/bank/accounts', { method: 'POST', body: JSON.stringify(data) }); }
+export async function listBankOrders(filters?: Record<string, string>) {
+  const params = filters ? '?' + new URLSearchParams(filters).toString() : '';
+  return request(`/bank/orders${params}`);
+}
+export async function createBankOrder(data: any) { return request('/bank/orders', { method: 'POST', body: JSON.stringify(data) }); }
+export async function confirmBankOrder(id: number) { return request(`/bank/orders/${id}/confirm`, { method: 'PATCH' }); }
+
+export async function listWarehouses() { return request('/warehouse'); }
+export async function createWarehouse(data: any) { return request('/warehouse', { method: 'POST', body: JSON.stringify(data) }); }
+export async function getWarehouseStock(id: number) { return request(`/warehouse/${id}/stock`); }
+export async function transferStock(data: any) { return request('/warehouse/transfer', { method: 'POST', body: JSON.stringify(data) }); }
+export async function listBatches(productId?: number) {
+  return request(`/warehouse/batches/list${productId ? '?productId=' + productId : ''}`);
+}
+export async function createBatch(data: any) { return request('/warehouse/batches', { method: 'POST', body: JSON.stringify(data) }); }
+export async function listMovements(filters?: Record<string, string>) {
+  const params = filters ? '?' + new URLSearchParams(filters).toString() : '';
+  return request(`/warehouse/movements/list${params}`);
+}
+
+export async function listWorkshops() { return request('/production/workshops'); }
+export async function createWorkshop(data: any) { return request('/production/workshops', { method: 'POST', body: JSON.stringify(data) }); }
+export async function listTechCards() { return request('/production/tech-cards'); }
+export async function createTechCard(data: any) { return request('/production/tech-cards', { method: 'POST', body: JSON.stringify(data) }); }
+export async function listProductionOrders(filters?: Record<string, string>) {
+  const params = filters ? '?' + new URLSearchParams(filters).toString() : '';
+  return request(`/production/orders${params}`);
+}
+export async function createProductionOrder(data: any) { return request('/production/orders', { method: 'POST', body: JSON.stringify(data) }); }
+export async function startProductionOrder(id: number) { return request(`/production/orders/${id}/start`, { method: 'PATCH' }); }
+export async function completeProductionOrder(id: number) { return request(`/production/orders/${id}/complete`, { method: 'PATCH' }); }
+
+export async function listEmployees(filters?: Record<string, string>) {
+  const params = filters ? '?' + new URLSearchParams(filters).toString() : '';
+  return request(`/hr/employees${params}`);
+}
+export async function createEmployee(data: any) { return request('/hr/employees', { method: 'POST', body: JSON.stringify(data) }); }
+export async function fireEmployee(id: number, fireDate: string) { return request(`/hr/employees/${id}/fire`, { method: 'PATCH', body: JSON.stringify({ fireDate }) }); }
+export async function listTimesheets(filters?: Record<string, string>) {
+  const params = filters ? '?' + new URLSearchParams(filters).toString() : '';
+  return request(`/hr/timesheets${params}`);
+}
+export async function upsertTimesheet(data: any) { return request('/hr/timesheets', { method: 'POST', body: JSON.stringify(data) }); }
+export async function listPayroll(period?: string) {
+  return request(`/hr/payroll${period ? '?period=' + period : ''}`);
+}
+export async function calculatePayroll(period: string) { return request('/hr/payroll/calculate', { method: 'POST', body: JSON.stringify({ period }) }); }
+export async function payPayroll(id: number) { return request(`/hr/payroll/${id}/pay`, { method: 'PATCH' }); }
+
+export async function listDocuments(filters?: Record<string, string>) {
+  const params = filters ? '?' + new URLSearchParams(filters).toString() : '';
+  return request(`/documents${params}`);
+}
+export async function getDocument(id: number) { return request(`/documents/${id}`); }
+export async function createDocument(data: any) { return request('/documents', { method: 'POST', body: JSON.stringify(data) }); }
+export async function postDocument(id: number) { return request(`/documents/${id}/post`, { method: 'PATCH' }); }
+export async function unpostDocument(id: number) { return request(`/documents/${id}/unpost`, { method: 'PATCH' }); }
+export async function deleteDocument(id: number) { return request(`/documents/${id}`, { method: 'DELETE' }); }
+export async function listDocumentApprovals(id: number) { return request(`/documents/${id}/approvals`); }
+export async function requestDocumentApproval(id: number, approverId: number) { return request(`/documents/${id}/approvals`, { method: 'POST', body: JSON.stringify({ approverId }) }); }
+export async function decideApproval(id: number, status: 'Approved' | 'Rejected', comment: string) {
+  return request(`/documents/approvals/${id}/decide`, { method: 'PATCH', body: JSON.stringify({ status, comment }) });
+}
+
+export async function listRoles() { return request('/rbac/roles'); }
+export async function createRole(data: any) { return request('/rbac/roles', { method: 'POST', body: JSON.stringify(data) }); }
+export async function listPermissions() { return request('/rbac/permissions'); }
+export async function seedPermissions() { return request('/rbac/seed/permissions', { method: 'POST' }); }
+export async function seedSystemRoles() { return request('/rbac/seed/system-roles', { method: 'POST' }); }
+export async function assignRole(userId: number, roleId: number, scope?: string) {
+  return request(`/rbac/users/${userId}/roles/${roleId}`, { method: 'POST', body: JSON.stringify({ scope }) });
+}
+export async function getUserPermissions(userId: number) { return request(`/rbac/users/${userId}/permissions`); }
+export async function getUserRoles(userId: number) { return request(`/rbac/users/${userId}/roles`); }
+
+export async function listTasks(filters?: Record<string, string>) {
+  const params = filters ? '?' + new URLSearchParams(filters).toString() : '';
+  return request(`/tasks${params}`);
+}
+export async function listMyTasks() { return request('/tasks/mine'); }
+export async function createTask(data: any) { return request('/tasks', { method: 'POST', body: JSON.stringify(data) }); }
+export async function startTask(id: number) { return request(`/tasks/${id}/start`, { method: 'PATCH' }); }
+export async function completeTask(id: number) { return request(`/tasks/${id}/complete`, { method: 'PATCH' }); }
+export async function cancelTask(id: number) { return request(`/tasks/${id}/cancel`, { method: 'PATCH' }); }
+
+export async function listNotifications(unread?: boolean) {
+  return request(`/notifications${unread ? '?unread=true' : ''}`);
+}
+export async function getUnreadCount() { return request('/notifications/unread-count'); }
+export async function markNotificationRead(id: number) { return request(`/notifications/${id}/read`, { method: 'PATCH' }); }
+export async function markAllNotificationsRead() { return request('/notifications/read-all', { method: 'PATCH' }); }
+
+export async function listScheduledJobs() { return request('/scheduler/jobs'); }
+export async function createScheduledJob(data: any) { return request('/scheduler/jobs', { method: 'POST', body: JSON.stringify(data) }); }
+export async function runJobNow(id: number) { return request(`/scheduler/jobs/${id}/run`, { method: 'POST' }); }
+export async function seedDefaultJobs() { return request('/scheduler/seed', { method: 'POST' }); }
+
+export async function listConfigObjects(kind?: string) {
+  return request(`/configurator/objects${kind ? '?kind=' + kind : ''}`);
+}
+export async function createConfigObject(data: any) { return request('/configurator/objects', { method: 'POST', body: JSON.stringify(data) }); }
+export async function listPrintTemplates(documentType?: string) {
+  return request(`/configurator/print-templates${documentType ? '?documentType=' + documentType : ''}`);
+}
+export async function createPrintTemplate(data: any) { return request('/configurator/print-templates', { method: 'POST', body: JSON.stringify(data) }); }
+export async function exportConfig() { return request('/configurator/export'); }
+
+export async function globalSearch(q: string) {
+  return request(`/search?q=${encodeURIComponent(q)}`);
 }

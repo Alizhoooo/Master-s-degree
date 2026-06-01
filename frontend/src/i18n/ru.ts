@@ -1,6 +1,6 @@
 const ru = {
   app: { title: 'SupplyFlow', subtitle: 'Система управления бизнес-процессами' },
-  nav: { dashboard: 'Панель управления', orders: 'Заказы', inventory: 'Склад', customers: 'Клиенты', complaints: 'Жалобы', reports: 'Отчеты', ai: 'ИИ прогнозы', admin: 'Админ' },
+  nav: { dashboard: 'Панель управления', orders: 'Заказы', inventory: 'Склад', warehouse: 'Склады', production: 'Производство', customers: 'Клиенты', complaints: 'Жалобы', documents: 'Документы', accounting: 'Бухгалтерия', cash: 'Касса', bank: 'Банк', hr: 'Кадры', tasks: 'Задачи', notifications: 'Уведомления', scheduler: 'Регламент', reports: 'Отчеты', ai: 'ИИ прогнозы', rbac: 'Роли', configurator: 'Конфигуратор', admin: 'Админ' },
   auth: { login: 'Вход', register: 'Регистрация', logout: 'Выход', email: 'Электронная почта', password: 'Пароль', noAccount: 'Нет аккаунта?', hasAccount: 'Есть аккаунт?', title: 'Вход в SupplyFlow', fullName: 'ФИО', role: 'Роль', submit: 'Отправить', passwordPlaceholder: 'Введите ваш пароль', loginError: 'Ошибка при входе', registerTitle: 'Регистрация', fullNameLabel: 'Полное имя', fullNamePlaceholder: 'Введите ваше имя', registerSuccess: 'Успешная регистрация', registerSuccessMsg: 'Аккаунт успешно создан. Войдите в систему.', registerError: 'Ошибка при регистрации', admin: 'Админ', manager: 'Менеджер', warehouse: 'Кладовщик' },
   theme: { light: 'Светлая', dark: 'Темная' },
   lang: { kk: 'Қазақша', ru: 'Русский', en: 'English' },

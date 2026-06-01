@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getProducts, getPriority, getStockAlerts, getInventoryLogs,
   reserveByPriority, adjustStock,
-  getDashboard, getReports, exportCsv,
+  getDashboard, getReports, exportCsv, getErpSummary,
   getCustomers, getCustomer, createCustomer, updateCustomer, addContactLog,
   getComplaints, createComplaint, updateComplaintStatus,
   getOrders, getOrder, createOrder, updateOrderStatus, cancelOrder, getPickList, getOrderTimeline, bulkUpdateOrderStatus,
@@ -62,6 +62,14 @@ export function useDashboard(filters?: Record<string, string>) {
       return res && typeof res === 'object' ? res : null;
     },
     staleTime: 30000,
+  });
+}
+
+export function useErpSummary() {
+  return useQuery({
+    queryKey: ['erpSummary'],
+    queryFn: () => getErpSummary(),
+    refetchInterval: 60000,
   });
 }
 

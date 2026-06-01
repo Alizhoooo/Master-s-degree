@@ -1,6 +1,6 @@
 const kk = {
   app: { title: 'SupplyFlow', subtitle: 'Бизнес процестерді басқару жүйесі' },
-  nav: { dashboard: 'Бақылау тақтасы', orders: 'Тапсырыстар', inventory: 'Қойма', customers: 'Клиенттер', complaints: 'Шағымдар', reports: 'Есептер', ai: 'ЖИ болжамдар', admin: 'Админ' },
+  nav: { dashboard: 'Бақылау тақтасы', orders: 'Тапсырыстар', inventory: 'Қойма', warehouse: 'Қоймалар', production: 'Өндіріс', customers: 'Клиенттер', complaints: 'Шағымдар', documents: 'Құжаттар', accounting: 'Бухгалтерия', cash: 'Касса', bank: 'Банк', hr: 'Кадрлар', tasks: 'Тапсырмалар', notifications: 'Хабарламалар', scheduler: 'Регламент', reports: 'Есептер', ai: 'ЖИ болжамдар', rbac: 'Рөлдер', configurator: 'Конфигуратор', admin: 'Админ' },
   auth: { login: 'Кіру', register: 'Тіркелу', logout: 'Шығу', email: 'Электронды пошта', password: 'Құпия сөз', noAccount: 'Аккаунтыңыз жоқ па?', hasAccount: 'Аккаунтыңыз бар ма?', title: 'SupplyFlow жүйесіне кіру', fullName: 'Аты-жөні', role: 'Рөл', submit: 'Жіберу', passwordPlaceholder: 'Құпия сөзіңізді енгізіңіз', loginError: 'Кіру кезінде қате орын алды', registerTitle: 'Тіркелу', fullNameLabel: 'Толық аты-жөні', fullNamePlaceholder: 'Аты-жөніңізді енгізіңіз', registerSuccess: 'Сәтті тіркелу', registerSuccessMsg: 'Аккаунтыңыз сәтті құрылды. Жүйеге кіріңіз.', registerError: 'Тіркелу кезінде қате орын алды', admin: 'Админ', manager: 'Менеджер', warehouse: 'Қоймашы' },
   theme: { light: 'Жарық', dark: 'Қараңғы' },
   lang: { kk: 'Қазақша', ru: 'Русский', en: 'English' },

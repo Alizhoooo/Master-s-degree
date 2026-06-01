@@ -41,7 +41,7 @@ export class AuthService {
         email: createUserDto.email,
         password: hashedPassword,
         fullName: createUserDto.fullName,
-        role: createUserDto.role || 'Warehouse',
+        role: (createUserDto.role as any) || 'Warehouse',
       },
     });
     const { password: _, ...result } = user;
