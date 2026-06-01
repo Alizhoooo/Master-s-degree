@@ -18,7 +18,7 @@ interface TimelineEvent {
 export default function OrderTimeline({ events }: { events: TimelineEvent[] }) {
   const { t } = useTranslation();
 
-  if (events.length === 0) {
+  if (!Array.isArray(events) || events.length === 0) {
     return (
       <Text c="dimmed" size="sm" ta="center" py="md">
         {t('order.noTimeline')}

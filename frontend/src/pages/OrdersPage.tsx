@@ -191,7 +191,7 @@ export default function OrdersPage() {
               <Table.Td>{order.id}</Table.Td>
               <Table.Td>{order.customer?.company || order.customer?.contactPerson || `#${order.customerId}`}</Table.Td>
               <Table.Td>
-                {order.items?.slice(0, 3).map((i: any) => i.product?.name || `#${i.productId}`).join(', ')}
+                {Array.isArray(order.items) ? order.items.slice(0, 3).map((i: any) => i.product?.name || `#${i.productId}`).join(', ') : ''}
                 {(order.items?.length ?? 0) > 3 ? '...' : ''}
               </Table.Td>
               <Table.Td>{order.totalAmount?.toLocaleString()} ₸</Table.Td>

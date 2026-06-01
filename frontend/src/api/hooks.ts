@@ -57,7 +57,10 @@ export function useInventoryLogs() {
 export function useDashboard(filters?: Record<string, string>) {
   return useQuery({
     queryKey: ['dashboard', filters],
-    queryFn: () => getDashboard(filters),
+    queryFn: async () => {
+      const res = await getDashboard(filters);
+      return res && typeof res === 'object' ? res : null;
+    },
     staleTime: 30000,
   });
 }
@@ -65,7 +68,10 @@ export function useDashboard(filters?: Record<string, string>) {
 export function useReports(filters?: Record<string, string>) {
   return useQuery({
     queryKey: ['reports', filters],
-    queryFn: () => getReports(filters),
+    queryFn: async () => {
+      const res = await getReports(filters);
+      return Array.isArray(res) ? res : (res?.data ?? res?.reports ?? []);
+    },
   });
 }
 
@@ -83,7 +89,10 @@ export function useCustomers() {
 export function useCustomer(id: number) {
   return useQuery({
     queryKey: ['customer', id],
-    queryFn: () => getCustomer(id),
+    queryFn: async () => {
+      const res = await getCustomer(id);
+      return res && typeof res === 'object' ? res : null;
+    },
     enabled: !!id,
   });
 }
@@ -101,7 +110,10 @@ export function useComplaints() {
 export function useOrders(filters?: Record<string, string>) {
   return useQuery({
     queryKey: ['orders', filters],
-    queryFn: () => getOrders(filters),
+    queryFn: async () => {
+      const res = await getOrders(filters);
+      return Array.isArray(res) ? { data: res, total: res.length } : res;
+    },
     staleTime: 15000,
   });
 }
@@ -109,7 +121,10 @@ export function useOrders(filters?: Record<string, string>) {
 export function useOrder(id: number) {
   return useQuery({
     queryKey: ['order', id],
-    queryFn: () => getOrder(id),
+    queryFn: async () => {
+      const res = await getOrder(id);
+      return res && typeof res === 'object' ? res : null;
+    },
     enabled: !!id,
   });
 }
@@ -117,7 +132,12 @@ export function useOrder(id: number) {
 export function usePickList(id: number) {
   return useQuery({
     queryKey: ['pickList', id],
-    queryFn: () => getPickList(id),
+    queryFn: async () => {
+      const res = await getPickList(id);
+      if (Array.isArray(res)) return res;
+      if (res && typeof res === 'object') return res.items ?? [];
+      return [];
+    },
     enabled: !!id,
   });
 }
@@ -125,7 +145,10 @@ export function usePickList(id: number) {
 export function useOrderTimeline(id: number) {
   return useQuery({
     queryKey: ['orderTimeline', id],
-    queryFn: () => getOrderTimeline(id),
+    queryFn: async () => {
+      const res = await getOrderTimeline(id);
+      return Array.isArray(res) ? res : (res?.data ?? res?.timeline ?? []);
+    },
     enabled: !!id,
   });
 }
@@ -165,7 +188,10 @@ export function useUsers() {
 export function useConfig(key: string) {
   return useQuery({
     queryKey: ['config', key],
-    queryFn: () => getConfig(key),
+    queryFn: async () => {
+      const res = await getConfig(key);
+      return res && typeof res === 'object' ? res : { value: res };
+    },
     enabled: !!key,
   });
 }

@@ -131,7 +131,7 @@ export default function DashboardPage() {
                   outerRadius={100}
                   label={({ status, count }) => `${status}: ${count}`}
                 >
-                  {data.orderStatusDistribution.map((_item: any, index: number) => (
+                  {(data.orderStatusDistribution ?? []).map((_item: any, index: number) => (
                     <Cell key={index} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
@@ -170,7 +170,7 @@ export default function DashboardPage() {
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
-                {data.topProducts.map((p: any) => (
+                {(data.topProducts ?? []).map((p: any) => (
                   <Table.Tr key={p.sku}>
                     <Table.Td>{p.name}</Table.Td>
                     <Table.Td>{p.sku}</Table.Td>
