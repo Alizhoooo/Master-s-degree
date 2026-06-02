@@ -26,6 +26,12 @@ import NotificationsPage from './pages/NotificationsPage';
 import SchedulerPage from './pages/SchedulerPage';
 import ConfiguratorPage from './pages/ConfiguratorPage';
 import RbacPage from './pages/RbacPage';
+import NomenclaturePage from './pages/NomenclaturePage';
+import SuppliersPage from './pages/SuppliersPage';
+import ReceiptsPage from './pages/ReceiptsPage';
+import IssuesPage from './pages/IssuesPage';
+import TransfersPage from './pages/TransfersPage';
+import ExpiryPage from './pages/ExpiryPage';
 
 function ProtectedRoute({ children, roles }: { children: React.ReactNode; roles?: string[] }) {
   const { isAuthenticated, user } = useAuth();
@@ -66,6 +72,12 @@ function AppRoutes() {
         <Route path="reports" element={<ReportsPage />} />
         <Route path="ai" element={<AiPredictionsPage />} />
         <Route path="admin" element={<ProtectedRoute roles={['Admin']}><AdminPanelPage /></ProtectedRoute>} />
+        <Route path="nomenclature" element={<NomenclaturePage />} />
+        <Route path="suppliers" element={<SuppliersPage />} />
+        <Route path="receipts" element={<ReceiptsPage />} />
+        <Route path="issues" element={<IssuesPage />} />
+        <Route path="transfers" element={<TransfersPage />} />
+        <Route path="expiry" element={<ExpiryPage />} />
       </Route>
     </Routes>
   );

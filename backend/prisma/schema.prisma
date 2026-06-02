@@ -33,48 +33,68 @@ model User {
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
 
-  orders             Order[]
-  inventoryLogs      InventoryLog[]
-  systemLogs         SystemLog[]
-  contactLogs        ContactLog[]
-  tasksAssigned      Task[]              @relation("AssignedTo")
-  tasksCreated       Task[]              @relation("CreatedBy")
-  notifications      Notification[]
-  approvalsGiven     DocumentApproval[]
-  documentVersions   DocumentVersion[]
-  payrollEntries     PayrollEntry[]
-  employee           Employee?
-  postedDocuments    Document[]          @relation("PostedBy")
-  unpostedDocuments  Document[]          @relation("UnpostedBy")
-  cashOrdersCreated  CashOrder[]
-  bankOrdersCreated  BankOrder[]
-  batchesCreated     Batch[]
-  productReceipts    ProductReceipt[]
-  productIssues      ProductIssue[]
-  workshop           Workshop?           @relation("WorkshopHead")
-  roleAssignments    UserRoleAssignment[]
-  documentsCreated   Document[]            @relation("DocumentCreatedBy")
+  orders            Order[]
+  inventoryLogs     InventoryLog[]
+  systemLogs        SystemLog[]
+  contactLogs       ContactLog[]
+  tasksAssigned     Task[]               @relation("AssignedTo")
+  tasksCreated      Task[]               @relation("CreatedBy")
+  notifications     Notification[]
+  approvalsGiven    DocumentApproval[]
+  documentVersions  DocumentVersion[]
+  payrollEntries    PayrollEntry[]
+  employee          Employee?
+  postedDocuments   Document[]           @relation("PostedBy")
+  unpostedDocuments Document[]           @relation("UnpostedBy")
+  cashOrdersCreated CashOrder[]
+  bankOrdersCreated BankOrder[]
+  batchesCreated    Batch[]
+  productReceipts   ProductReceipt[]
+  productIssues     ProductIssue[]
+  workshop          Workshop?            @relation("WorkshopHead")
+  roleAssignments   UserRoleAssignment[]
+  documentsCreated  Document[]           @relation("DocumentCreatedBy")
+  ProductTransfer   ProductTransfer[]
 }
 
 model Customer {
-  id             Int          @id @default(autoincrement())
-  company        String
-  contactPerson  String
-  phone          String
-  email          String
-  inn            String?      @unique
-  kpp            String?
-  address        String?
-  tier           String       @default("Regular")
-  totalOrders    Int          @default(0)
-  lastOrderDate  DateTime?
-  createdAt      DateTime     @default(now())
-  orders         Order[]
-  contactLogs    ContactLog[]
-  complaints     Complaint[]
-  contracts      Contract[]
-  settlements    Settlement[]
-  documents      Document[]
+  id            Int            @id @default(autoincrement())
+  company       String
+  contactPerson String
+  phone         String
+  email         String
+  inn           String?        @unique
+  kpp           String?
+  address       String?
+  tier          String         @default("Regular")
+  totalOrders   Int            @default(0)
+  lastOrderDate DateTime?
+  createdAt     DateTime       @default(now())
+  orders        Order[]
+  contactLogs   ContactLog[]
+  complaints    Complaint[]
+  contracts     Contract[]
+  settlements   Settlement[]
+  documents     Document[]
+  ProductIssue  ProductIssue[]
+}
+
+model Supplier {
+  id            Int              @id @default(autoincrement())
+  name          String
+  contactPerson String?
+  phone         String?
+  email         String?
+  inn           String?          @unique
+  address       String?
+  bankAccount   String?
+  bankName      String?
+  bic           String?
+  category      String           @default("General")
+  rating        Int              @default(5)
+  isActive      Boolean          @default(true)
+  createdAt     DateTime         @default(now())
+  receipts      ProductReceipt[]
 }
 
 model ContactLog {
@@ -99,46 +119,64 @@ model Complaint {
 }
 
 model Product {
-  id               Int            @id @default(autoincrement())
-  sku              String         @unique
-  name             String
-  category         String
-  type             ProductType    @default(Goods)
-  unit             String         @default("шт")
-  unitPrice        Float
-  costPrice        Float          @default(0)
-  quantityOnHand   Int
-  quantityReserved Int            @default(0)
-  reorderPoint     Int            @default(5)
-  vatRate          Float          @default(12)
-  createdAt        DateTime       @default(now())
-  orderItems       OrderItem[]
-  inventoryLogs    InventoryLog[]
-  batches          Batch[]
-  productionInputs ProductBomInput[]
+  id                Int                   @id @default(autoincrement())
+  sku               String                @unique
+  artikul           String?               @unique
+  barcode           String?               @unique
+  name              String
+  description       String?
+  category          String
+  type              ProductType           @default(Goods)
+  unit              String                @default("шт")
+  unitPrice         Float
+  costPrice         Float                 @default(0)
+  markup            Float                 @default(0)
+  currency          String                @default("KZT")
+  quantityOnHand    Int
+  quantityReserved  Int                   @default(0)
+  reorderPoint      Int                   @default(5)
+  minStock          Int                   @default(0)
+  maxStock          Int?
+  vatRate           Float                 @default(12)
+  weight           Float?
+  volume           Float?
+  manufacturer     String?
+  country          String?        @default("KZ")
+  imageUrl         String?
+  storageLifeDays  Int?
+  isActive         Boolean        @default(true)
+  archivedAt       DateTime?
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  orderItems        OrderItem[]
+  inventoryLogs     InventoryLog[]
+  batches           Batch[]
+  productionInputs  ProductBomInput[]
   productionOutputs ProductionOutput[]
-  stockMovements   StockMovement[]
-  documentItems    DocumentItem[]
-  productReceipts  ProductReceiptItem[]
-  productIssues    ProductIssueItem[]
-  stockBalances    StockBalance[]
-  techCards        TechCard[]              @relation("TechCardOutput")
+  stockMovements    StockMovement[]
+  documentItems     DocumentItem[]
+  productReceipts   ProductReceiptItem[]
+  productIssues     ProductIssueItem[]
+  stockBalances     StockBalance[]
+  transferItems     ProductTransferItem[]
+  expiryAlerts      ExpiryAlert[]
+  techCards         TechCard[]            @relation("TechCardOutput")
 }
 
 model Order {
-  id              Int        @id @default(autoincrement())
+  id              Int         @id @default(autoincrement())
   customerId      Int
-  customer        Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customer        Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
   userId          Int
-  user            User       @relation(fields: [userId], references: [id])
-  status          String     @default("Pending")
+  user            User        @relation(fields: [userId], references: [id])
+  status          String      @default("Pending")
   totalAmount     Float
   costAmount      Float
   deliveryAddress String
   deadline        DateTime
   notes           String?
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
   items           OrderItem[]
 }
 
@@ -186,16 +224,18 @@ model Warehouse {
   isMain    Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  stockMovements StockMovement[]
-  productReceipts ProductReceipt[]
-  productIssues   ProductIssue[]
+  stockMovements      StockMovement[]
+  productReceipts     ProductReceipt[]
+  productIssues       ProductIssue[]
   productReceiptItems ProductReceiptItem[]
-  productIssueItems  ProductIssueItem[]
-  stockBalances  StockBalance[]
+  productIssueItems   ProductIssueItem[]
+  stockBalances       StockBalance[]
+  transfersFrom       ProductTransfer[]    @relation("TransferFrom")
+  transfersTo         ProductTransfer[]    @relation("TransferTo")
 }
 
 model StockBalance {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   warehouseId Int
   warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
   productId   Int
@@ -207,31 +247,57 @@ model StockBalance {
   @@unique([warehouseId, productId])
 }
 
+enum StockMovementType {
+  Receipt
+  Issue
+  TransferIn
+  TransferOut
+  WriteOff
+  Inventory
+  Adjustment
+  Production
+  Return
+}
+
 model StockMovement {
-  id          Int      @id @default(autoincrement())
+  id          Int               @id @default(autoincrement())
   warehouseId Int
-  warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  warehouse   Warehouse         @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
   productId   Int
-  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product     Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
   delta       Int
-  reason      String
+  type        StockMovementType @default(Adjustment)
+  reason      String?
+  reference   String?
+  balance     Int?
   userId      Int?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime          @default(now())
 }
 
 model Batch {
-  id         Int      @id @default(autoincrement())
-  productId  Int
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  batchNo    String   @unique
-  expiryDate DateTime?
-  quantity   Int      @default(0)
-  costPrice  Float    @default(0)
-  createdAt  DateTime @default(now())
-  userId     Int?
-  user       User?    @relation(fields: [userId], references: [id])
+  id              Int             @id @default(autoincrement())
+  productId       Int
+  product         Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  batchNo         String          @unique
+  manufacturedAt  DateTime?
+  expiryDate      DateTime?
+  storageLifeDays Int?
+  quantity        Int             @default(0)
+  remainingQty    Int             @default(0)
+  costPrice       Float           @default(0)
+  receiptId       Int?
+  receipt         ProductReceipt? @relation(fields: [receiptId], references: [id])
+  status          String          @default("Active")
+  notes           String?
+  createdAt       DateTime        @default(now())
+  userId          Int?
+  user            User?           @relation(fields: [userId], references: [id])
 
-  movements  BatchMovement[]
+  movements           BatchMovement[]
+  receiptItems        ProductReceiptItem[]  @relation("ReceiptItemBatch")
+  issueItems          ProductIssueItem[]    @relation("IssueItemBatch")
+  expiryAlerts        ExpiryAlert[]
+  ProductTransferItem ProductTransferItem[]
 }
 
 model BatchMovement {
@@ -243,29 +309,75 @@ model BatchMovement {
   createdAt DateTime @default(now())
 }
 
-model ChartOfAccounts {
-  id        Int      @id @default(autoincrement())
-  code      String   @unique
-  name      String
-  type      String
-  parent    String?
-  isActive  Boolean  @default(true)
-  vat       Boolean  @default(false)
+model ProductTransfer {
+  id              Int                   @id @default(autoincrement())
+  number          String                @unique
+  date            DateTime              @default(now())
+  fromWarehouseId Int
+  fromWarehouse   Warehouse             @relation("TransferFrom", fields: [fromWarehouseId], references: [id])
+  toWarehouseId   Int
+  toWarehouse     Warehouse             @relation("TransferTo", fields: [toWarehouseId], references: [id])
+  reason          String?
+  status          String                @default("Draft")
+  userId          Int
+  user            User                  @relation(fields: [userId], references: [id])
+  documentId      Int?
+  document        Document?             @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  items           ProductTransferItem[]
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+}
 
-  entries   AccountingEntry[]
+model ProductTransferItem {
+  id         Int             @id @default(autoincrement())
+  transferId Int
+  transfer   ProductTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+  productId  Int
+  product    Product         @relation(fields: [productId], references: [id])
+  batchId    Int?
+  batch      Batch?          @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  quantity   Int
+  costPrice  Float           @default(0)
+}
+
+model ExpiryAlert {
+  id         Int       @id @default(autoincrement())
+  batchId    Int
+  batch      Batch     @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  productId  Int
+  product    Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  expiryDate DateTime
+  daysLeft   Int
+  severity   String
+  isResolved Boolean   @default(false)
+  resolvedAt DateTime?
+  notified   Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+}
+
+model ChartOfAccounts {
+  id       Int     @id @default(autoincrement())
+  code     String  @unique
+  name     String
+  type     String
+  parent   String?
+  isActive Boolean @default(true)
+  vat      Boolean @default(false)
+
+  entries AccountingEntry[]
 }
 
 model AccountingEntry {
-  id          Int      @id @default(autoincrement())
+  id          Int             @id @default(autoincrement())
   accountId   Int
   account     ChartOfAccounts @relation(fields: [accountId], references: [id])
-  debit       Float    @default(0)
-  credit      Float    @default(0)
+  debit       Float           @default(0)
+  credit      Float           @default(0)
   documentId  Int?
-  document    Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  document    Document?       @relation(fields: [documentId], references: [id], onDelete: SetNull)
   period      String
   description String?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime        @default(now())
 
   @@index([accountId, period])
 }
@@ -278,66 +390,66 @@ model CashRegister {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
 
-  orders    CashOrder[]
+  orders CashOrder[]
 }
 
 model CashOrder {
-  id            Int      @id @default(autoincrement())
-  registerId    Int
-  register      CashRegister @relation(fields: [registerId], references: [id], onDelete: Cascade)
-  type          String
-  amount        Float
-  counterparty  String
-  basis         String
-  documentId    Int?
-  document      Document?  @relation(fields: [documentId], references: [id], onDelete: SetNull)
-  userId        Int
-  user          User     @relation(fields: [userId], references: [id])
-  createdAt     DateTime @default(now())
+  id           Int          @id @default(autoincrement())
+  registerId   Int
+  register     CashRegister @relation(fields: [registerId], references: [id], onDelete: Cascade)
+  type         String
+  amount       Float
+  counterparty String
+  basis        String
+  documentId   Int?
+  document     Document?    @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  userId       Int
+  user         User         @relation(fields: [userId], references: [id])
+  createdAt    DateTime     @default(now())
 }
 
 model BankAccount {
-  id          Int      @id @default(autoincrement())
-  name        String
-  accountNo   String   @unique
-  bik         String?
-  bankName    String?
-  currency    String   @default("KZT")
-  balance     Float    @default(0)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  name      String
+  accountNo String   @unique
+  bik       String?
+  bankName  String?
+  currency  String   @default("KZT")
+  balance   Float    @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
 
-  orders      BankOrder[]
-  statements  BankStatement[]
+  orders     BankOrder[]
+  statements BankStatement[]
 }
 
 model BankOrder {
-  id            Int      @id @default(autoincrement())
-  accountId     Int
-  account       BankAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  type          String
-  amount        Float
-  counterparty  String
+  id              Int         @id @default(autoincrement())
+  accountId       Int
+  account         BankAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  type            String
+  amount          Float
+  counterparty    String
   counterpartyInn String?
-  purpose       String
-  documentId    Int?
-  document      Document?  @relation(fields: [documentId], references: [id], onDelete: SetNull)
-  userId        Int
-  user          User     @relation(fields: [userId], references: [id])
-  status        String   @default("Pending")
-  createdAt     DateTime @default(now())
+  purpose         String
+  documentId      Int?
+  document        Document?   @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  userId          Int
+  user            User        @relation(fields: [userId], references: [id])
+  status          String      @default("Pending")
+  createdAt       DateTime    @default(now())
 }
 
 model BankStatement {
-  id            Int      @id @default(autoincrement())
-  accountId     Int
-  account       BankAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  date          DateTime
+  id             Int         @id @default(autoincrement())
+  accountId      Int
+  account        BankAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  date           DateTime
   openingBalance Float
   closingBalance Float
-  description   String
-  delta         Float
-  createdAt     DateTime @default(now())
+  description    String
+  delta          Float
+  createdAt      DateTime    @default(now())
 }
 
 model Workshop {
@@ -351,184 +463,185 @@ model Workshop {
 }
 
 model TechCard {
-  id          Int      @id @default(autoincrement())
-  name        String
-  outputProductId Int
-  outputProduct   Product @relation("TechCardOutput", fields: [outputProductId], references: [id])
-  outputQuantity  Int    @default(1)
-  inputs      ProductBomInput[]
+  id               Int               @id @default(autoincrement())
+  name             String
+  outputProductId  Int
+  outputProduct    Product           @relation("TechCardOutput", fields: [outputProductId], references: [id])
+  outputQuantity   Int               @default(1)
+  inputs           ProductBomInput[]
   productionOrders ProductionOrder[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 }
 
 model ProductBomInput {
-  id          Int      @id @default(autoincrement())
-  techCardId  Int
-  techCard    TechCard @relation(fields: [techCardId], references: [id], onDelete: Cascade)
-  productId   Int
-  product     Product  @relation(fields: [productId], references: [id])
-  quantity    Int
-  waste       Float    @default(0)
+  id         Int      @id @default(autoincrement())
+  techCardId Int
+  techCard   TechCard @relation(fields: [techCardId], references: [id], onDelete: Cascade)
+  productId  Int
+  product    Product  @relation(fields: [productId], references: [id])
+  quantity   Int
+  waste      Float    @default(0)
 }
 
 model ProductionOrder {
-  id          Int      @id @default(autoincrement())
-  number      String   @unique
-  techCardId  Int
-  techCard    TechCard @relation(fields: [techCardId], references: [id])
-  workshopId  Int
-  workshop    Workshop @relation(fields: [workshopId], references: [id])
-  quantity    Int
-  status      String   @default("Planned")
-  plannedDate DateTime
+  id           Int                @id @default(autoincrement())
+  number       String             @unique
+  techCardId   Int
+  techCard     TechCard           @relation(fields: [techCardId], references: [id])
+  workshopId   Int
+  workshop     Workshop           @relation(fields: [workshopId], references: [id])
+  quantity     Int
+  status       String             @default("Planned")
+  plannedDate  DateTime
   finishedDate DateTime?
-  outputs     ProductionOutput[]
-  documentId  Int?
-  document    Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  outputs      ProductionOutput[]
+  documentId   Int?
+  document     Document?          @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
 }
 
 model ProductionOutput {
-  id          Int      @id @default(autoincrement())
+  id                Int             @id @default(autoincrement())
   productionOrderId Int
   productionOrder   ProductionOrder @relation(fields: [productionOrderId], references: [id], onDelete: Cascade)
-  productId   Int
-  product     Product  @relation(fields: [productId], references: [id])
-  quantity    Int
-  cost        Float
+  productId         Int
+  product           Product         @relation(fields: [productId], references: [id])
+  quantity          Int
+  cost              Float
 }
 
 model Employee {
-  id          Int      @id @default(autoincrement())
-  userId      Int?     @unique
-  user        User?    @relation(fields: [userId], references: [id])
-  fullName    String
-  position    String
-  department  String
-  hireDate    DateTime @default(now())
-  fireDate    DateTime?
-  salary      Float
-  inn         String?  @unique
-  phone       String?
-  email       String?
-  address     String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         Int       @id @default(autoincrement())
+  userId     Int?      @unique
+  user       User?     @relation(fields: [userId], references: [id])
+  fullName   String
+  position   String
+  department String
+  hireDate   DateTime  @default(now())
+  fireDate   DateTime?
+  salary     Float
+  inn        String?   @unique
+  phone      String?
+  email      String?
+  address    String?
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   payrollEntries PayrollEntry[]
-  timesheets      Timesheet[]
+  timesheets     Timesheet[]
 }
 
 model Timesheet {
-  id          Int      @id @default(autoincrement())
-  employeeId  Int
-  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  date        DateTime
-  hours       Float
-  overtime    Float    @default(0)
-  type        String   @default("Regular")
-  createdAt   DateTime @default(now())
+  id         Int      @id @default(autoincrement())
+  employeeId Int
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  date       DateTime
+  hours      Float
+  overtime   Float    @default(0)
+  type       String   @default("Regular")
+  createdAt  DateTime @default(now())
 
   @@unique([employeeId, date])
 }
 
 model PayrollEntry {
-  id          Int      @id @default(autoincrement())
-  employeeId  Int
-  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  period      String
-  baseSalary  Float
-  overtime    Float    @default(0)
-  bonus       Float    @default(0)
-  deductions  Float    @default(0)
-  tax         Float    @default(0)
-  netPay      Float
-  status      String   @default("Calculated")
-  paidAt      DateTime?
-  userId      Int
-  user        User     @relation(fields: [userId], references: [id])
-  documentId  Int?
-  document    Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
-  createdAt   DateTime @default(now())
+  id         Int       @id @default(autoincrement())
+  employeeId Int
+  employee   Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  period     String
+  baseSalary Float
+  overtime   Float     @default(0)
+  bonus      Float     @default(0)
+  deductions Float     @default(0)
+  tax        Float     @default(0)
+  netPay     Float
+  status     String    @default("Calculated")
+  paidAt     DateTime?
+  userId     Int
+  user       User      @relation(fields: [userId], references: [id])
+  documentId Int?
+  document   Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  createdAt  DateTime  @default(now())
 }
 
 model Contract {
-  id          Int      @id @default(autoincrement())
-  number      String   @unique
+  id          Int          @id @default(autoincrement())
+  number      String       @unique
   customerId  Int
-  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customer    Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
   signedAt    DateTime
   validUntil  DateTime?
   totalAmount Float
   description String?
-  status      String   @default("Active")
+  status      String       @default("Active")
   documents   Document[]
   settlements Settlement[]
-  createdAt   DateTime @default(now())
+  createdAt   DateTime     @default(now())
 }
 
 model Settlement {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   customerId  Int
-  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customer    Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
   contractId  Int?
   contract    Contract? @relation(fields: [contractId], references: [id], onDelete: SetNull)
   amount      Float
   type        String
   description String?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
 }
 
 model Document {
-  id            Int      @id @default(autoincrement())
-  number        String   @unique
-  type          String
-  date          DateTime @default(now())
-  posted        Boolean  @default(false)
-  postedAt      DateTime?
-  postedById    Int?
-  postedBy      User?    @relation("PostedBy", fields: [postedById], references: [id])
-  unpostedById  Int?
-  unpostedBy    User?    @relation("UnpostedBy", fields: [unpostedById], references: [id])
-  customerId    Int?
-  customer      Customer? @relation(fields: [customerId], references: [id])
-  contractId    Int?
-  contract      Contract? @relation(fields: [contractId], references: [id], onDelete: SetNull)
-  description   String?
-  totalAmount   Float    @default(0)
-  vatAmount     Float    @default(0)
-  createdById   Int
-  createdBy     User     @relation("DocumentCreatedBy", fields: [createdById], references: [id])
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id           Int       @id @default(autoincrement())
+  number       String    @unique
+  type         String
+  date         DateTime  @default(now())
+  posted       Boolean   @default(false)
+  postedAt     DateTime?
+  postedById   Int?
+  postedBy     User?     @relation("PostedBy", fields: [postedById], references: [id])
+  unpostedById Int?
+  unpostedBy   User?     @relation("UnpostedBy", fields: [unpostedById], references: [id])
+  customerId   Int?
+  customer     Customer? @relation(fields: [customerId], references: [id])
+  contractId   Int?
+  contract     Contract? @relation(fields: [contractId], references: [id], onDelete: SetNull)
+  description  String?
+  totalAmount  Float     @default(0)
+  vatAmount    Float     @default(0)
+  createdById  Int
+  createdBy    User      @relation("DocumentCreatedBy", fields: [createdById], references: [id])
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  items         DocumentItem[]
-  versions      DocumentVersion[]
-  approvals     DocumentApproval[]
+  items             DocumentItem[]
+  versions          DocumentVersion[]
+  approvals         DocumentApproval[]
   accountingEntries AccountingEntry[]
-  cashOrders    CashOrder[]
-  bankOrders    BankOrder[]
-  productionOrders ProductionOrder[]
-  payrollEntries PayrollEntry[]
-  attachments   DocumentAttachment[]
-  productReceipts ProductReceipt[]
-  productIssues ProductIssue[]
+  cashOrders        CashOrder[]
+  bankOrders        BankOrder[]
+  productionOrders  ProductionOrder[]
+  payrollEntries    PayrollEntry[]
+  attachments       DocumentAttachment[]
+  productReceipts   ProductReceipt[]
+  productIssues     ProductIssue[]
+  ProductTransfer   ProductTransfer[]
 }
 
 model DocumentItem {
-  id          Int      @id @default(autoincrement())
-  documentId  Int
-  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  productId   Int
-  product     Product  @relation(fields: [productId], references: [id])
-  quantity    Int
-  unitPrice   Float
-  vatRate     Float    @default(12)
-  vatAmount   Float    @default(0)
-  total       Float
+  id         Int      @id @default(autoincrement())
+  documentId Int
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  productId  Int
+  product    Product  @relation(fields: [productId], references: [id])
+  quantity   Int
+  unitPrice  Float
+  vatRate    Float    @default(12)
+  vatAmount  Float    @default(0)
+  total      Float
 }
 
 model DocumentVersion {
@@ -545,15 +658,15 @@ model DocumentVersion {
 }
 
 model DocumentApproval {
-  id          Int      @id @default(autoincrement())
-  documentId  Int
-  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  approverId  Int
-  approver    User     @relation(fields: [approverId], references: [id])
-  status      String   @default("Pending")
-  comment     String?
-  decidedAt   DateTime?
-  createdAt   DateTime @default(now())
+  id         Int       @id @default(autoincrement())
+  documentId Int
+  document   Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  approverId Int
+  approver   User      @relation(fields: [approverId], references: [id])
+  status     String    @default("Pending")
+  comment    String?
+  decidedAt  DateTime?
+  createdAt  DateTime  @default(now())
 }
 
 model DocumentAttachment {
@@ -568,56 +681,91 @@ model DocumentAttachment {
 }
 
 model ProductReceipt {
-  id           Int      @id @default(autoincrement())
-  number       String   @unique
-  date         DateTime @default(now())
-  supplier     String
-  warehouseId  Int
-  warehouse    Warehouse @relation(fields: [warehouseId], references: [id])
-  userId       Int
-  user         User     @relation(fields: [userId], references: [id])
-  documentId   Int?
-  document     Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
-  items        ProductReceiptItem[]
-  createdAt    DateTime @default(now())
+  id            Int                  @id @default(autoincrement())
+  number        String               @unique
+  date          DateTime             @default(now())
+  receivedAt    DateTime?
+  supplierId    Int?
+  supplier      Supplier?            @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  supplierName  String
+  warehouseId   Int
+  warehouse     Warehouse            @relation(fields: [warehouseId], references: [id])
+  invoiceNumber String?
+  invoiceDate   DateTime?
+  contractNo    String?
+  currency      String               @default("KZT")
+  vatRate       Float                @default(12)
+  subtotal      Float                @default(0)
+  vatAmount     Float                @default(0)
+  totalAmount   Float                @default(0)
+  status        String               @default("Draft")
+  notes         String?
+  userId        Int
+  user          User                 @relation(fields: [userId], references: [id])
+  documentId    Int?
+  document      Document?            @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  items         ProductReceiptItem[]
+  batches       Batch[]
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
 }
 
 model ProductReceiptItem {
-  id          Int      @id @default(autoincrement())
+  id          Int            @id @default(autoincrement())
   receiptId   Int
   receipt     ProductReceipt @relation(fields: [receiptId], references: [id], onDelete: Cascade)
   productId   Int
-  product     Product  @relation(fields: [productId], references: [id])
+  product     Product        @relation(fields: [productId], references: [id])
   warehouseId Int
-  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
+  warehouse   Warehouse      @relation(fields: [warehouseId], references: [id])
+  batchId     Int?
+  batch       Batch?         @relation("ReceiptItemBatch", fields: [batchId], references: [id], onDelete: SetNull)
   quantity    Int
   unitPrice   Float
+  costPrice   Float          @default(0)
+  vatRate     Float          @default(12)
+  vatAmount   Float          @default(0)
+  totalAmount Float          @default(0)
+  expiryDate  DateTime?
+  serialNo    String?
 }
 
 model ProductIssue {
-  id           Int      @id @default(autoincrement())
-  number       String   @unique
-  date         DateTime @default(now())
-  warehouseId  Int
-  warehouse    Warehouse @relation(fields: [warehouseId], references: [id])
-  userId       Int
-  user         User     @relation(fields: [userId], references: [id])
-  documentId   Int?
-  document     Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
-  items        ProductIssueItem[]
-  createdAt    DateTime @default(now())
+  id          Int                @id @default(autoincrement())
+  number      String             @unique
+  date        DateTime           @default(now())
+  type        String             @default("Sale")
+  warehouseId Int
+  warehouse   Warehouse          @relation(fields: [warehouseId], references: [id])
+  customerId  Int?
+  customer    Customer?          @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  reason      String?
+  totalAmount Float              @default(0)
+  status      String             @default("Draft")
+  notes       String?
+  userId      Int
+  user        User               @relation(fields: [userId], references: [id])
+  documentId  Int?
+  document    Document?          @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  items       ProductIssueItem[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
 }
 
 model ProductIssueItem {
-  id          Int      @id @default(autoincrement())
+  id          Int          @id @default(autoincrement())
   issueId     Int
   issue       ProductIssue @relation(fields: [issueId], references: [id], onDelete: Cascade)
   productId   Int
-  product     Product  @relation(fields: [productId], references: [id])
+  product     Product      @relation(fields: [productId], references: [id])
   warehouseId Int
-  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
+  warehouse   Warehouse    @relation(fields: [warehouseId], references: [id])
+  batchId     Int?
+  batch       Batch?       @relation("IssueItemBatch", fields: [batchId], references: [id], onDelete: SetNull)
   quantity    Int
   unitPrice   Float
+  costPrice   Float        @default(0)
+  totalAmount Float        @default(0)
 }
 
 model Role {
@@ -632,19 +780,19 @@ model Role {
 }
 
 model Permission {
-  id    Int    @id @default(autoincrement())
-  key   String @unique
+  id          Int     @id @default(autoincrement())
+  key         String  @unique
   description String?
-  resource String?
-  action String?
+  resource    String?
+  action      String?
 
-  roles  RolePermission[]
+  roles RolePermission[]
 }
 
 model RolePermission {
-  id           Int      @id @default(autoincrement())
+  id           Int        @id @default(autoincrement())
   roleId       Int
-  role         Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
   permissionId Int
   permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
@@ -652,32 +800,32 @@ model RolePermission {
 }
 
 model UserRoleAssignment {
-  id     Int  @id @default(autoincrement())
+  id     Int    @id @default(autoincrement())
   userId Int
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   roleId Int
-  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
   scope  String @default("ALL")
 
   @@unique([userId, roleId])
 }
 
 model Task {
-  id           Int      @id @default(autoincrement())
+  id           Int       @id @default(autoincrement())
   title        String
   description  String?
-  status       String   @default("New")
-  priority     String   @default("Normal")
+  status       String    @default("New")
+  priority     String    @default("Normal")
   dueDate      DateTime?
   assignedToId Int
-  assignedTo   User     @relation("AssignedTo", fields: [assignedToId], references: [id])
+  assignedTo   User      @relation("AssignedTo", fields: [assignedToId], references: [id])
   createdById  Int
-  createdBy    User     @relation("CreatedBy", fields: [createdById], references: [id])
+  createdBy    User      @relation("CreatedBy", fields: [createdById], references: [id])
   documentId   Int?
   orderId      Int?
   completedAt  DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 }
 
 model Notification {
@@ -693,18 +841,18 @@ model Notification {
 }
 
 model ScheduledJob {
-  id           Int      @id @default(autoincrement())
-  name         String   @unique
-  cron         String
-  handler      String
-  params       Json?
-  enabled      Boolean  @default(true)
-  lastRunAt    DateTime?
-  lastStatus   String?
-  lastError    String?
-  nextRunAt    DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id         Int       @id @default(autoincrement())
+  name       String    @unique
+  cron       String
+  handler    String
+  params     Json?
+  enabled    Boolean   @default(true)
+  lastRunAt  DateTime?
+  lastStatus String?
+  lastError  String?
+  nextRunAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 }
 
 model ConfigObject {
@@ -720,11 +868,11 @@ model ConfigObject {
 }
 
 model PrintTemplate {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
+  id           Int      @id @default(autoincrement())
+  name         String   @unique
   documentType String
-  template    Json
-  isDefault   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  template     Json
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }

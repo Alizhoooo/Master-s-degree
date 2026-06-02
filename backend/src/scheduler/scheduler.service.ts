@@ -89,6 +89,7 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
       closeMonth: async () => this.closeMonth(),
       checkInventory: async () => this.checkInventory(),
       checkOverdueTasks: async () => this.checkOverdueTasks(),
+      checkExpiry: async () => this.checkExpiry(),
     };
     const fn = handlers[handler];
     if (!fn) throw new Error(`Unknown handler: ${handler}`);
@@ -150,6 +151,56 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
     return { notified: overdue.length };
   }
 
+  private async checkExpiry() {
+    const now = new Date();
+    const in30Days = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const expiring = await this.prisma.batch.findMany({
+      where: {
+        expiryDate: { lte: in30Days, not: null },
+        remainingQty: { gt: 0 },
+        status: 'Active',
+      },
+      include: { product: true },
+    });
+
+    let created = 0;
+    for (const batch of expiring) {
+      if (!batch.expiryDate) continue;
+      const daysLeft = Math.floor((batch.expiryDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
+      const severity = daysLeft < 0 ? 'Expired' : daysLeft <= 7 ? 'Critical' : 'Warning';
+
+      const existing = await this.prisma.expiryAlert.findFirst({
+        where: { batchId: batch.id, isResolved: false },
+      });
+      if (existing) continue;
+
+      await this.prisma.expiryAlert.create({
+        data: {
+          batchId: batch.id,
+          productId: batch.productId,
+          expiryDate: batch.expiryDate,
+          daysLeft,
+          severity,
+        },
+      });
+
+      const managers = await this.prisma.user.findMany({ where: { role: { in: ['Manager', 'Admin'] } } });
+      for (const m of managers) {
+        await this.prisma.notification.create({
+          data: {
+            userId: m.id,
+            title: severity === 'Expired' ? 'Просрочен товар' : 'Срок годности истекает',
+            message: `${batch.product.name} (партия ${batch.batchNo}) — ${daysLeft < 0 ? 'просрочен на ' + Math.abs(daysLeft) + ' дн.' : 'осталось ' + daysLeft + ' дн.'}`,
+            type: severity === 'Expired' ? 'error' : 'warning',
+            link: `/expiry`,
+          },
+        });
+      }
+      created++;
+    }
+    return { scanned: expiring.length, alertsCreated: created };
+  }
+
   private computeNextRun(cron: string): Date {
     const parts = cron.split(' ');
     if (parts.length !== 5) return new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -172,6 +223,7 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
     const defaults = [
       { name: 'Проверка остатков', cron: '0 9 * * *', handler: 'checkInventory' },
       { name: 'Проверка просроченных задач', cron: '0 8 * * *', handler: 'checkOverdueTasks' },
+      { name: 'Проверка сроков годности', cron: '0 7 * * *', handler: 'checkExpiry' },
     ];
     for (const d of defaults) {
       const existing = await this.prisma.scheduledJob.findUnique({ where: { name: d.name } });

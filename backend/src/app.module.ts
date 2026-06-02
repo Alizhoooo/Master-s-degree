@@ -26,6 +26,8 @@ import { NotificationModule } from './notification/notification.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 import { ConfiguratorModule } from './configurator/configurator.module';
 import { SearchModule } from './search/search.module';
+import { NomenclatureModule } from './nomenclature/nomenclature.module';
+import { I18nModule } from './i18n/i18n.module';
 import appConfig from './common/env.config';
 
 @Module({
@@ -66,6 +68,8 @@ import appConfig from './common/env.config';
     SchedulerModule,
     ConfiguratorModule,
     SearchModule,
+    NomenclatureModule,
+    I18nModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },
