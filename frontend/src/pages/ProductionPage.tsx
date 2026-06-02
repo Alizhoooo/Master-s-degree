@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Container, Title, Group, Tabs, Button, Table, Modal, TextInput, Select, NumberInput, Stack, Badge, Text } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
 import { IconPlus, IconBuildingFactory, IconClipboardList, IconSettings } from '@tabler/icons-react';
 import { listWorkshops, createWorkshop, listTechCards, createTechCard, listProductionOrders, createProductionOrder, startProductionOrder, completeProductionOrder, getProducts, listEmployees } from '../api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { TableSkeleton } from '../components/Skeleton';
+import { statusLabel, enumLabel } from '../i18n/enumLabel';
 
 export default function ProductionPage() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [tab, setTab] = useState('orders');
   const [whModal, setWhModal] = useState(false);
@@ -70,7 +73,7 @@ export default function ProductionPage() {
                   <Table.Td>{o.workshop?.name}</Table.Td>
                   <Table.Td>{o.quantity}</Table.Td>
                   <Table.Td>{new Date(o.plannedDate).toLocaleDateString()}</Table.Td>
-                  <Table.Td><Badge>{o.status}</Badge></Table.Td>
+                  <Table.Td><Badge>{statusLabel(o.status)}</Badge></Table.Td>
                   <Table.Td>
                     <Group gap="xs">
                       {o.status === 'Planned' && <Button size="xs" variant="light" onClick={() => startMut.mutate(o.id)}>Старт</Button>}

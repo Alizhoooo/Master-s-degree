@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Container, Title, Group, Tabs, Button, Table, Modal, TextInput, Select, Textarea, Stack, Badge, NumberInput, Text } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
 import { IconPlus, IconFileText, IconCheck, IconX } from '@tabler/icons-react';
 import { listDocuments, createDocument, postDocument, unpostDocument, getCustomers, getProducts } from '../api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { TableSkeleton } from '../components/Skeleton';
+import { statusLabel, enumLabel } from '../i18n/enumLabel';
 
 const typeColors: Record<string, string> = {
   Sale: 'green',
@@ -70,7 +72,7 @@ export default function DocumentsPage() {
                 {(documents as any[]).map((d: any) => (
                   <Table.Tr key={d.id}>
                     <Table.Td><strong>{d.number}</strong></Table.Td>
-                    <Table.Td><Badge color={typeColors[d.type] || 'gray'}>{d.type}</Badge></Table.Td>
+                    <Table.Td><Badge color={typeColors[d.type] || 'gray'}>{enumLabel(d.type, 'docStatus') || d.type}</Badge></Table.Td>
                     <Table.Td>{new Date(d.date).toLocaleDateString()}</Table.Td>
                     <Table.Td>{d.customer?.company || '-'}</Table.Td>
                     <Table.Td><strong>{d.totalAmount.toFixed(2)}</strong></Table.Td>

@@ -60,7 +60,7 @@ export default function SuppliersPage() {
       <SimpleGrid cols={{ base: 1, sm: 3 }} mb="md">
         <Card withBorder><Group><IconBuilding size={24} /><div><Text size="xs" c="dimmed">{t('common.total')}</Text><Text size="xl" fw={700}>{list.length}</Text></div></Group></Card>
         <Card withBorder><Group><IconStar size={24} color="orange" /><div><Text size="xs" c="dimmed">{t('supplier.fields.rating')}</Text><Text size="xl" fw={700}>{avgRating}</Text></div></Group></Card>
-        <Card withBorder><Group><IconTruckDelivery size={24} color="green" /><div><Text size="xs" c="dimmed">Active</Text><Text size="xl" fw={700}>{totalActive}</Text></div></Group></Card>
+        <Card withBorder><Group><IconTruckDelivery size={24} color="green" /><div><Text size="xs" c="dimmed">{t('enum.docStatus.Active')}</Text><Text size="xl" fw={700}>{totalActive}</Text></div></Group></Card>
       </SimpleGrid>
 
       {isLoading ? <TableSkeleton rows={6} cols={5} /> : (

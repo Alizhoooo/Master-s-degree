@@ -12,6 +12,7 @@ import {
 } from '../api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { TableSkeleton } from '../components/Skeleton';
+import { enumLabel } from '../i18n/enumLabel';
 
 const typeColors: Record<string, string> = {
   Asset: 'blue',
@@ -92,7 +93,7 @@ export default function AccountingPage() {
                   <Table.Tr key={a.id}>
                     <Table.Td><strong>{a.code}</strong></Table.Td>
                     <Table.Td>{a.name}</Table.Td>
-                    <Table.Td><Badge color={typeColors[a.type] || 'gray'}>{a.type}</Badge></Table.Td>
+                    <Table.Td><Badge color={typeColors[a.type] || 'gray'}>{enumLabel(a.type, 'cash') || a.type}</Badge></Table.Td>
                     <Table.Td>{a.vat ? '✓' : ''}</Table.Td>
                     <Table.Td>{a.isActive ? '✓' : '✗'}</Table.Td>
                   </Table.Tr>
@@ -189,7 +190,7 @@ export default function AccountingPage() {
                 <Table.Tr key={r.code}>
                   <Table.Td><strong>{r.code}</strong></Table.Td>
                   <Table.Td>{r.name}</Table.Td>
-                  <Table.Td><Badge color={typeColors[r.type] || 'gray'}>{r.type}</Badge></Table.Td>
+                  <Table.Td><Badge color={typeColors[r.type] || 'gray'}>{enumLabel(r.type, 'cash') || r.type}</Badge></Table.Td>
                   <Table.Td>{r.debit}</Table.Td>
                   <Table.Td>{r.credit}</Table.Td>
                   <Table.Td>{r.balance}</Table.Td>

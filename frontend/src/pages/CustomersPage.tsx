@@ -9,6 +9,7 @@ import { useCustomers, useCreateCustomer, useUpdateCustomer } from '../api/hooks
 import { importCustomersCsv } from '../api';
 import { TableSkeleton } from '../components/Skeleton';
 import CsvImportModal from '../components/CsvImportModal';
+import { enumLabel } from '../i18n/enumLabel';
 
 const tierColor: Record<string, string> = {
   VIP: 'yellow',
@@ -100,7 +101,7 @@ export default function CustomersPage() {
               <Table.Td>{c.contactPerson}</Table.Td>
               <Table.Td>{c.phone}</Table.Td>
               <Table.Td>{c.email}</Table.Td>
-              <Table.Td><Badge color={tierColor[c.tier] || 'gray'}>{c.tier}</Badge></Table.Td>
+              <Table.Td><Badge color={tierColor[c.tier] || 'gray'}>{enumLabel(c.tier, 'tiers')}</Badge></Table.Td>
               <Table.Td>{c.totalOrders}</Table.Td>
               <Table.Td>{c.lastOrderDate ? new Date(c.lastOrderDate).toLocaleDateString() : '-'}</Table.Td>
               <Table.Td>
@@ -123,7 +124,18 @@ export default function CustomersPage() {
         <TextInput label={t('customer.contact')} placeholder={t('customer.contactPerson')} value={form.contactPerson} onChange={e => setForm({ ...form, contactPerson: e.currentTarget.value })} required mb="sm" />
         <TextInput label={t('customer.phone')} placeholder={t('customer.phoneNumber')} value={form.phone} onChange={e => setForm({ ...form, phone: e.currentTarget.value })} mb="sm" />
         <TextInput label="Email" placeholder={t('customer.email')} value={form.email} onChange={e => setForm({ ...form, email: e.currentTarget.value })} mb="sm" />
-        <Select label={t('customer.tier')} data={['VIP', 'Regular', 'Problematic']} value={form.tier} onChange={v => setForm({ ...form, tier: v || 'Regular' })} mb="lg" />
+        <Select
+          label={t('customer.tier')}
+          data={[
+            { value: 'VIP', label: enumLabel('VIP', 'tiers') },
+            { value: 'Regular', label: enumLabel('Regular', 'tiers') },
+            { value: 'Problematic', label: enumLabel('Problematic', 'tiers') },
+            { value: 'New', label: enumLabel('New', 'tiers') },
+          ]}
+          value={form.tier}
+          onChange={v => setForm({ ...form, tier: v || 'Regular' })}
+          mb="lg"
+        />
         <Group justify="flex-end">
           <Button onClick={handleSubmit} loading={createCustomer.isPending || updateCustomer.isPending} disabled={!form.company.trim() || !form.contactPerson.trim()}>
             {editingId ? t('common.save') : t('common.add')}

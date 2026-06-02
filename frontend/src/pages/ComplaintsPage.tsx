@@ -6,6 +6,7 @@ import {
 import { IconPlus, IconEdit } from '@tabler/icons-react';
 import { useComplaints, useCustomers, useCreateComplaint, useUpdateComplaintStatus } from '../api/hooks';
 import { TableSkeleton } from '../components/Skeleton';
+import { statusLabel, enumLabel } from '../i18n/enumLabel';
 
 const statusColor: Record<string, string> = {
   Open: 'red',
@@ -97,7 +98,7 @@ export default function ComplaintsPage() {
               <Table.Td>{c.title}</Table.Td>
               <Table.Td>{c.description}</Table.Td>
               <Table.Td>
-                <Badge color={statusColor[c.status] || 'gray'}>{c.status}</Badge>
+                <Badge color={statusColor[c.status] || 'gray'}>{statusLabel(c.status)}</Badge>
               </Table.Td>
               <Table.Td>{new Date(c.createdAt).toLocaleDateString()}</Table.Td>
               <Table.Td>
@@ -139,7 +140,17 @@ export default function ComplaintsPage() {
       </Modal>
 
       <Modal opened={statusOpened} onClose={() => setStatusOpened(false)} title={t('complaint.changeStatus')}>
-        <Select label={t('complaint.status')} data={['Open', 'InProgress', 'Resolved']} value={newStatus} onChange={setNewStatus} mb="lg" />
+        <Select
+          label={t('complaint.status')}
+          data={[
+            { value: 'Open', label: enumLabel('Open', 'complaint') },
+            { value: 'InProgress', label: enumLabel('InProgress', 'complaint') },
+            { value: 'Resolved', label: enumLabel('Resolved', 'complaint') },
+          ]}
+          value={newStatus}
+          onChange={setNewStatus}
+          mb="lg"
+        />
         <Group justify="flex-end">
           <Button onClick={handleStatusUpdate} loading={updateStatus.isPending} disabled={!newStatus}>{t('complaint.save')}</Button>
         </Group>

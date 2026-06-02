@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Container, Title, Group, Tabs, Button, Table, Modal, TextInput, Select, NumberInput, Stack, Badge } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
 import { IconPlus, IconUsers, IconClock, IconCash } from '@tabler/icons-react';
 import { listEmployees, createEmployee, listTimesheets, upsertTimesheet, listPayroll, calculatePayroll, payPayroll } from '../api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { enumLabel } from '../i18n/enumLabel';
 
 export default function HrPage() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [tab, setTab] = useState('employees');
   const [empModal, setEmpModal] = useState(false);
@@ -121,7 +124,7 @@ export default function HrPage() {
                   <Table.Td>{p.overtime.toFixed(2)}</Table.Td>
                   <Table.Td>{p.tax.toFixed(2)}</Table.Td>
                   <Table.Td><strong>{p.netPay.toFixed(2)}</strong></Table.Td>
-                  <Table.Td><Badge color={p.status === 'Paid' ? 'green' : 'yellow'}>{p.status}</Badge></Table.Td>
+                  <Table.Td><Badge color={p.status === 'Paid' ? 'green' : 'yellow'}>{enumLabel(p.status, 'payroll')}</Badge></Table.Td>
                   <Table.Td>
                     {p.status === 'Calculated' && <Button size="xs" onClick={() => payMut.mutate(p.id)} loading={payMut.isPending}>Выплатить</Button>}
                   </Table.Td>

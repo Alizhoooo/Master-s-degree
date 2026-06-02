@@ -10,6 +10,7 @@ import { downloadInvoice } from '../api';
 import { useAuth } from '../store/AuthContext';
 import { DetailSkeleton } from '../components/Skeleton';
 import OrderTimeline from '../components/OrderTimeline';
+import { statusLabel } from '../i18n/enumLabel';
 
 const STATUS_ORDER = ['Pending', 'Confirmed', 'Reserved', 'Paid', 'Picked', 'Shipped', 'Delivered'];
 
@@ -80,7 +81,7 @@ export default function OrderDetailPage() {
       <Group justify="space-between" mb="lg">
         <Group>
           <Title order={3}>{t('order.detail')} #{order.id}</Title>
-          <Badge size="lg" color={statusColor[order.status] || 'gray'}>{order.status}</Badge>
+          <Badge size="lg" color={statusColor[order.status] || 'gray'}>{statusLabel(order.status)}</Badge>
         </Group>
         <Group>
           <Button variant="light" color="cyan" leftSection={<IconPackage size={16} />} onClick={() => setPickModalOpened(true)}>
@@ -172,7 +173,7 @@ export default function OrderDetailPage() {
                 onClick={() => handleStatusUpdate(nextStatus)}
                 loading={updateStatus.isPending || cancel.isPending}
               >
-                {nextStatus === 'Cancelled' ? t('order.cancel') : nextStatus}
+                {nextStatus === 'Cancelled' ? t('order.cancel') : statusLabel(nextStatus)}
               </Button>
             ))}
           </Group>

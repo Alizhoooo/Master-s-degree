@@ -8,7 +8,7 @@ const kk = {
   enum: {
     statuses: { Pending: 'Күтуде', Confirmed: 'Расталды', Processing: 'Өңделуде', Shipped: 'Жіберілді', Delivered: 'Жеткізілді', Cancelled: 'Бас тартылды', Returned: 'Қайтарылды', OnHold: 'Кідіртілді' },
     tiers: { VIP: 'VIP', Regular: 'Қарапайым', Problematic: 'Проблемалы', New: 'Жаңа' },
-    orderStatus: { Pending: 'Күтуде', Confirmed: 'Расталды', Processing: 'Өңделуде', Shipped: 'Жіберілді', Delivered: 'Жеткізілді', Cancelled: 'Бас тартылды' },
+    orderStatus: { Pending: 'Күтуде', Confirmed: 'Расталды', Processing: 'Өңделуде', Shipped: 'Жіберілді', Delivered: 'Жеткізілді', Cancelled: 'Бас тартылды', Reserved: 'Резервтелді', Paid: 'Төленді', Picked: 'Жиналды' },
     docStatus: { Draft: 'Жоба', Posted: 'Жарияланды', Closed: 'Жабық', Active: 'Белсенді', Inactive: 'Белсенді емес', Archived: 'Мұрағатталған' },
     production: { Planned: 'Жоспарланған', InProgress: 'Орындалуда', Completed: 'Аяқталды', Cancelled: 'Бас тартылды' },
     task: { New: 'Жаңа', InProgress: 'Орындалуда', Completed: 'Аяқталды', Cancelled: 'Бас тартылды' },

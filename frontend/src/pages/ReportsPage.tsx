@@ -7,6 +7,7 @@ import { DatePickerInput } from '@mantine/dates';
 import { IconFilter, IconDownload, IconFileSpreadsheet, IconFileTypePdf, IconFileText } from '@tabler/icons-react';
 import { useReports, useCustomers } from '../api/hooks';
 import { TableSkeleton } from '../components/Skeleton';
+import { statusLabel, enumLabel } from '../i18n/enumLabel';
 
 const statusColor: Record<string, string> = {
   Pending: 'yellow', Confirmed: 'blue', Reserved: 'cyan', Paid: 'violet',
@@ -23,14 +24,14 @@ export default function ReportsPage() {
 
   const statusOptions = [
     { value: '', label: t('report.allStatuses') },
-    { value: 'Pending', label: 'Pending' },
-    { value: 'Confirmed', label: 'Confirmed' },
-    { value: 'Reserved', label: 'Reserved' },
-    { value: 'Paid', label: 'Paid' },
-    { value: 'Picked', label: 'Picked' },
-    { value: 'Shipped', label: 'Shipped' },
-    { value: 'Delivered', label: 'Delivered' },
-    { value: 'Cancelled', label: 'Cancelled' },
+    { value: 'Pending', label: enumLabel('Pending', 'orderStatus') },
+    { value: 'Confirmed', label: enumLabel('Confirmed', 'orderStatus') },
+    { value: 'Reserved', label: enumLabel('Reserved', 'orderStatus') },
+    { value: 'Paid', label: enumLabel('Paid', 'orderStatus') },
+    { value: 'Picked', label: enumLabel('Picked', 'orderStatus') },
+    { value: 'Shipped', label: enumLabel('Shipped', 'orderStatus') },
+    { value: 'Delivered', label: enumLabel('Delivered', 'orderStatus') },
+    { value: 'Cancelled', label: enumLabel('Cancelled', 'orderStatus') },
   ];
 
   const buildFilters = () => {
@@ -145,7 +146,7 @@ export default function ReportsPage() {
               <Table.Tr key={order.id}>
                 <Table.Td>{order.id}</Table.Td>
                 <Table.Td>{order.customer?.company || order.customer?.contactPerson || `#${order.customerId}`}</Table.Td>
-                <Table.Td><Badge color={statusColor[order.status] || 'gray'}>{order.status}</Badge></Table.Td>
+                <Table.Td><Badge color={statusColor[order.status] || 'gray'}>{statusLabel(order.status)}</Badge></Table.Td>
                 <Table.Td>{order.totalAmount?.toLocaleString()} ₸</Table.Td>
                 <Table.Td>{order.deliveryAddress}</Table.Td>
                 <Table.Td>{new Date(order.createdAt).toLocaleDateString()}</Table.Td>

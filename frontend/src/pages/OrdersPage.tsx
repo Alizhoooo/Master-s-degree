@@ -9,6 +9,7 @@ import { DatePickerInput } from '@mantine/dates';
 import { IconPlus, IconEye, IconX, IconCheck } from '@tabler/icons-react';
 import { useOrders, useCustomers, useProducts, useCreateOrder, useCancelOrder, useBulkUpdateStatus } from '../api/hooks';
 import { TableSkeleton } from '../components/Skeleton';
+import { statusLabel, enumLabel } from '../i18n/enumLabel';
 
 const statusColor: Record<string, string> = {
   Pending: 'yellow',
@@ -196,7 +197,7 @@ export default function OrdersPage() {
               </Table.Td>
               <Table.Td>{order.totalAmount?.toLocaleString()} ₸</Table.Td>
               <Table.Td>
-                <Badge color={statusColor[order.status] || 'gray'}>{order.status}</Badge>
+                <Badge color={statusColor[order.status] || 'gray'}>{statusLabel(order.status)}</Badge>
               </Table.Td>
               <Table.Td>{order.deadline ? new Date(order.deadline).toLocaleDateString() : '-'}</Table.Td>
               <Table.Td>

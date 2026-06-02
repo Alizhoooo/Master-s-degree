@@ -8,7 +8,7 @@ const en = {
   enum: {
     statuses: { Pending: 'Pending', Confirmed: 'Confirmed', Processing: 'Processing', Shipped: 'Shipped', Delivered: 'Delivered', Cancelled: 'Cancelled', Returned: 'Returned', OnHold: 'On Hold' },
     tiers: { VIP: 'VIP', Regular: 'Regular', Problematic: 'Problematic', New: 'New' },
-    orderStatus: { Pending: 'Pending', Confirmed: 'Confirmed', Processing: 'Processing', Shipped: 'Shipped', Delivered: 'Delivered', Cancelled: 'Cancelled' },
+    orderStatus: { Pending: 'Pending', Confirmed: 'Confirmed', Processing: 'Processing', Shipped: 'Shipped', Delivered: 'Delivered', Cancelled: 'Cancelled', Reserved: 'Reserved', Paid: 'Paid', Picked: 'Picked' },
     docStatus: { Draft: 'Draft', Posted: 'Posted', Closed: 'Closed', Active: 'Active', Inactive: 'Inactive', Archived: 'Archived' },
     production: { Planned: 'Planned', InProgress: 'In Progress', Completed: 'Completed', Cancelled: 'Cancelled' },
     task: { New: 'New', InProgress: 'In Progress', Completed: 'Completed', Cancelled: 'Cancelled' },

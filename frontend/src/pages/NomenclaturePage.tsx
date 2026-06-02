@@ -120,7 +120,7 @@ export default function NomenclaturePage() {
         <Card withBorder><Text size="xs" c="dimmed">{t('common.total')}</Text><Text size="xl" fw={700}>{list.length}</Text></Card>
         <Card withBorder><Text size="xs" c="dimmed">{t('nomenclature.lowStock')}</Text><Text size="xl" fw={700} c="red">{(lowStock as any[]).length}</Text></Card>
         <Card withBorder><Text size="xs" c="dimmed">{t('nomenclature.categories')}</Text><Text size="xl" fw={700}>{(categories as any[]).length}</Text></Card>
-        <Card withBorder><Text size="xs" c="dimmed">Active</Text><Text size="xl" fw={700} c="green">{list.filter((p: any) => p.isActive !== false).length}</Text></Card>
+        <Card withBorder><Text size="xs" c="dimmed">{t('enum.docStatus.Active')}</Text><Text size="xl" fw={700} c="green">{list.filter((p: any) => p.isActive !== false).length}</Text></Card>
       </SimpleGrid>
 
       {isLoading ? <TableSkeleton rows={8} cols={6} /> : (

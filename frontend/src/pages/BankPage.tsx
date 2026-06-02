@@ -5,6 +5,7 @@ import { IconPlus, IconBuildingBank, IconHistory } from '@tabler/icons-react';
 import { listBankAccounts, createBankAccount, listBankOrders, createBankOrder, confirmBankOrder } from '../api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { TableSkeleton } from '../components/Skeleton';
+import { statusLabel, enumLabel } from '../i18n/enumLabel';
 
 export default function BankPage() {
   const { t } = useTranslation();
@@ -70,7 +71,7 @@ export default function BankPage() {
                     <Table.Td><strong>{o.amount.toFixed(2)}</strong></Table.Td>
                     <Table.Td>{o.counterparty}</Table.Td>
                     <Table.Td>{o.purpose}</Table.Td>
-                    <Table.Td><Badge color={o.status === 'Completed' ? 'green' : 'yellow'}>{o.status}</Badge></Table.Td>
+                    <Table.Td><Badge color={o.status === 'Completed' ? 'green' : 'yellow'}>{statusLabel(o.status)}</Badge></Table.Td>
                     <Table.Td>
                       {o.status === 'Pending' && <Button size="xs" variant="light" onClick={() => confirmMut.mutate(o.id)} loading={confirmMut.isPending}>Подтвердить</Button>}
                     </Table.Td>

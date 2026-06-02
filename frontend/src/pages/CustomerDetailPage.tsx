@@ -7,6 +7,7 @@ import {
 import { IconArrowLeft, IconPlus } from '@tabler/icons-react';
 import { useCustomer, useAddContactLog, useCreateComplaint } from '../api/hooks';
 import { DetailSkeleton } from '../components/Skeleton';
+import { enumLabel, statusLabel } from '../i18n/enumLabel';
 
 const tierColor: Record<string, string> = {
   VIP: 'yellow',
@@ -78,7 +79,7 @@ export default function CustomerDetailPage() {
 
       <Group mb="lg">
         <Title order={3}>{customer.company}</Title>
-        <Badge size="lg" color={tierColor[customer.tier] || 'gray'}>{customer.tier}</Badge>
+        <Badge size="lg" color={tierColor[customer.tier] || 'gray'}>{enumLabel(customer.tier, 'tiers')}</Badge>
       </Group>
 
       <Card withBorder shadow="sm" p="md" mb="md">
@@ -134,7 +135,7 @@ export default function CustomerDetailPage() {
                   <Table.Td>{o.id}</Table.Td>
                   <Table.Td>
                     <Badge color={o.status === 'Delivered' ? 'green' : o.status === 'Cancelled' ? 'red' : 'blue'}>
-                      {o.status}
+                      {statusLabel(o.status)}
                     </Badge>
                   </Table.Td>
                   <Table.Td>{o.totalAmount?.toLocaleString()} ₸</Table.Td>
@@ -187,7 +188,7 @@ export default function CustomerDetailPage() {
             <Card key={c.id} withBorder shadow="sm" p="sm" mb="sm">
               <Group justify="space-between" mb={4}>
                 <Text fw={500}>{c.title}</Text>
-                <Badge color={complaintStatusColor[c.status] || 'gray'}>{c.status}</Badge>
+                <Badge color={complaintStatusColor[c.status] || 'gray'}>{statusLabel(c.status)}</Badge>
               </Group>
               <Text size="sm" mb={4}>{c.description}</Text>
               <Text size="xs" c="dimmed">{new Date(c.createdAt).toLocaleString()}</Text>

@@ -8,7 +8,7 @@ const ru = {
   enum: {
     statuses: { Pending: 'В ожидании', Confirmed: 'Подтверждён', Processing: 'В обработке', Shipped: 'Отправлен', Delivered: 'Доставлен', Cancelled: 'Отменён', Returned: 'Возвращён', OnHold: 'На удержании' },
     tiers: { VIP: 'VIP', Regular: 'Обычный', Problematic: 'Проблемный', New: 'Новый' },
-    orderStatus: { Pending: 'В ожидании', Confirmed: 'Подтверждён', Processing: 'В обработке', Shipped: 'Отправлен', Delivered: 'Доставлен', Cancelled: 'Отменён' },
+    orderStatus: { Pending: 'В ожидании', Confirmed: 'Подтверждён', Processing: 'В обработке', Shipped: 'Отправлен', Delivered: 'Доставлен', Cancelled: 'Отменён', Reserved: 'Зарезервирован', Paid: 'Оплачен', Picked: 'Собран' },
     docStatus: { Draft: 'Черновик', Posted: 'Проведён', Closed: 'Закрыт', Active: 'Активный', Inactive: 'Неактивный', Archived: 'В архиве' },
     production: { Planned: 'Запланирован', InProgress: 'Выполняется', Completed: 'Завершён', Cancelled: 'Отменён' },
     task: { New: 'Новый', InProgress: 'В работе', Completed: 'Завершён', Cancelled: 'Отменён' },
