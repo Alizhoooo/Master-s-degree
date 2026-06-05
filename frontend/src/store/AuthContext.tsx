@@ -53,7 +53,7 @@ let refreshPromise: Promise<string | null> | null = null;
 async function doRefreshToken(): Promise<string | null> {
   try {
     const data = await refreshAccessToken();
-    return data.accessToken || null;
+    return data.accessToken || data.access_token || data.token || null;
   } catch {
     localStorage.removeItem('token');
     return null;
@@ -122,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (data.requiresTotp) {
       return { user: null as any, requiresTotp: true, userId: data.userId };
     }
-    const tk = data.accessToken;
+    const tk = data.accessToken || data.access_token || data.token;
     localStorage.setItem('token', tk);
     syncFromToken(tk);
     return { user: data.user };
@@ -130,7 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const verifyTotpLogin = async (userId: number, totpToken: string): Promise<AuthUser> => {
     const data = await apiLoginVerifyTotp(userId, totpToken);
-    const tk = data.accessToken;
+    const tk = data.accessToken || data.access_token || data.token;
     localStorage.setItem('token', tk);
     syncFromToken(tk);
     return data.user;

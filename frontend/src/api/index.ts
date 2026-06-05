@@ -38,8 +38,9 @@ export async function login(email: string, password: string) {
     method: 'POST',
     body: JSON.stringify({ email, password }),
   });
-  if (data.accessToken) {
-    localStorage.setItem('token', data.accessToken);
+  const tk = data.accessToken || data.access_token || data.token;
+  if (tk) {
+    localStorage.setItem('token', tk);
   }
   return data;
 }
@@ -49,8 +50,9 @@ export async function loginVerifyTotp(userId: number, token: string) {
     method: 'POST',
     body: JSON.stringify({ userId, token }),
   });
-  if (data.accessToken) {
-    localStorage.setItem('token', data.accessToken);
+  const tk = data.accessToken || data.access_token || data.token;
+  if (tk) {
+    localStorage.setItem('token', tk);
   }
   return data;
 }
@@ -67,9 +69,10 @@ export async function getProfile() {
 }
 
 export async function refreshAccessToken() {
-  const data = await request('/auth/refresh', { method: 'POST' });
-  if (data.accessToken) {
-    localStorage.setItem('token', data.accessToken);
+  const data = await request('/auth/refresh', { method: 'POST' }).catch(() => ({}));
+  const tk = data.accessToken || data.access_token || data.token;
+  if (tk) {
+    localStorage.setItem('token', tk);
   }
   return data;
 }
