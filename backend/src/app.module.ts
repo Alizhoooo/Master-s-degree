@@ -1,7 +1,7 @@
 import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import helmet from 'helmet';
 import { CacheModule } from './common/cache.module';
 import { PrismaModule } from './common/prisma.module';
@@ -29,6 +29,7 @@ import { SearchModule } from './search/search.module';
 import { NomenclatureModule } from './nomenclature/nomenclature.module';
 import { I18nModule } from './i18n/i18n.module';
 import appConfig from './common/env.config';
+import { AuditLogInterceptor } from './common/audit-log.interceptor';
 
 @Module({
   imports: [
@@ -73,6 +74,7 @@ import appConfig from './common/env.config';
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_INTERCEPTOR, useClass: AuditLogInterceptor },
   ],
 })
 export class AppModule implements NestModule {

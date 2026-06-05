@@ -47,7 +47,8 @@ model User {
   lockedUntil         DateTime?
 
   // Last login
-  lastLoginAt         DateTime?
+  lastLoginAt DateTime?
+  deletedAt   DateTime?
 
   orders              Order[]
   inventoryLogs       InventoryLog[]
@@ -89,6 +90,24 @@ model RefreshToken {
   @@index([token])
 }
 
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int?
+  userEmail  String?
+  action     String
+  resource   String
+  resourceId String?
+  details    String?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([resource, resourceId])
+  @@index([action])
+  @@index([createdAt])
+}
+
 model Customer {
   id            Int            @id @default(autoincrement())
   company       String
@@ -109,6 +128,7 @@ model Customer {
   settlements   Settlement[]
   documents     Document[]
   ProductIssue  ProductIssue[]
+  deletedAt     DateTime?
 }
 
 model Supplier {
@@ -127,6 +147,7 @@ model Supplier {
   isActive      Boolean          @default(true)
   createdAt     DateTime         @default(now())
   receipts      ProductReceipt[]
+  deletedAt     DateTime?
 }
 
 model ContactLog {
@@ -193,6 +214,11 @@ model Product {
   transferItems     ProductTransferItem[]
   expiryAlerts      ExpiryAlert[]
   techCards         TechCard[]            @relation("TechCardOutput")
+  deletedAt         DateTime?
+
+  @@index([category])
+  @@index([isActive])
+  @@index([quantityOnHand])
 }
 
 model Order {
@@ -210,6 +236,10 @@ model Order {
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
   items           OrderItem[]
+  deletedAt       DateTime?
+
+  @@index([status, createdAt])
+  @@index([customerId])
 }
 
 model OrderItem {
@@ -232,6 +262,8 @@ model InventoryLog {
   change    Int
   reason    String
   createdAt DateTime @default(now())
+
+  @@index([productId, createdAt])
 }
 
 model SystemLog {
@@ -241,6 +273,8 @@ model SystemLog {
   action    String
   details   String?
   createdAt DateTime @default(now())
+
+  @@index([createdAt])
 }
 
 model AppConfig {
@@ -255,6 +289,7 @@ model Warehouse {
   address   String?
   isMain    Boolean  @default(false)
   createdAt DateTime @default(now())
+  deletedAt DateTime?
 
   stockMovements      StockMovement[]
   productReceipts     ProductReceipt[]
@@ -304,6 +339,10 @@ model StockMovement {
   balance     Int?
   userId      Int?
   createdAt   DateTime          @default(now())
+
+  @@index([warehouseId, createdAt])
+  @@index([productId])
+  @@index([type])
 }
 
 model Batch {
@@ -322,6 +361,7 @@ model Batch {
   status          String          @default("Active")
   notes           String?
   createdAt       DateTime        @default(now())
+  deletedAt       DateTime?
   userId          Int?
   user            User?           @relation(fields: [userId], references: [id])
 
@@ -330,6 +370,9 @@ model Batch {
   issueItems          ProductIssueItem[]    @relation("IssueItemBatch")
   expiryAlerts        ExpiryAlert[]
   ProductTransferItem ProductTransferItem[]
+
+  @@index([productId, status])
+  @@index([productId, expiryDate])
 }
 
 model BatchMovement {
@@ -358,6 +401,12 @@ model ProductTransfer {
   items           ProductTransferItem[]
   createdAt       DateTime              @default(now())
   updatedAt       DateTime              @updatedAt
+  deletedAt       DateTime?
+
+  @@index([status])
+  @@index([fromWarehouseId])
+  @@index([toWarehouseId])
+  @@index([number])
 }
 
 model ProductTransferItem {
@@ -385,6 +434,11 @@ model ExpiryAlert {
   resolvedAt DateTime?
   notified   Boolean   @default(false)
   createdAt  DateTime  @default(now())
+
+  @@index([batchId, isResolved])
+  @@index([severity])
+  @@index([productId])
+  @@index([isResolved])
 }
 
 model ChartOfAccounts {
@@ -421,6 +475,7 @@ model CashRegister {
   balance   Float    @default(0)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
+  deletedAt DateTime?
 
   orders CashOrder[]
 }
@@ -438,6 +493,7 @@ model CashOrder {
   userId       Int
   user         User         @relation(fields: [userId], references: [id])
   createdAt    DateTime     @default(now())
+  deletedAt    DateTime?
 }
 
 model BankAccount {
@@ -450,6 +506,7 @@ model BankAccount {
   balance   Float    @default(0)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
+  deletedAt DateTime?
 
   orders     BankOrder[]
   statements BankStatement[]
@@ -470,6 +527,7 @@ model BankOrder {
   user            User        @relation(fields: [userId], references: [id])
   status          String      @default("Pending")
   createdAt       DateTime    @default(now())
+  deletedAt       DateTime?
 }
 
 model BankStatement {
@@ -561,9 +619,13 @@ model Employee {
   isActive   Boolean   @default(true)
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
 
   payrollEntries PayrollEntry[]
   timesheets     Timesheet[]
+
+  @@index([department])
+  @@index([isActive])
 }
 
 model Timesheet {
@@ -612,6 +674,7 @@ model Contract {
   documents   Document[]
   settlements Settlement[]
   createdAt   DateTime     @default(now())
+  deletedAt   DateTime?
 }
 
 model Settlement {
@@ -648,6 +711,7 @@ model Document {
   createdBy    User      @relation("DocumentCreatedBy", fields: [createdById], references: [id])
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
 
   items             DocumentItem[]
   versions          DocumentVersion[]
@@ -661,6 +725,11 @@ model Document {
   productReceipts   ProductReceipt[]
   productIssues     ProductIssue[]
   ProductTransfer   ProductTransfer[]
+
+  @@index([type, posted, date])
+  @@index([customerId])
+  @@index([number])
+  @@index([createdById])
 }
 
 model DocumentItem {
@@ -740,6 +809,12 @@ model ProductReceipt {
   batches       Batch[]
   createdAt     DateTime             @default(now())
   updatedAt     DateTime             @updatedAt
+  deletedAt     DateTime?
+
+  @@index([status, date])
+  @@index([supplierId])
+  @@index([warehouseId])
+  @@index([number])
 }
 
 model ProductReceiptItem {
@@ -782,6 +857,11 @@ model ProductIssue {
   items       ProductIssueItem[]
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
+  deletedAt   DateTime?
+
+  @@index([status, date, type])
+  @@index([warehouseId])
+  @@index([number])
 }
 
 model ProductIssueItem {
@@ -858,6 +938,11 @@ model Task {
   completedAt  DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  @@index([assignedToId, status])
+  @@index([dueDate])
+  @@index([status])
 }
 
 model Notification {
@@ -870,6 +955,10 @@ model Notification {
   read      Boolean  @default(false)
   link      String?
   createdAt DateTime @default(now())
+
+  @@index([userId, read])
+  @@index([createdAt])
+  @@index([type])
 }
 
 model ScheduledJob {
