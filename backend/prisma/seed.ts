@@ -354,12 +354,22 @@ async function main() {
   }
   console.log('Updated customer order counts');
 
+  // ── Wrap optional sections in try/catch so a failure here doesn't stop roles
+  async function safeRun(label: string, fn: () => Promise<any>) {
+    try {
+      return await fn();
+    } catch (err: any) {
+      console.error(`⚠️  Section "${label}" failed: ${err.message}`);
+      return null;
+    }
+  }
+
   // ── Warehouses ──
-  const warehouses = await Promise.all([
+  const warehouses = await safeRun('warehouses', () => Promise.all([
     prisma.warehouse.create({ data: { name: 'Центральный склад', address: 'г. Алматы, ул. Жетысу 14', isMain: true } }),
     prisma.warehouse.create({ data: { name: 'Склад №2 (Северный)', address: 'г. Астана, пр. Кабанбай батыра 6', isMain: false } }),
     prisma.warehouse.create({ data: { name: 'Склад-магазин (Шымкент)', address: 'г. Шымкент, мкр. Нурсат', isMain: false } }),
-  ]);
+  ])) || [];
   console.log(`Created ${warehouses.length} warehouses`);
 
   // ── Suppliers ──
@@ -840,3 +850,4 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+// Rebuild trigger Sat Jun  6 02:55:03 +05 2026
