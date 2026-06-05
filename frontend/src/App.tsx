@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './store/AuthContext';
 import AppLayout from './components/layout/AppLayout';
+import ErrorPage from './components/ErrorPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
@@ -78,6 +79,7 @@ function AppRoutes() {
         <Route path="issues" element={<IssuesPage />} />
         <Route path="transfers" element={<TransfersPage />} />
         <Route path="expiry" element={<ExpiryPage />} />
+        <Route path="*" element={<ErrorPage />} />
       </Route>
     </Routes>
   );

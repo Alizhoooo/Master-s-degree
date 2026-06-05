@@ -6,10 +6,11 @@ import {
   Group, Title, Loader, Pagination, Container, Text,
 } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
-import { IconPlus, IconEye, IconX, IconCheck } from '@tabler/icons-react';
+import { IconPlus, IconEye, IconX, IconCheck, IconShoppingCart } from '@tabler/icons-react';
 import { useOrders, useCustomers, useProducts, useCreateOrder, useCancelOrder, useBulkUpdateStatus } from '../api/hooks';
 import { TableSkeleton } from '../components/Skeleton';
 import { statusLabel, enumLabel } from '../i18n/enumLabel';
+import PageHeader from '../components/PageHeader';
 
 const statusColor: Record<string, string> = {
   Pending: 'yellow',
@@ -134,23 +135,24 @@ export default function OrdersPage() {
 
   if (isLoading) {
     return (
-      <Container size="xl">
-        <Group justify="space-between" mb="md">
-          <Title order={3}>{t('order.title')}</Title>
-        </Group>
+      <Container size="xl" px={0}>
+        <PageHeader title={t('order.title')} icon={IconShoppingCart} />
         <TableSkeleton rows={5} cols={8} />
       </Container>
     );
   }
 
   return (
-    <Container size="xl">
-      <Group justify="space-between" mb="md">
-        <Title order={3}>{t('order.title')}</Title>
-        <Button leftSection={<IconPlus size={16} />} onClick={() => setOpened(true)}>
-          {t('order.create')}
-        </Button>
-      </Group>
+    <Container size="xl" px={0}>
+      <PageHeader
+        title={t('order.title')}
+        icon={IconShoppingCart}
+        actions={
+          <Button leftSection={<IconPlus size={16} />} onClick={() => setOpened(true)} className="gradient-button">
+            {t('order.create')}
+          </Button>
+        }
+      />
 
       {selectedIds.length > 0 && (
         <Group mb="sm" p="xs" style={{ background: 'var(--mantine-color-blue-0)', borderRadius: 8 }}>
@@ -168,7 +170,7 @@ export default function OrdersPage() {
         </Group>
       )}
 
-      <Table striped highlightOnHover withTableBorder>
+      <Table striped highlightOnHover withTableBorder className="sf-table">
         <Table.Thead>
           <Table.Tr>
             <Table.Th>

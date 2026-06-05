@@ -11,6 +11,7 @@ import { getProducts } from '../api';
 import { searchProducts, getLowStockProducts, getProductCategories, getProductBatches, getProductStock, getProductPriceHistory, createProduct, updateProduct, archiveProduct } from '../api/nomenclature';
 import { TableSkeleton } from '../components/Skeleton';
 import { notifications } from '../components/Notifications';
+import PageHeader from '../components/PageHeader';
 
 const PRODUCT_TYPES = ['Goods', 'Service', 'Material', 'Product', 'SemiFinished'];
 const CURRENCIES = ['KZT', 'USD', 'EUR', 'RUB'];
@@ -100,21 +101,27 @@ export default function NomenclaturePage() {
   const submitEdit = () => editProduct && updateMut.mutate({ id: editProduct.id, data: form });
 
   return (
-    <Container size="xl">
-      <Group justify="space-between" mb="md">
-        <Title order={3}>{t('nomenclature.title')}</Title>
-        <Group>
-          <TextInput
-            placeholder={t('nomenclature.search')}
-            value={search}
-            onChange={(e) => setSearch(e.currentTarget.value)}
-            leftSection={<IconBarcode size={14} />}
-            w={300}
-          />
-          <Select placeholder={t('nomenclature.categories')} data={categoryOptions} value={category} onChange={setCategory} clearable w={200} leftSection={<IconCategory size={14} />} />
-          <Button leftSection={<IconPlus size={14} />} onClick={openCreate}>{t('nomenclature.create')}</Button>
-        </Group>
-      </Group>
+    <Container size="xl" px={0}>
+      <PageHeader
+        title={t('nomenclature.title')}
+        description="1С-стиль: SKU, штрих-код, наценка, партии, сроки годности"
+        icon={IconCategory}
+        actions={
+          <Group>
+            <TextInput
+              placeholder={t('nomenclature.search')}
+              value={search}
+              onChange={(e) => setSearch(e.currentTarget.value)}
+              leftSection={<IconBarcode size={14} />}
+              w={260}
+            />
+            <Select placeholder={t('nomenclature.categories')} data={categoryOptions} value={category} onChange={setCategory} clearable w={180} leftSection={<IconCategory size={14} />} />
+            <Button leftSection={<IconPlus size={14} />} onClick={openCreate} className="gradient-button">
+              {t('nomenclature.create')}
+            </Button>
+          </Group>
+        }
+      />
 
       <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }} mb="md">
         <Card withBorder><Text size="xs" c="dimmed">{t('common.total')}</Text><Text size="xl" fw={700}>{list.length}</Text></Card>
@@ -124,7 +131,7 @@ export default function NomenclaturePage() {
       </SimpleGrid>
 
       {isLoading ? <TableSkeleton rows={8} cols={6} /> : (
-        <Table striped withTableBorder highlightOnHover>
+        <Table striped withTableBorder highlightOnHover className="sf-table">
           <Table.Thead>
             <Table.Tr>
               <Table.Th>{t('nomenclature.fields.sku')}</Table.Th>

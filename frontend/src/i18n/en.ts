@@ -1,6 +1,6 @@
 const en = {
   app: { title: 'SupplyFlow', subtitle: 'Business Process Management System' },
-  nav: { dashboard: 'Dashboard', orders: 'Orders', inventory: 'Inventory', warehouse: 'Warehouses', production: 'Production', customers: 'Customers', complaints: 'Complaints', documents: 'Documents', accounting: 'Accounting', cash: 'Cash', bank: 'Bank', hr: 'HR', tasks: 'Tasks', notifications: 'Notifications', scheduler: 'Scheduler', reports: 'Reports', ai: 'AI Predictions', rbac: 'Roles', configurator: 'Configurator', admin: 'Admin', suppliers: 'Suppliers', receipts: 'Receipts', issues: 'Issues', transfers: 'Transfers', expiry: 'Expiry', nomenclature: 'Nomenclature' },
+  nav: { dashboard: 'Dashboard', orders: 'Orders', inventory: 'Inventory', warehouse: 'Warehouses', production: 'Production', customers: 'Customers', complaints: 'Complaints', documents: 'Documents', accounting: 'Accounting', cash: 'Cash', bank: 'Bank', hr: 'HR', tasks: 'Tasks', notifications: 'Notifications', scheduler: 'Scheduler', reports: 'Reports', ai: 'AI Predictions', rbac: 'Roles', configurator: 'Configurator', admin: 'Admin', suppliers: 'Suppliers', receipts: 'Receipts', issues: 'Issues', transfers: 'Transfers', expiry: 'Expiry', nomenclature: 'Nomenclature', groupOverview: 'Overview', groupInventory: 'Inventory & Stock', groupFinance: 'Finance & HR', groupSystem: 'System & Admin' },
   auth: { login: 'Login', register: 'Register', logout: 'Logout', email: 'Email', password: 'Password', noAccount: "Don't have an account?", hasAccount: 'Already have an account?', title: 'Login to SupplyFlow', fullName: 'Full Name', role: 'Role', submit: 'Submit', passwordPlaceholder: 'Enter your password', loginError: 'Login failed', registerTitle: 'Register', fullNameLabel: 'Full Name', fullNamePlaceholder: 'Enter your full name', registerSuccess: 'Registration Successful', registerSuccessMsg: 'Account created successfully. Please log in.', registerError: 'Registration failed', admin: 'Admin', manager: 'Manager', warehouse: 'Warehouse' },
   theme: { light: 'Light', dark: 'Dark' },
   lang: { kk: 'Қазақша', ru: 'Русский', en: 'English' },
@@ -100,6 +100,7 @@ const en = {
   },
   expiry: {
     title: 'Expiry & Storage',
+    subtitle: 'Batch shelf-life monitoring with auto-alerts',
     scan: 'Scan Now',
     alerts: 'Alerts',
     expiringSoon: 'Expiring Soon (30 days)',

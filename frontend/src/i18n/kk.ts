@@ -1,6 +1,6 @@
 const kk = {
   app: { title: 'SupplyFlow', subtitle: 'Бизнес процестерді басқару жүйесі' },
-  nav: { dashboard: 'Бақылау тақтасы', orders: 'Тапсырыстар', inventory: 'Қойма', warehouse: 'Қоймалар', production: 'Өндіріс', customers: 'Клиенттер', complaints: 'Шағымдар', documents: 'Құжаттар', accounting: 'Бухгалтерия', cash: 'Касса', bank: 'Банк', hr: 'Кадрлар', tasks: 'Тапсырмалар', notifications: 'Хабарламалар', scheduler: 'Регламент', reports: 'Есептер', ai: 'ЖИ болжамдар', rbac: 'Рөлдер', configurator: 'Конфигуратор', admin: 'Админ', suppliers: 'Жеткізушілер', receipts: 'Қабылдау', issues: 'Шығару', transfers: 'Ауыстыру', expiry: 'Жарамдылық мерзімі', nomenclature: 'Номенклатура' },
+  nav: { dashboard: 'Бақылау тақтасы', orders: 'Тапсырыстар', inventory: 'Қойма', warehouse: 'Қоймалар', production: 'Өндіріс', customers: 'Клиенттер', complaints: 'Шағымдар', documents: 'Құжаттар', accounting: 'Бухгалтерия', cash: 'Касса', bank: 'Банк', hr: 'Кадрлар', tasks: 'Тапсырмалар', notifications: 'Хабарламалар', scheduler: 'Регламент', reports: 'Есептер', ai: 'ЖИ болжамдар', rbac: 'Рөлдер', configurator: 'Конфигуратор', admin: 'Админ', suppliers: 'Жеткізушілер', receipts: 'Қабылдау', issues: 'Шығару', transfers: 'Ауыстыру', expiry: 'Жарамдылық мерзімі', nomenclature: 'Номенклатура', groupOverview: 'Шолу', groupInventory: 'Қойма және қорлар', groupFinance: 'Қаржы және HR', groupSystem: 'Жүйе' },
   auth: { login: 'Кіру', register: 'Тіркелу', logout: 'Шығу', email: 'Электронды пошта', password: 'Құпия сөз', noAccount: 'Аккаунтыңыз жоқ па?', hasAccount: 'Аккаунтыңыз бар ма?', title: 'SupplyFlow жүйесіне кіру', fullName: 'Аты-жөні', role: 'Рөл', submit: 'Жіберу', passwordPlaceholder: 'Құпия сөзіңізді енгізіңіз', loginError: 'Кіру кезінде қате орын алды', registerTitle: 'Тіркелу', fullNameLabel: 'Толық аты-жөні', fullNamePlaceholder: 'Аты-жөніңізді енгізіңіз', registerSuccess: 'Сәтті тіркелу', registerSuccessMsg: 'Аккаунтыңыз сәтті құрылды. Жүйеге кіріңіз.', registerError: 'Тіркелу кезінде қате орын алды', admin: 'Админ', manager: 'Менеджер', warehouse: 'Қоймашы' },
   theme: { light: 'Жарық', dark: 'Қараңғы' },
   lang: { kk: 'Қазақша', ru: 'Русский', en: 'English' },
@@ -100,6 +100,7 @@ const kk = {
   },
   expiry: {
     title: 'Жарамдылық мерзімі және сақтау',
+    subtitle: 'Партиялардың жарамдылық мерзімін авто-ескертулермен бақылау',
     scan: 'Сканерлеу',
     alerts: 'Хабарламалар',
     expiringSoon: 'Мерзімі жақын (30 күн)',

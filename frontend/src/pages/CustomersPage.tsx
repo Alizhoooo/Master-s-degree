@@ -10,6 +10,8 @@ import { importCustomersCsv } from '../api';
 import { TableSkeleton } from '../components/Skeleton';
 import CsvImportModal from '../components/CsvImportModal';
 import { enumLabel } from '../i18n/enumLabel';
+import PageHeader from '../components/PageHeader';
+import { IconUsers } from '@tabler/icons-react';
 
 const tierColor: Record<string, string> = {
   VIP: 'yellow',
@@ -62,26 +64,29 @@ export default function CustomersPage() {
 
   if (isLoading) {
     return (
-      <Container size="xl">
-        <Group justify="space-between" mb="md">
-          <Title order={3}>{t('customer.title')}</Title>
-        </Group>
+      <Container size="xl" px={0}>
+        <PageHeader title={t('customer.title')} icon={IconUsers} />
         <TableSkeleton rows={5} cols={8} />
       </Container>
     );
   }
 
   return (
-    <Container size="xl">
-      <Group justify="space-between" mb="md">
-        <Title order={3}>{t('customer.title')}</Title>
-        <Group>
-          <Button variant="light" leftSection={<IconUpload size={16} />} onClick={() => setImportOpened(true)}>CSV импорт</Button>
-          <Button leftSection={<IconPlus size={16} />} onClick={openCreate}>{t('customer.newCustomer')}</Button>
-        </Group>
-      </Group>
+    <Container size="xl" px={0}>
+      <PageHeader
+        title={t('customer.title')}
+        icon={IconUsers}
+        actions={
+          <Group>
+            <Button variant="light" leftSection={<IconUpload size={16} />} onClick={() => setImportOpened(true)}>CSV импорт</Button>
+            <Button leftSection={<IconPlus size={16} />} onClick={openCreate} className="gradient-button">
+              {t('customer.newCustomer')}
+            </Button>
+          </Group>
+        }
+      />
 
-      <Table striped highlightOnHover withTableBorder>
+      <Table striped highlightOnHover withTableBorder className="sf-table">
         <Table.Thead>
           <Table.Tr>
             <Table.Th>{t('customer.company')}</Table.Th>

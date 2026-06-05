@@ -10,6 +10,7 @@ import { listWarehouses, getProducts } from '../api';
 import { getTransfers, createTransfer } from '../api/nomenclature';
 import { TableSkeleton } from '../components/Skeleton';
 import { notifications } from '../components/Notifications';
+import PageHeader from '../components/PageHeader';
 
 export default function TransfersPage() {
   const { t } = useTranslation();
@@ -57,11 +58,16 @@ export default function TransfersPage() {
   };
 
   return (
-    <Container size="xl">
-      <Group justify="space-between" mb="md">
-        <Title order={3}>{t('transfer.title')}</Title>
-        <Button leftSection={<IconPlus size={14} />} onClick={() => setCreateOpen(true)} disabled={(warehouses as any[]).length < 2}>{t('transfer.create')}</Button>
-      </Group>
+    <Container size="xl" px={0}>
+      <PageHeader
+        title={t('transfer.title')}
+        icon={IconArrowsRightLeft}
+        actions={
+          <Button leftSection={<IconPlus size={14} />} onClick={() => setCreateOpen(true)} disabled={(warehouses as any[]).length < 2} className="gradient-button">
+            {t('transfer.create')}
+          </Button>
+        }
+      />
 
       {isLoading ? <TableSkeleton rows={5} cols={6} /> : (
         <Table striped withTableBorder highlightOnHover>

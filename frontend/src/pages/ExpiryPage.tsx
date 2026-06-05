@@ -8,6 +8,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { scanExpiry, getExpiryAlerts, getExpiringSoon, getExpired, resolveExpiryAlert } from '../api/nomenclature';
 import { TableSkeleton } from '../components/Skeleton';
 import { notifications } from '../components/Notifications';
+import PageHeader from '../components/PageHeader';
 
 function severityColor(sev: string) {
   if (sev === 'Expired') return 'red';
@@ -51,13 +52,17 @@ export default function ExpiryPage() {
   const warning = openAlerts.filter((a: any) => a.severity === 'Warning').length;
 
   return (
-    <Container size="xl">
-      <Group justify="space-between" mb="md">
-        <Title order={3}>{t('expiry.title')}</Title>
-        <Button leftSection={<IconScan size={14} />} onClick={() => scanMut.mutate()} loading={scanMut.isPending}>
-          {t('expiry.scan')}
-        </Button>
-      </Group>
+    <Container size="xl" px={0}>
+      <PageHeader
+        title={t('expiry.title')}
+        description={t('expiry.subtitle')}
+        icon={IconAlertTriangle}
+        actions={
+          <Button leftSection={<IconScan size={14} />} onClick={() => scanMut.mutate()} loading={scanMut.isPending} className="gradient-button">
+            {t('expiry.scan')}
+          </Button>
+        }
+      />
 
       <SimpleGrid cols={{ base: 1, sm: 3 }} mb="md">
         <Card withBorder>

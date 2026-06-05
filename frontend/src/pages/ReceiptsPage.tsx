@@ -11,6 +11,7 @@ import { listWarehouses, getProducts } from '../api';
 import { getSuppliers, getReceipts, createReceipt } from '../api/nomenclature';
 import { TableSkeleton } from '../components/Skeleton';
 import { notifications } from '../components/Notifications';
+import PageHeader from '../components/PageHeader';
 
 export default function ReceiptsPage() {
   const { t } = useTranslation();
@@ -74,11 +75,16 @@ export default function ReceiptsPage() {
   };
 
   return (
-    <Container size="xl">
-      <Group justify="space-between" mb="md">
-        <Title order={3}>{t('receipt.title')}</Title>
-        <Button leftSection={<IconPlus size={14} />} onClick={() => setCreateOpen(true)}>{t('receipt.create')}</Button>
-      </Group>
+    <Container size="xl" px={0}>
+      <PageHeader
+        title={t('receipt.title')}
+        icon={IconFileInvoice}
+        actions={
+          <Button leftSection={<IconPlus size={14} />} onClick={() => setCreateOpen(true)} className="gradient-button">
+            {t('receipt.create')}
+          </Button>
+        }
+      />
 
       {isLoading ? <TableSkeleton rows={6} cols={6} /> : (
         <Table striped withTableBorder highlightOnHover>

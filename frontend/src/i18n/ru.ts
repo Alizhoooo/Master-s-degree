@@ -1,6 +1,6 @@
 const ru = {
   app: { title: 'SupplyFlow', subtitle: 'Система управления бизнес-процессами' },
-  nav: { dashboard: 'Панель управления', orders: 'Заказы', inventory: 'Склад', warehouse: 'Склады', production: 'Производство', customers: 'Клиенты', complaints: 'Жалобы', documents: 'Документы', accounting: 'Бухгалтерия', cash: 'Касса', bank: 'Банк', hr: 'Кадры', tasks: 'Задачи', notifications: 'Уведомления', scheduler: 'Регламент', reports: 'Отчеты', ai: 'ИИ прогнозы', rbac: 'Роли', configurator: 'Конфигуратор', admin: 'Админ', suppliers: 'Поставщики', receipts: 'Поступления', issues: 'Расходы', transfers: 'Перемещения', expiry: 'Сроки годности', nomenclature: 'Номенклатура' },
+  nav: { dashboard: 'Панель управления', orders: 'Заказы', inventory: 'Склад', warehouse: 'Склады', production: 'Производство', customers: 'Клиенты', complaints: 'Жалобы', documents: 'Документы', accounting: 'Бухгалтерия', cash: 'Касса', bank: 'Банк', hr: 'Кадры', tasks: 'Задачи', notifications: 'Уведомления', scheduler: 'Регламент', reports: 'Отчеты', ai: 'ИИ прогнозы', rbac: 'Роли', configurator: 'Конфигуратор', admin: 'Админ', suppliers: 'Поставщики', receipts: 'Поступления', issues: 'Расходы', transfers: 'Перемещения', expiry: 'Сроки годности', nomenclature: 'Номенклатура', groupOverview: 'Обзор', groupInventory: 'Склад и запасы', groupFinance: 'Финансы и HR', groupSystem: 'Система' },
   auth: { login: 'Вход', register: 'Регистрация', logout: 'Выход', email: 'Электронная почта', password: 'Пароль', noAccount: 'Нет аккаунта?', hasAccount: 'Есть аккаунт?', title: 'Вход в SupplyFlow', fullName: 'ФИО', role: 'Роль', submit: 'Отправить', passwordPlaceholder: 'Введите ваш пароль', loginError: 'Ошибка при входе', registerTitle: 'Регистрация', fullNameLabel: 'Полное имя', fullNamePlaceholder: 'Введите ваше имя', registerSuccess: 'Успешная регистрация', registerSuccessMsg: 'Аккаунт успешно создан. Войдите в систему.', registerError: 'Ошибка при регистрации', admin: 'Админ', manager: 'Менеджер', warehouse: 'Кладовщик' },
   theme: { light: 'Светлая', dark: 'Темная' },
   lang: { kk: 'Қазақша', ru: 'Русский', en: 'English' },
@@ -100,6 +100,7 @@ const ru = {
   },
   expiry: {
     title: 'Сроки годности и хранения',
+    subtitle: 'Контроль сроков годности партий с авто-уведомлениями',
     scan: 'Сканировать',
     alerts: 'Оповещения',
     expiringSoon: 'Истекает срок (30 дней)',

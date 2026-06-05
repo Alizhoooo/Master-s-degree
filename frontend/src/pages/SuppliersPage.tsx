@@ -8,6 +8,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getSuppliers, createSupplier, updateSupplier, getSupplierReceipts } from '../api/nomenclature';
 import { TableSkeleton } from '../components/Skeleton';
 import { notifications } from '../components/Notifications';
+import PageHeader from '../components/PageHeader';
 
 export default function SuppliersPage() {
   const { t } = useTranslation();
@@ -51,11 +52,16 @@ export default function SuppliersPage() {
   const avgRating = list.length ? (list.reduce((sum: number, s: any) => sum + (s.rating || 0), 0) / list.length).toFixed(1) : '0';
 
   return (
-    <Container size="xl">
-      <Group justify="space-between" mb="md">
-        <Title order={3}>{t('supplier.title')}</Title>
-        <Button leftSection={<IconPlus size={14} />} onClick={() => { setForm(emptyForm()); setCreateOpen(true); }}>{t('supplier.create')}</Button>
-      </Group>
+    <Container size="xl" px={0}>
+      <PageHeader
+        title={t('supplier.title')}
+        icon={IconTruckDelivery}
+        actions={
+          <Button leftSection={<IconPlus size={14} />} onClick={() => { setForm(emptyForm()); setCreateOpen(true); }} className="gradient-button">
+            {t('supplier.create')}
+          </Button>
+        }
+      />
 
       <SimpleGrid cols={{ base: 1, sm: 3 }} mb="md">
         <Card withBorder><Group><IconBuilding size={24} /><div><Text size="xs" c="dimmed">{t('common.total')}</Text><Text size="xl" fw={700}>{list.length}</Text></div></Group></Card>

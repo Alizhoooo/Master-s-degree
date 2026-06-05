@@ -3,13 +3,14 @@ import { useTranslation } from 'react-i18next';
 import {
   Container, Title, Group, Button, Table, Modal, Select, Stack, Badge, Text, Card, SimpleGrid, ActionIcon, NumberInput, TextInput, SegmentedControl,
 } from '@mantine/core';
-import { IconPlus, IconTrash, IconEye, IconArrowsRightLeft } from '@tabler/icons-react';
+import { IconPlus, IconTrash, IconEye, IconArrowsRightLeft, IconBoxSeam } from '@tabler/icons-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../store/AuthContext';
 import { listWarehouses, getProducts } from '../api';
 import { getIssues, createIssue, getTransfers, createTransfer } from '../api/nomenclature';
 import { TableSkeleton } from '../components/Skeleton';
 import { notifications } from '../components/Notifications';
+import PageHeader from '../components/PageHeader';
 
 const ISSUE_TYPES = ['Sale', 'WriteOff', 'Production', 'Return'];
 
@@ -66,11 +67,16 @@ export default function IssuesPage() {
   };
 
   return (
-    <Container size="xl">
-      <Group justify="space-between" mb="md">
-        <Title order={3}>{t('issue.title')}</Title>
-        <Button leftSection={<IconPlus size={14} />} onClick={() => setCreateOpen(true)}>{t('issue.create')}</Button>
-      </Group>
+    <Container size="xl" px={0}>
+      <PageHeader
+        title={t('issue.title')}
+        icon={IconBoxSeam}
+        actions={
+          <Button leftSection={<IconPlus size={14} />} onClick={() => setCreateOpen(true)} className="gradient-button">
+            {t('issue.create')}
+          </Button>
+        }
+      />
 
       <SegmentedControl
         value={type}
