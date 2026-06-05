@@ -15,16 +15,61 @@ async function main() {
   console.log('Seeding database...');
 
   // Clear all tables in correct order for referential integrity
+  await prisma.auditLog.deleteMany();
+  await prisma.refreshToken.deleteMany();
+  await prisma.productTransferItem.deleteMany();
+  await prisma.productTransfer.deleteMany();
+  await prisma.productIssueItem.deleteMany();
+  await prisma.productIssue.deleteMany();
+  await prisma.productReceiptItem.deleteMany();
+  await prisma.batch.deleteMany();
+  await prisma.productReceipt.deleteMany();
+  await prisma.expiryAlert.deleteMany();
+  await prisma.stockMovement.deleteMany();
+  await prisma.stockBalance.deleteMany();
   await prisma.orderItem.deleteMany();
   await prisma.inventoryLog.deleteMany();
   await prisma.systemLog.deleteMany();
   await prisma.contactLog.deleteMany();
   await prisma.complaint.deleteMany();
   await prisma.task.deleteMany();
+  await prisma.notification.deleteMany();
+  await prisma.documentItem.deleteMany();
+  await prisma.documentVersion.deleteMany();
+  await prisma.documentApproval.deleteMany();
+  await prisma.documentAttachment.deleteMany();
+  await prisma.accountingEntry.deleteMany();
+  await prisma.cashOrder.deleteMany();
+  await prisma.bankOrder.deleteMany();
+  await prisma.bankStatement.deleteMany();
+  await prisma.chartOfAccounts.deleteMany();
+  await prisma.payrollEntry.deleteMany();
+  await prisma.timesheet.deleteMany();
+  await prisma.settlement.deleteMany();
+  await prisma.productionOutput.deleteMany();
+  await prisma.productionOrder.deleteMany();
+  await prisma.productBomInput.deleteMany();
+  await prisma.techCard.deleteMany();
+  await prisma.workshop.deleteMany();
+  await prisma.batchMovement.deleteMany();
   await prisma.order.deleteMany();
+  await prisma.document.deleteMany();
+  await prisma.contract.deleteMany();
   await prisma.customer.deleteMany();
+  await prisma.supplier.deleteMany();
+  await prisma.employee.deleteMany();
   await prisma.product.deleteMany();
+  await prisma.warehouse.deleteMany();
+  await prisma.cashRegister.deleteMany();
+  await prisma.bankAccount.deleteMany();
+  await prisma.userRoleAssignment.deleteMany();
+  await prisma.rolePermission.deleteMany();
+  await prisma.role.deleteMany();
+  await prisma.permission.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.scheduledJob.deleteMany();
+  await prisma.configObject.deleteMany();
+  await prisma.printTemplate.deleteMany();
   await prisma.appConfig.deleteMany();
   console.log('Cleared all tables');
 
@@ -308,6 +353,373 @@ async function main() {
     });
   }
   console.log('Updated customer order counts');
+
+  // ── Warehouses ──
+  const warehouses = await Promise.all([
+    prisma.warehouse.create({ data: { name: 'Центральный склад', address: 'г. Алматы, ул. Жетысу 14', isMain: true } }),
+    prisma.warehouse.create({ data: { name: 'Склад №2 (Северный)', address: 'г. Астана, пр. Кабанбай батыра 6', isMain: false } }),
+    prisma.warehouse.create({ data: { name: 'Склад-магазин (Шымкент)', address: 'г. Шымкент, мкр. Нурсат', isMain: false } }),
+  ]);
+  console.log(`Created ${warehouses.length} warehouses`);
+
+  // ── Suppliers ──
+  const supplierSeeds = [
+    { name: 'ТОО "АлматыТехСнаб"', contactPerson: 'Серик Алимов', phone: '+7 727 300 1122', email: 'sales@alts.kz', inn: '080140012345', category: 'Electronics', rating: 5 },
+    { name: 'АО "КазОфисТорг"', contactPerson: 'Гульнара Касенова', phone: '+7 7172 555 6677', email: 'b2b@kazoffice.kz', inn: '550140023456', category: 'Office Supplies', rating: 4 },
+    { name: 'ИП "Запчасть.KZ"', contactPerson: 'Марат Бекжанов', phone: '+7 701 999 0011', email: 'parts@zapchast.kz', inn: '700140034567', category: 'Spare Parts', rating: 5 },
+    { name: 'ТОО "ТехноИмпорт"', contactPerson: 'Артем Ли', phone: '+7 705 444 5522', email: 'office@technoimport.kz', inn: '600140045678', category: 'Electronics', rating: 4 },
+    { name: 'ТОО "ВостокКомплект"', contactPerson: 'Ирина Цой', phone: '+7 727 250 8811', email: 'info@vostok-k.kz', inn: '090140056789', category: 'General', rating: 3 },
+    { name: 'ТОО "Премиум Папки"', contactPerson: 'Жанар Мукашева', phone: '+7 707 333 7799', email: 'sales@premium-p.kz', inn: '120140067890', category: 'Office Supplies', rating: 5 },
+  ];
+  const suppliers = await Promise.all(supplierSeeds.map((s) => prisma.supplier.create({ data: s })));
+  console.log(`Created ${suppliers.length} suppliers`);
+
+  // ── Stock balances (initial stock for each product on main warehouse) ──
+  for (const product of products) {
+    await prisma.stockBalance.create({
+      data: { warehouseId: warehouses[0].id, productId: product.id, quantity: product.quantityOnHand, reserved: product.quantityReserved },
+    });
+  }
+  console.log('Created initial stock balances');
+
+  // ── Employees ──
+  const employeeSeeds = [
+    { userId: users[0].id, fullName: users[0].fullName, position: 'Генеральный директор', department: 'Управление', salary: 1500000, hireDate: new Date('2020-01-15'), phone: '+7 701 000 0001' },
+    { userId: users[1].id, fullName: users[1].fullName, position: 'Менеджер по продажам', department: 'Продажи', salary: 450000, hireDate: new Date('2021-03-10'), phone: '+7 701 000 0002' },
+    { userId: users[2].id, fullName: users[2].fullName, position: 'Старший менеджер', department: 'Продажи', salary: 520000, hireDate: new Date('2020-09-01'), phone: '+7 701 000 0003' },
+    { userId: users[3].id, fullName: users[3].fullName, position: 'Кладовщик', department: 'Склад', salary: 280000, hireDate: new Date('2022-06-20'), phone: '+7 701 000 0004' },
+    { userId: users[4].id, fullName: users[4].fullName, position: 'Старший кладовщик', department: 'Склад', salary: 320000, hireDate: new Date('2021-11-05'), phone: '+7 701 000 0005' },
+  ];
+  const employees = await Promise.all(employeeSeeds.map((e) => prisma.employee.create({ data: e as any })));
+  console.log(`Created ${employees.length} employees`);
+
+  // ── Complaints ──
+  const complaintSeeds = [
+    { customerId: customers[0].id, title: 'Задержка поставки по договору №СК-2024-08', description: 'Заявка была оформлена 10.04, до сих пор не отгружено. Прошу разобраться.', status: 'Open' },
+    { customerId: customers[3].id, title: 'Бой в партии медикаментов', description: 'При приёмке обнаружено 12 повреждённых упаковок. Требуем замену.', status: 'InProgress' },
+    { customerId: customers[6].id, title: 'Ошибка в счёте-фактуре', description: 'В счёте №SF-001234 указана неверная цена за позицию №3.', status: 'Resolved' },
+    { customerId: customers[2].id, title: 'Неполная комплектация заказа', description: 'В заказе отсутствуют 3 единицы принтеров HP LaserJet из 5 заказанных.', status: 'Open' },
+    { customerId: customers[4].id, title: 'Товар ненадлежащего качества', description: 'Клавиатуры Logitech имеют заводской брак — не работает блок цифровых клавиш.', status: 'InProgress' },
+  ];
+  const complaints = await Promise.all(complaintSeeds.map((c) => prisma.complaint.create({ data: c })));
+  console.log(`Created ${complaints.length} complaints`);
+
+  // ── Tasks ──
+  const taskSeeds = [
+    { title: 'Согласовать договор с ТОО "АлматыТехСнаб"', description: 'Получить подпись директора, отправить скан поставщику', status: 'InProgress', priority: 'High', dueDate: new Date(Date.now() + 2 * 86400000), assignedToId: users[0].id, createdById: users[0].id },
+    { title: 'Провести инвентаризацию склада №2', description: 'Полная инвентаризация партий с истекающим сроком годности', status: 'New', priority: 'Normal', dueDate: new Date(Date.now() + 5 * 86400000), assignedToId: users[3].id, createdById: users[1].id },
+    { title: 'Подготовить отчёт по продажам за май', description: 'Сводка по 10 клиентам, разбивка по категориям товаров', status: 'Done', priority: 'High', dueDate: new Date(Date.now() - 1 * 86400000), assignedToId: users[1].id, createdById: users[0].id, completedAt: new Date() },
+    { title: 'Закупить партию подшипников SP-004', description: 'Текущий остаток ниже точки заказа', status: 'New', priority: 'Urgent', dueDate: new Date(Date.now() + 1 * 86400000), assignedToId: users[1].id, createdById: users[3].id },
+    { title: 'Обновить прайс-лист для VIP-клиентов', description: 'Поднять цены на 8% на товары категории Electronics', status: 'New', priority: 'Normal', dueDate: new Date(Date.now() + 7 * 86400000), assignedToId: users[2].id, createdById: users[0].id },
+    { title: 'Рассмотреть жалобу EUROPHARMA', description: 'Связаться с клиентом, оформить замену', status: 'InProgress', priority: 'High', dueDate: new Date(Date.now() + 1 * 86400000), assignedToId: users[1].id, createdById: users[0].id },
+    { title: 'Настроить авто-уведомления о сроках годности', description: 'За 30/14/7 дней до истечения отправлять алерт кладовщику', status: 'New', priority: 'Normal', dueDate: new Date(Date.now() + 14 * 86400000), assignedToId: users[3].id, createdById: users[0].id },
+  ];
+  const tasks = await Promise.all(taskSeeds.map((t) => prisma.task.create({ data: t as any })));
+  console.log(`Created ${tasks.length} tasks`);
+
+  // ── Notifications ──
+  const notificationSeeds = [
+    { userId: users[0].id, title: 'Новая VIP-жалоба', message: 'Самұрық-Қазына: задержка поставки', type: 'warning' },
+    { userId: users[0].id, title: 'Низкий остаток', message: 'Электр қозғалтқыш 5кВт — 2 шт. (ниже reorder point)', type: 'warning' },
+    { userId: users[0].id, title: 'Задача выполнена', message: 'Менеджер 1 завершил "Подготовить отчёт по продажам"', type: 'success' },
+    { userId: users[1].id, title: 'Новый срочный заказ', message: 'Самұрық-Қазына: требуется отгрузка до 12:00', type: 'info' },
+    { userId: users[1].id, title: 'Напоминание о задаче', message: 'Согласовать договор — осталось 2 дня', type: 'warning' },
+    { userId: users[3].id, title: 'Истекает срок годности', message: 'Партия BAT-2024-018: 14 дней до истечения', type: 'warning' },
+    { userId: users[3].id, title: 'Поступление товара', message: 'Приход от ТОО "АлматыТехСнаб" оформлен', type: 'success' },
+    { userId: users[0].id, title: 'Системное обновление', message: 'Backend переведён на новую версию API', type: 'info' },
+    { userId: users[2].id, title: 'Новый заказ', message: 'Анвар: 2 позиции, требуется подтверждение', type: 'info' },
+  ];
+  const notifications = await Promise.all(notificationSeeds.map((n) => prisma.notification.create({ data: n })));
+  console.log(`Created ${notifications.length} notifications`);
+
+  // ── Contracts ──
+  const contractSeeds = [
+    { number: 'ДГ-2024-001', customerId: customers[0].id, signedAt: new Date('2024-01-15'), validUntil: new Date('2025-12-31'), totalAmount: 50000000, description: 'Годовой контракт на поставку электроники', status: 'Active' },
+    { number: 'ДГ-2024-002', customerId: customers[1].id, signedAt: new Date('2024-03-20'), validUntil: new Date('2026-03-19'), totalAmount: 30000000, description: 'Поставка запчастей и комплектующих', status: 'Active' },
+    { number: 'ДГ-2024-003', customerId: customers[3].id, signedAt: new Date('2024-05-10'), validUntil: new Date('2025-05-09'), totalAmount: 12000000, description: 'Медикаменты и расходники', status: 'Active' },
+    { number: 'ДГ-2023-088', customerId: customers[6].id, signedAt: new Date('2023-11-01'), validUntil: new Date('2024-10-31'), totalAmount: 8000000, description: 'Розничные поставки', status: 'Closed' },
+    { number: 'ДГ-2025-007', customerId: customers[2].id, signedAt: new Date('2025-02-01'), validUntil: new Date('2026-01-31'), totalAmount: 25000000, description: 'Автозапчасти оптом', status: 'Active' },
+  ];
+  const contracts = await Promise.all(contractSeeds.map((c) => prisma.contract.create({ data: c })));
+  console.log(`Created ${contracts.length} contracts`);
+
+  // ── Batches + Expiry Alerts ──
+  const batchSeeds = [
+    { productId: products[0].id, batchNo: 'BAT-2024-001', manufacturedAt: new Date('2024-01-10'), expiryDate: new Date(Date.now() + 365 * 86400000), quantity: 5, remainingQty: 3, costPrice: 380000, userId: users[3].id },
+    { productId: products[1].id, batchNo: 'BAT-2024-018', manufacturedAt: new Date('2024-04-05'), expiryDate: new Date(Date.now() + 14 * 86400000), quantity: 4, remainingQty: 4, costPrice: 70000, userId: users[3].id },
+    { productId: products[2].id, batchNo: 'BAT-2024-022', manufacturedAt: new Date('2024-05-12'), expiryDate: new Date(Date.now() + 60 * 86400000), quantity: 3, remainingQty: 2, costPrice: 95000, userId: users[3].id },
+    { productId: products[5].id, batchNo: 'BAT-OFF-101', manufacturedAt: new Date('2024-09-01'), expiryDate: new Date(Date.now() + 730 * 86400000), quantity: 25, remainingQty: 20, costPrice: 9500, userId: users[4].id },
+    { productId: products[7].id, batchNo: 'BAT-OFF-103', manufacturedAt: new Date('2024-08-15'), expiryDate: new Date(Date.now() + 7 * 86400000), quantity: 50, remainingQty: 50, costPrice: 280, userId: users[3].id },
+  ];
+  const batches = await Promise.all(batchSeeds.map((b) => prisma.batch.create({ data: b as any })));
+  console.log(`Created ${batches.length} batches`);
+
+  // Expiry alerts for batches that are close to expiry
+  await prisma.expiryAlert.create({ data: { batchId: batches[1].id, productId: batches[1].productId, expiryDate: batches[1].expiryDate!, daysLeft: 14, severity: 'Warning' } });
+  await prisma.expiryAlert.create({ data: { batchId: batches[4].id, productId: batches[4].productId, expiryDate: batches[4].expiryDate!, daysLeft: 7, severity: 'Critical' } });
+  await prisma.expiryAlert.create({ data: { batchId: batches[2].id, productId: batches[2].productId, expiryDate: batches[2].expiryDate!, daysLeft: 60, severity: 'Info' } });
+  console.log('Created 3 expiry alerts');
+
+  // ── Cash Registers & Bank Accounts ──
+  const cashRegisters = await Promise.all([
+    prisma.cashRegister.create({ data: { name: 'Главная касса (KZT)', currency: 'KZT', balance: 2500000 } }),
+    prisma.cashRegister.create({ data: { name: 'Касса Шымкент (KZT)', currency: 'KZT', balance: 480000 } }),
+  ]);
+  const bankAccounts = await Promise.all([
+    prisma.bankAccount.create({ data: { name: 'Halyk Bank (KZT)', accountNo: 'KZ12345Halyk001KZT', bik: 'HSBKKZKX', bankName: 'Halyk Bank', currency: 'KZT', balance: 15750000 } }),
+    prisma.bankAccount.create({ data: { name: 'Kaspi Bank (USD)', accountNo: 'KZ54321Kaspi002USD', bik: 'CASPKZKX', bankName: 'Kaspi Bank', currency: 'USD', balance: 12000 } }),
+    prisma.bankAccount.create({ data: { name: 'ForteBank (KZT)', accountNo: 'KZ99876Forte003KZT', bik: 'IRTYKZKA', bankName: 'ForteBank', currency: 'KZT', balance: 5400000 } }),
+  ]);
+  console.log(`Created ${cashRegisters.length} cash registers, ${bankAccounts.length} bank accounts`);
+
+  // ── Chart of Accounts ──
+  const chartAccounts = await Promise.all([
+    { code: '1010', name: 'Касса', type: 'Asset', isActive: true },
+    { code: '1030', name: 'Расчётный счёт', type: 'Asset', isActive: true },
+    { code: '1210', name: 'Товары на складе', type: 'Asset', isActive: true, vat: true },
+    { code: '2210', name: 'Расчёты с поставщиками', type: 'Liability', isActive: true },
+    { code: '3010', name: 'Уставный капитал', type: 'Equity', isActive: true },
+    { code: '6010', name: 'Выручка от реализации', type: 'Income', isActive: true, vat: true },
+    { code: '7010', name: 'Себестоимость товаров', type: 'Expense', isActive: true },
+    { code: '7020', name: 'Зарплата', type: 'Expense', isActive: true },
+  ].map((a) => prisma.chartOfAccounts.create({ data: a })));
+  console.log(`Created ${chartAccounts.length} chart of accounts`);
+
+  // ── Cash & Bank Orders ──
+  const cashOrders = await Promise.all([
+    { registerId: cashRegisters[0].id, type: 'Income', amount: 850000, counterparty: 'Самұрық-Қазына', basis: 'Оплата по счёту SF-001245', userId: users[0].id },
+    { registerId: cashRegisters[0].id, type: 'Expense', amount: 125000, counterparty: 'ИП "Запчасть.KZ"', basis: 'Аванс за подшипники SP-004', userId: users[0].id },
+    { registerId: cashRegisters[1].id, type: 'Income', amount: 320000, counterparty: 'Рамстор', basis: 'Оплата по накладной №NR-2024-09', userId: users[3].id },
+  ].map((o) => prisma.cashOrder.create({ data: o })));
+  const bankOrders = await Promise.all([
+    { accountId: bankAccounts[0].id, type: 'Incoming', amount: 5400000, counterparty: 'Қазақмыс Корпорациясы', counterpartyInn: '550140023456', purpose: 'Оплата по договору ДГ-2024-002', userId: users[0].id, status: 'Completed' },
+    { accountId: bankAccounts[0].id, type: 'Outgoing', amount: 1750000, counterparty: 'ТОО "АлматыТехСнаб"', counterpartyInn: '080140012345', purpose: 'Оплата поставки №ПН-2024-44', userId: users[0].id, status: 'Completed' },
+    { accountId: bankAccounts[2].id, type: 'Outgoing', amount: 980000, counterparty: 'АО "КазОфисТорг"', counterpartyInn: '550140023456', purpose: 'Канцелярия на июнь', userId: users[1].id, status: 'Pending' },
+  ].map((o) => prisma.bankOrder.create({ data: o })));
+  console.log(`Created ${cashOrders.length} cash orders, ${bankOrders.length} bank orders`);
+
+  // ── Product Receipts (поступления) ──
+  const receiptSeeds = [
+    { number: 'ПН-2024-44', supplierId: suppliers[0].id, supplierName: suppliers[0].name, warehouseId: warehouses[0].id, invoiceNumber: 'СФ-IN-00234', status: 'Posted' },
+    { number: 'ПН-2024-45', supplierId: suppliers[1].id, supplierName: suppliers[1].name, warehouseId: warehouses[0].id, invoiceNumber: 'СФ-IN-00235', status: 'Posted' },
+    { number: 'ПН-2024-46', supplierId: suppliers[2].id, supplierName: suppliers[2].name, warehouseId: warehouses[1].id, status: 'Draft' },
+    { number: 'ПН-2025-01', supplierId: suppliers[0].id, supplierName: suppliers[0].name, warehouseId: warehouses[0].id, invoiceNumber: 'СФ-IN-00241', status: 'Posted' },
+  ];
+  const receipts = await Promise.all(receiptSeeds.map((r) => prisma.productReceipt.create({ data: { ...r, userId: users[3].id } })));
+
+  // Add receipt items
+  for (let i = 0; i < receipts.length; i++) {
+    const r = receipts[i];
+    const itemCount = 2 + (i % 2);
+    let subtotal = 0;
+    let vatAmount = 0;
+    for (let j = 0; j < itemCount; j++) {
+      const prod = products[(i * 2 + j) % products.length];
+      const qty = 5 + j * 3;
+      const price = prod.unitPrice * 0.6;
+      const vat = price * qty * 0.12;
+      await prisma.productReceiptItem.create({
+        data: { receiptId: r.id, productId: prod.id, warehouseId: r.warehouseId, quantity: qty, unitPrice: price, costPrice: price, vatAmount: vat, totalAmount: price * qty + vat },
+      });
+      subtotal += price * qty;
+      vatAmount += vat;
+    }
+    await prisma.productReceipt.update({ where: { id: r.id }, data: { subtotal, vatAmount, totalAmount: subtotal + vatAmount } });
+  }
+  console.log(`Created ${receipts.length} product receipts with items`);
+
+  // ── Product Issues (списания/продажи) ──
+  const issueSeeds = [
+    { number: 'РАС-2024-12', type: 'Sale', warehouseId: warehouses[0].id, customerId: customers[0].id, status: 'Posted', notes: 'Отгрузка по заказу', userId: users[3].id },
+    { number: 'РАС-2024-13', type: 'Sale', warehouseId: warehouses[0].id, customerId: customers[2].id, status: 'Posted', userId: users[3].id },
+    { number: 'СПС-2024-04', type: 'WriteOff', warehouseId: warehouses[0].id, status: 'Posted', reason: 'Брак', notes: 'Списание повреждённого товара', userId: users[3].id },
+    { number: 'РАС-2025-01', type: 'Sale', warehouseId: warehouses[1].id, customerId: customers[4].id, status: 'Draft', userId: users[4].id },
+  ];
+  const issues = await Promise.all(issueSeeds.map((i) => prisma.productIssue.create({ data: i as any })));
+
+  for (let i = 0; i < issues.length; i++) {
+    const iss = issues[i];
+    const itemCount = 1 + (i % 3);
+    let total = 0;
+    for (let j = 0; j < itemCount; j++) {
+      const prod = products[(i + j) % products.length];
+      const qty = 2 + j;
+      const price = prod.unitPrice;
+      total += price * qty;
+      await prisma.productIssueItem.create({
+        data: { issueId: iss.id, productId: prod.id, warehouseId: iss.warehouseId, quantity: qty, unitPrice: price, costPrice: price * 0.7, totalAmount: price * qty },
+      });
+    }
+    await prisma.productIssue.update({ where: { id: iss.id }, data: { totalAmount: total } });
+  }
+  console.log(`Created ${issues.length} product issues with items`);
+
+  // ── Product Transfers (перемещения) ──
+  const transferSeeds = [
+    { number: 'ПЕР-2024-08', fromWarehouseId: warehouses[0].id, toWarehouseId: warehouses[1].id, reason: 'Перебалансировка', status: 'Posted', userId: users[3].id },
+    { number: 'ПЕР-2024-09', fromWarehouseId: warehouses[0].id, toWarehouseId: warehouses[2].id, reason: 'Заявка филиала', status: 'Posted', userId: users[4].id },
+    { number: 'ПЕР-2025-01', fromWarehouseId: warehouses[1].id, toWarehouseId: warehouses[0].id, reason: 'Возврат невостребованного', status: 'Draft', userId: users[3].id },
+  ];
+  const transfers = await Promise.all(transferSeeds.map((t) => prisma.productTransfer.create({ data: t as any })));
+
+  for (let i = 0; i < transfers.length; i++) {
+    const t = transfers[i];
+    const prod = products[i * 2 % products.length];
+    await prisma.productTransferItem.create({
+      data: { transferId: t.id, productId: prod.id, quantity: 5 + i * 2, costPrice: prod.unitPrice * 0.7 },
+    });
+    await prisma.productTransferItem.create({
+      data: { transferId: t.id, productId: products[(i * 2 + 1) % products.length].id, quantity: 3 + i, costPrice: products[(i * 2 + 1) % products.length].unitPrice * 0.7 },
+    });
+  }
+  console.log(`Created ${transfers.length} product transfers with items`);
+
+  // ── Workshops + TechCards + Production Orders ──
+  const workshops = await Promise.all([
+    prisma.workshop.create({ data: { name: 'Цех №1: Электроника', headId: users[2].id } }),
+    prisma.workshop.create({ data: { name: 'Цех №2: Сборка', headId: users[3].id } }),
+  ]);
+
+  const techCard1 = await prisma.techCard.create({
+    data: {
+      name: 'Сборка ПК "Office Basic"',
+      outputProductId: products[4].id, // Жүйелік блок Dell
+      outputQuantity: 1,
+      inputs: {
+        create: [
+          { productId: products[0].id, quantity: 1, waste: 0 },     // ноутбук → нет, нужно другое
+        ],
+      },
+    },
+  });
+  // add proper inputs
+  await prisma.productBomInput.create({ data: { techCardId: techCard1.id, productId: products[0].id, quantity: 1, waste: 0 } });
+  await prisma.productBomInput.create({ data: { techCardId: techCard1.id, productId: products[2].id, quantity: 1, waste: 0 } });
+  await prisma.productBomInput.create({ data: { techCardId: techCard1.id, productId: products[3].id, quantity: 1, waste: 0 } });
+
+  const techCard2 = await prisma.techCard.create({
+    data: { name: 'Комплект "Рабочее место"', outputProductId: products[0].id, outputQuantity: 1 },
+  });
+  await prisma.productBomInput.create({ data: { techCardId: techCard2.id, productId: products[2].id, quantity: 1, waste: 0 } });
+  await prisma.productBomInput.create({ data: { techCardId: techCard2.id, productId: products[3].id, quantity: 1, waste: 0 } });
+
+  const productionOrders = await Promise.all([
+    prisma.productionOrder.create({ data: { number: 'ПР-2024-12', techCardId: techCard1.id, workshopId: workshops[0].id, quantity: 5, status: 'Completed', plannedDate: new Date('2024-12-01'), finishedDate: new Date('2024-12-05') } }),
+    prisma.productionOrder.create({ data: { number: 'ПР-2025-01', techCardId: techCard2.id, workshopId: workshops[1].id, quantity: 10, status: 'InProgress', plannedDate: new Date('2025-01-15') } }),
+    prisma.productionOrder.create({ data: { number: 'ПР-2025-02', techCardId: techCard1.id, workshopId: workshops[0].id, quantity: 3, status: 'Planned', plannedDate: new Date('2025-02-20') } }),
+  ]);
+  console.log(`Created ${workshops.length} workshops, 2 tech cards, ${productionOrders.length} production orders`);
+
+  // ── Timesheets + Payroll ──
+  const timesheetSeeds: any[] = [];
+  for (const emp of employees) {
+    for (let d = 0; d < 10; d++) {
+      const date = new Date(Date.now() - d * 86400000);
+      timesheetSeeds.push({
+        employeeId: emp.id,
+        date,
+        hours: 8,
+        overtime: d % 4 === 0 ? 2 : 0,
+        type: 'Regular',
+      });
+    }
+  }
+  await prisma.timesheet.createMany({ data: timesheetSeeds });
+  console.log(`Created ${timesheetSeeds.length} timesheet entries`);
+
+  const payrollSeeds = employees.map((e, idx) => ({
+    employeeId: e.id,
+    period: '2025-05',
+    baseSalary: e.salary,
+    overtime: idx % 2 === 0 ? 15000 : 0,
+    bonus: idx === 0 ? 200000 : 50000,
+    deductions: e.salary * 0.1,
+    tax: (e.salary - e.salary * 0.1) * 0.1,
+    netPay: e.salary - e.salary * 0.1 - (e.salary - e.salary * 0.1) * 0.1,
+    status: 'Paid',
+    userId: users[0].id,
+    paidAt: new Date(),
+  }));
+  await prisma.payrollEntry.createMany({ data: payrollSeeds as any[] });
+  console.log(`Created ${payrollSeeds.length} payroll entries`);
+
+  // ── Documents (1С-style) ──
+  const documentSeeds = [
+    { number: 'РН-2024-00012', type: 'SalesInvoice', posted: true, postedAt: new Date('2024-12-10'), customerId: customers[0].id, contractId: contracts[0].id, createdById: users[0].id, postedById: users[0].id, totalAmount: 1350000, vatAmount: 144643, description: 'Реализация: ноутбук + монитор' },
+    { number: 'ПН-2024-00044', type: 'PurchaseInvoice', posted: true, postedAt: new Date('2024-12-08'), customerId: null, createdById: users[1].id, postedById: users[0].id, totalAmount: 540000, vatAmount: 57857, description: 'Поступление от АлматыТехСнаб' },
+    { number: 'ПКО-2024-00102', type: 'CashReceipt', posted: true, postedAt: new Date('2024-12-11'), customerId: customers[0].id, createdById: users[0].id, postedById: users[0].id, totalAmount: 850000, description: 'Оплата от Самұрық-Қазына' },
+    { number: 'РКО-2024-00088', type: 'CashExpense', posted: true, postedAt: new Date('2024-12-12'), createdById: users[0].id, postedById: users[0].id, totalAmount: 125000, description: 'Аванс поставщику' },
+    { number: 'БП-2024-00033', type: 'BankPayment', posted: true, postedAt: new Date('2024-12-12'), createdById: users[0].id, postedById: users[0].id, totalAmount: 1750000, description: 'Оплата ТОО "АлматыТехСнаб"' },
+    { number: 'ЗП-2025-05', type: 'Payroll', posted: true, postedAt: new Date('2025-05-31'), createdById: users[0].id, postedById: users[0].id, totalAmount: 2336000, description: 'Зарплата за май 2025' },
+    { number: 'РН-2025-00001', type: 'SalesInvoice', posted: false, customerId: customers[2].id, createdById: users[1].id, totalAmount: 0, description: 'Черновик: реализация Technodom' },
+  ];
+  const documents = await Promise.all(documentSeeds.map((d) => prisma.document.create({ data: d as any })));
+  console.log(`Created ${documents.length} documents`);
+
+  // Add document items
+  await prisma.documentItem.create({ data: { documentId: documents[0].id, productId: products[0].id, quantity: 2, unitPrice: 450000, vatRate: 12, vatAmount: 96429, total: 964286 } });
+  await prisma.documentItem.create({ data: { documentId: documents[0].id, productId: products[2].id, quantity: 1, unitPrice: 120000, vatRate: 12, vatAmount: 12857, total: 128571 } });
+  await prisma.documentItem.create({ data: { documentId: documents[1].id, productId: products[1].id, quantity: 5, unitPrice: 85000, vatRate: 12, vatAmount: 45536, total: 424107 } });
+  console.log('Created document items');
+
+  // ── Roles & Permissions ──
+  const permissions = await Promise.all([
+    { key: 'orders.view', description: 'Просмотр заказов', resource: 'orders', action: 'view' },
+    { key: 'orders.create', description: 'Создание заказов', resource: 'orders', action: 'create' },
+    { key: 'orders.edit', description: 'Редактирование заказов', resource: 'orders', action: 'edit' },
+    { key: 'orders.delete', description: 'Удаление заказов', resource: 'orders', action: 'delete' },
+    { key: 'inventory.view', description: 'Просмотр склада', resource: 'inventory', action: 'view' },
+    { key: 'inventory.edit', description: 'Изменение остатков', resource: 'inventory', action: 'edit' },
+    { key: 'users.manage', description: 'Управление пользователями', resource: 'users', action: 'manage' },
+    { key: 'reports.view', description: 'Просмотр отчётов', resource: 'reports', action: 'view' },
+  ].map((p) => prisma.permission.create({ data: p })));
+  console.log(`Created ${permissions.length} permissions`);
+
+  const roles = await Promise.all([
+    { name: 'Admin', description: 'Полный доступ', isSystem: true },
+    { name: 'Manager', description: 'Управление заказами', isSystem: true },
+    { name: 'Warehouse', description: 'Складские операции', isSystem: true },
+    { name: 'Accountant', description: 'Финансы и бухгалтерия', isSystem: true },
+  ].map((r) => prisma.role.create({ data: r })));
+  // Admin gets all
+  for (const p of permissions) {
+    await prisma.rolePermission.create({ data: { roleId: roles[0].id, permissionId: p.id } });
+  }
+  // Manager gets order permissions
+  for (let i = 0; i < 4; i++) {
+    await prisma.rolePermission.create({ data: { roleId: roles[1].id, permissionId: permissions[i].id } });
+  }
+  // Warehouse gets inventory
+  await prisma.rolePermission.create({ data: { roleId: roles[2].id, permissionId: permissions[4].id } });
+  await prisma.rolePermission.create({ data: { roleId: roles[2].id, permissionId: permissions[5].id } });
+  console.log(`Created ${roles.length} roles with permissions`);
+
+  // ── Scheduled Jobs ──
+  const jobs = await Promise.all([
+    { name: 'Expiry Alert Check', cron: '0 9 * * *', handler: 'expiryAlertJob', enabled: true, lastRunAt: new Date(Date.now() - 86400000), lastStatus: 'OK', nextRunAt: new Date(Date.now() + 86400000) },
+    { name: 'Reorder Point Check', cron: '0 8 * * *', handler: 'reorderCheckJob', enabled: true, lastRunAt: new Date(Date.now() - 86400000), lastStatus: 'OK', nextRunAt: new Date(Date.now() + 86400000) },
+    { name: 'Backup Database', cron: '0 2 * * *', handler: 'backupJob', enabled: true, lastRunAt: new Date(Date.now() - 86400000), lastStatus: 'OK', nextRunAt: new Date(Date.now() + 86400000) },
+    { name: 'Send Daily Digest', cron: '0 18 * * *', handler: 'digestJob', enabled: false, lastStatus: 'Skipped' },
+  ].map((j) => prisma.scheduledJob.create({ data: j as any })));
+  console.log(`Created ${jobs.length} scheduled jobs`);
+
+  // ── Config Objects + Print Templates ──
+  const configObj = await prisma.configObject.create({
+    data: {
+      kind: 'Document',
+      name: 'SalesInvoice',
+      description: 'Конфигурация документа "Реализация товаров"',
+      schema: { fields: ['number', 'date', 'customer', 'items', 'total', 'vat'], required: ['number', 'date', 'customer'] },
+      isActive: true,
+    },
+  });
+  await prisma.printTemplate.create({
+    data: { name: 'Sales Invoice (Standard)', documentType: 'SalesInvoice', template: { header: 'ТОО "SupplyFlow"', footer: 'Спасибо за покупку!', columns: ['name', 'quantity', 'unitPrice', 'total'] }, isDefault: true },
+  });
+  await prisma.printTemplate.create({
+    data: { name: 'Purchase Invoice', documentType: 'PurchaseInvoice', template: { header: 'Поступление товаров', columns: ['name', 'quantity', 'unitPrice', 'vat', 'total'] } },
+  });
+  console.log('Created config objects and print templates');
 
   console.log('Seed completed successfully');
 }
