@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { TextInput, PasswordInput, Button, Paper, Title, Text, Anchor, Center, Box, Group, Stack, Divider, ThemeIcon } from '@mantine/core';
+import { TextInput, PasswordInput, PinInput, Button, Paper, Title, Text, Anchor, Center, Box, Group, Stack, Divider, ThemeIcon } from '@mantine/core';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../store/AuthContext';
 import Logo from '../components/Logo';
-import { IconMail, IconLock, IconArrowRight, IconSparkles } from '@tabler/icons-react';
+import { IconMail, IconLock, IconArrowRight, IconSparkles, IconShieldLock } from '@tabler/icons-react';
 import LanguageToggle from '../components/LanguageToggle';
 import ThemeToggle from '../components/ThemeToggle';
 
@@ -12,23 +12,41 @@ export default function LoginPage() {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [totpCode, setTotpCode] = useState('');
+  const [totpUserId, setTotpUserId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const [error, setError] = useState('');
+  const { login, verifyTotpLogin } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
     try {
-      await login(email, password);
+      const result = await login(email, password);
+      if (result.requiresTotp && result.userId) {
+        setTotpUserId(result.userId);
+      } else {
+        navigate('/');
+      }
+    } catch (err: any) {
+      setError(err.message || t('auth.loginError'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTotpSubmit = async (code: string) => {
+    if (code.length !== 6 || !totpUserId) return;
+    setLoading(true);
+    setError('');
+    try {
+      await verifyTotpLogin(totpUserId, code);
       navigate('/');
     } catch (err: any) {
-      const { showNotification } = await import('@mantine/notifications');
-      showNotification({
-        title: t('common.error'),
-        message: err.message || t('auth.loginError'),
-        color: 'red',
-      });
+      setError(err.message || t('auth.invalidTotp'));
+      setTotpCode('');
     } finally {
       setLoading(false);
     }
@@ -36,7 +54,6 @@ export default function LoginPage() {
 
   return (
     <Box
-      className="sf-mesh-bg"
       style={{
         minHeight: '100vh',
         display: 'flex',
@@ -45,9 +62,9 @@ export default function LoginPage() {
         padding: 20,
         position: 'relative',
         overflow: 'hidden',
+        background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%)',
       }}
     >
-      {/* Decorative gradient blobs */}
       <Box style={{
         position: 'absolute', top: '-10%', right: '-10%', width: 500, height: 500,
         background: 'radial-gradient(circle, rgba(139, 92, 246, 0.18) 0%, transparent 70%)',
@@ -67,18 +84,17 @@ export default function LoginPage() {
       </Box>
 
       <Paper
-        shadow="xl"
         p={32}
         radius="xl"
         style={{
           width: 460,
           maxWidth: '100%',
-          background: 'var(--mantine-color-body)',
-          border: '1px solid var(--mantine-color-default-border)',
+          background: 'rgba(255,255,255,0.05)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255,255,255,0.1)',
           position: 'relative',
           zIndex: 1,
         }}
-        className="sf-fade-in"
       >
         <Stack gap="lg">
           <Center>
@@ -86,56 +102,98 @@ export default function LoginPage() {
           </Center>
 
           <Box ta="center">
-            <Title order={3} fw={800} style={{ letterSpacing: '-0.3px' }}>{t('auth.title')}</Title>
-            <Text size="sm" c="dimmed" mt={4}>Войдите в систему, чтобы продолжить</Text>
+            <Title order={3} fw={800} c="white" style={{ letterSpacing: '-0.3px' }}>
+              {totpUserId ? t('auth.totpTitle') : t('auth.title')}
+            </Title>
+            <Text size="sm" c="gray.4" mt={4}>
+              {totpUserId ? t('auth.totpSubtitle') : 'SupplyFlow ERP'}
+            </Text>
           </Box>
 
-          <form onSubmit={handleSubmit}>
-            <Stack gap="md">
-              <TextInput
-                label={t('auth.email')}
-                placeholder="email@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.currentTarget.value)}
-                required
-                size="md"
-                leftSection={<IconMail size={16} stroke={2} />}
+          {totpUserId ? (
+            <Stack align="center" gap="md">
+              <IconShieldLock size={48} color="#818cf8" />
+              <PinInput
+                length={6}
+                value={totpCode}
+                onChange={(val) => {
+                  setTotpCode(val);
+                  if (val.length === 6) handleTotpSubmit(val);
+                }}
+                type="number"
+                size="lg"
+                styles={{ input: { background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)' } }}
               />
-              <PasswordInput
-                label={t('auth.password')}
-                placeholder={t('auth.passwordPlaceholder')}
-                value={password}
-                onChange={(e) => setPassword(e.currentTarget.value)}
-                required
-                size="md"
-                leftSection={<IconLock size={16} stroke={2} />}
-              />
-              <Group justify="space-between">
-                <Anchor size="xs" c="dimmed" component="span" style={{ cursor: 'pointer' }}>
-                  Забыли пароль?
-                </Anchor>
-              </Group>
+              {error && <Text c="red" size="sm">{error}</Text>}
               <Button
-                type="submit"
                 fullWidth
-                size="md"
                 loading={loading}
-                rightSection={<IconArrowRight size={16} />}
+                onClick={() => handleTotpSubmit(totpCode)}
                 className="gradient-button"
               >
-                {t('auth.login')}
+                {t('auth.verify')}
               </Button>
             </Stack>
-          </form>
+          ) : (
+            <form onSubmit={handleSubmit}>
+              <Stack gap="md">
+                <TextInput
+                  label={<span style={{ color: '#c7d2fe' }}>{t('auth.email')}</span>}
+                  placeholder="email@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.currentTarget.value)}
+                  required
+                  size="md"
+                  leftSection={<IconMail size={16} stroke={2} />}
+                  styles={{ input: { background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)' } }}
+                />
+                <PasswordInput
+                  label={<span style={{ color: '#c7d2fe' }}>{t('auth.password')}</span>}
+                  placeholder={t('auth.passwordPlaceholder')}
+                  value={password}
+                  onChange={(e) => setPassword(e.currentTarget.value)}
+                  required
+                  size="md"
+                  leftSection={<IconLock size={16} stroke={2} />}
+                  styles={{ input: { background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)' } }}
+                />
+                <Group justify="space-between">
+                  <Anchor
+                    size="xs"
+                    c="indigo.3"
+                    component={Link}
+                    to="/forgot-password"
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {t('auth.forgotPassword')}
+                  </Anchor>
+                </Group>
+                {error && <Text c="red" size="sm">{error}</Text>}
+                <Button
+                  type="submit"
+                  fullWidth
+                  size="md"
+                  loading={loading}
+                  rightSection={<IconArrowRight size={16} />}
+                  className="gradient-button"
+                >
+                  {t('auth.login')}
+                </Button>
+              </Stack>
+            </form>
+          )}
 
-          <Divider label="или" labelPosition="center" />
-
-          <Group justify="center" gap={6}>
-            <Text size="sm" c="dimmed">{t('auth.noAccount')}</Text>
-            <Anchor component={Link} to="/register" fw={600} c="indigo">
-              {t('auth.register')}
-            </Anchor>
-          </Group>
+          {!totpUserId && (
+            <>
+              <Divider label={t('auth.or')} labelPosition="center" color="gray.6" />
+              <Group justify="center" gap={6}>
+                <Text size="sm" c="gray.4">{t('auth.noAccount')}</Text>
+                <Anchor component={Link} to="/register" fw={600} c="indigo.3">
+                  {t('auth.register')}
+                </Anchor>
+              </Group>
+            </>
+          )}
         </Stack>
       </Paper>
 
@@ -144,7 +202,7 @@ export default function LoginPage() {
           <ThemeIcon size="xs" variant="transparent" color="indigo">
             <IconSparkles size={12} />
           </ThemeIcon>
-          <Text size="xs" c="dimmed">SupplyFlow BPM · 1C-style ERP platform</Text>
+          <Text size="xs" c="dimmed">SupplyFlow BPM · 1C-style ERP</Text>
         </Group>
       </Box>
     </Box>

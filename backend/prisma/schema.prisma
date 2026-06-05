@@ -25,36 +25,68 @@ enum ProductType {
 }
 
 model User {
+  id                  Int       @id @default(autoincrement())
+  email               String    @unique
+  password            String
+  fullName            String
+  role                UserRole  @default(Warehouse)
+  active              Boolean   @default(true)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  // 2FA
+  totpSecret          String?
+  totpEnabled         Boolean   @default(false)
+
+  // Password reset
+  resetToken          String?   @unique
+  resetTokenExpiry    DateTime?
+
+  // Account lockout
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+
+  // Last login
+  lastLoginAt         DateTime?
+
+  orders              Order[]
+  inventoryLogs       InventoryLog[]
+  systemLogs          SystemLog[]
+  contactLogs         ContactLog[]
+  tasksAssigned       Task[]               @relation("AssignedTo")
+  tasksCreated        Task[]               @relation("CreatedBy")
+  notifications       Notification[]
+  approvalsGiven      DocumentApproval[]
+  documentVersions    DocumentVersion[]
+  payrollEntries      PayrollEntry[]
+  employee            Employee?
+  postedDocuments     Document[]           @relation("PostedBy")
+  unpostedDocuments   Document[]           @relation("UnpostedBy")
+  cashOrdersCreated   CashOrder[]
+  bankOrdersCreated   BankOrder[]
+  batchesCreated      Batch[]
+  productReceipts     ProductReceipt[]
+  productIssues       ProductIssue[]
+  workshop            Workshop?            @relation("WorkshopHead")
+  roleAssignments     UserRoleAssignment[]
+  documentsCreated    Document[]           @relation("DocumentCreatedBy")
+  productTransfers    ProductTransfer[]
+  refreshTokens       RefreshToken[]
+}
+
+model RefreshToken {
   id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  fullName  String
-  role      UserRole @default(Warehouse)
-  active    Boolean  @default(true)
+  token     String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userAgent String?
+  ipAddress String?
+  expiresAt DateTime
+  revokedAt DateTime?
   createdAt DateTime @default(now())
 
-  orders            Order[]
-  inventoryLogs     InventoryLog[]
-  systemLogs        SystemLog[]
-  contactLogs       ContactLog[]
-  tasksAssigned     Task[]               @relation("AssignedTo")
-  tasksCreated      Task[]               @relation("CreatedBy")
-  notifications     Notification[]
-  approvalsGiven    DocumentApproval[]
-  documentVersions  DocumentVersion[]
-  payrollEntries    PayrollEntry[]
-  employee          Employee?
-  postedDocuments   Document[]           @relation("PostedBy")
-  unpostedDocuments Document[]           @relation("UnpostedBy")
-  cashOrdersCreated CashOrder[]
-  bankOrdersCreated BankOrder[]
-  batchesCreated    Batch[]
-  productReceipts   ProductReceipt[]
-  productIssues     ProductIssue[]
-  workshop          Workshop?            @relation("WorkshopHead")
-  roleAssignments   UserRoleAssignment[]
-  documentsCreated  Document[]           @relation("DocumentCreatedBy")
-  ProductTransfer   ProductTransfer[]
+  @@index([userId])
+  @@index([token])
 }
 
 model Customer {

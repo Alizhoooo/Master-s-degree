@@ -77,6 +77,28 @@ import appConfig from './common/env.config';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(helmet()).forRoutes('*');
+    consumer.apply(
+      helmet({
+        contentSecurityPolicy: {
+          directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'"],
+            styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+            fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
+            imgSrc: ["'self'", 'data:', 'blob:'],
+            connectSrc: ["'self'"],
+            frameSrc: ["'none'"],
+            objectSrc: ["'none'"],
+          },
+        },
+        strictTransportSecurity: {
+          maxAge: 31536000,
+          includeSubDomains: true,
+        },
+        crossOriginOpenerPolicy: { policy: 'same-origin' },
+        crossOriginEmbedderPolicy: false,
+        referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+      }),
+    ).forRoutes('*');
   }
 }

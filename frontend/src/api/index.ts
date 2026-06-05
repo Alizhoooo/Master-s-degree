@@ -5,11 +5,22 @@ function getToken(): string | null {
 }
 
 async function request(path: string, options: RequestInit = {}): Promise<any> {
-  const token = getToken();
+  let token = getToken();
   const headers: any = { ...options.headers, 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  const res = await fetch(`${API}${path}`, { ...options, headers });
+  let res = await fetch(`${API}${path}`, { ...options, headers });
+
+  if (res.status === 401 && token) {
+    try {
+      const { refreshTokenIfNeeded } = await import('../store/AuthContext');
+      const newToken = await refreshTokenIfNeeded();
+      if (newToken) {
+        headers['Authorization'] = `Bearer ${newToken}`;
+        res = await fetch(`${API}${path}`, { ...options, headers });
+      }
+    } catch { /* refresh failed, proceed with original error */ }
+  }
 
   if (res.status === 401) {
     localStorage.removeItem('token');
@@ -27,7 +38,20 @@ export async function login(email: string, password: string) {
     method: 'POST',
     body: JSON.stringify({ email, password }),
   });
-  localStorage.setItem('token', data.access_token);
+  if (data.accessToken) {
+    localStorage.setItem('token', data.accessToken);
+  }
+  return data;
+}
+
+export async function loginVerifyTotp(userId: number, token: string) {
+  const data = await request('/auth/login/verify-totp', {
+    method: 'POST',
+    body: JSON.stringify({ userId, token }),
+  });
+  if (data.accessToken) {
+    localStorage.setItem('token', data.accessToken);
+  }
   return data;
 }
 
@@ -40,6 +64,77 @@ export async function register(email: string, password: string, fullName: string
 
 export async function getProfile() {
   return request('/auth/profile');
+}
+
+export async function refreshAccessToken() {
+  const data = await request('/auth/refresh', { method: 'POST' });
+  if (data.accessToken) {
+    localStorage.setItem('token', data.accessToken);
+  }
+  return data;
+}
+
+export async function logout() {
+  try {
+    await request('/auth/logout', { method: 'POST' });
+  } finally {
+    localStorage.removeItem('token');
+  }
+}
+
+export async function logoutAll() {
+  try {
+    await request('/auth/logout-all', { method: 'POST' });
+  } finally {
+    localStorage.removeItem('token');
+  }
+}
+
+export async function changePassword(currentPassword: string, newPassword: string) {
+  return request('/auth/change-password', {
+    method: 'PATCH',
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+}
+
+export async function setupTotp() {
+  return request('/auth/2fa/setup', { method: 'POST' });
+}
+
+export async function verifyTotpSetup(token: string) {
+  return request('/auth/2fa/verify', {
+    method: 'POST',
+    body: JSON.stringify({ token }),
+  });
+}
+
+export async function disableTotp(password: string) {
+  return request('/auth/2fa/disable', {
+    method: 'POST',
+    body: JSON.stringify({ password }),
+  });
+}
+
+export async function forgotPassword(email: string) {
+  return request('/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
+}
+
+export async function resetPassword(token: string, newPassword: string) {
+  return request('/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ token, newPassword }),
+  });
+}
+
+export async function listSessions() {
+  return request('/auth/sessions');
+}
+
+export async function revokeSession(id: number) {
+  return request(`/auth/sessions/${id}/revoke`, { method: 'POST' });
 }
 
 export async function getProducts() {

@@ -5,11 +5,22 @@ function getToken(): string | null {
 }
 
 async function request(path: string, options: RequestInit = {}): Promise<any> {
-  const token = getToken();
+  let token = getToken();
   const headers: any = { ...options.headers, 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  const res = await fetch(`${API}${path}`, { ...options, headers });
+  let res = await fetch(`${API}${path}`, { ...options, headers });
+
+  if (res.status === 401 && token) {
+    try {
+      const { refreshTokenIfNeeded } = await import('../store/AuthContext');
+      const newToken = await refreshTokenIfNeeded();
+      if (newToken) {
+        headers['Authorization'] = `Bearer ${newToken}`;
+        res = await fetch(`${API}${path}`, { ...options, headers });
+      }
+    } catch { /* ignore */ }
+  }
 
   if (res.status === 401) {
     localStorage.removeItem('token');

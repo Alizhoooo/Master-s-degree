@@ -8,6 +8,7 @@ import ThemeToggle from '../ThemeToggle';
 import LanguageToggle from '../LanguageToggle';
 import AlmatyTime from '../AlmatyTime';
 import GlobalSearchModal from '../GlobalSearchModal';
+import SettingsModal from '../SettingsModal';
 import Logo from '../Logo';
 import { useQuery } from '@tanstack/react-query';
 import { getUnreadCount, listMyTasks } from '../../api';
@@ -16,7 +17,7 @@ import {
   IconRobot, IconSettings, IconLogout, IconMenu2, IconAlertCircle, IconUser,
   IconBook, IconCash, IconBuildingBank, IconBuildingWarehouse, IconBuildingFactory,
   IconUsersGroup, IconFileText, IconClipboardList, IconBell, IconClock,
-  IconShield, IconSearch, IconTruckDelivery, IconFileInvoice, IconBoxSeam, IconCalendar,
+  IconShield, IconShieldLock, IconSearch, IconTruckDelivery, IconFileInvoice, IconBoxSeam, IconCalendar,
   IconArrowsRightLeft, IconCategory, IconChevronRight,
 } from '@tabler/icons-react';
 
@@ -81,6 +82,7 @@ export default function AppLayout() {
   const location = useLocation();
   const [opened, setOpened] = useState(false);
   const [searchOpened, setSearchOpened] = useState(false);
+  const [settingsOpened, setSettingsOpened] = useState(false);
   const navGroups = useNavItems();
 
   const { data: unread } = useQuery({ queryKey: ['unreadCount'], queryFn: getUnreadCount, refetchInterval: 30000 });
@@ -181,11 +183,14 @@ export default function AppLayout() {
                   </Group>
                 </Menu.Label>
                 <Menu.Divider />
-                <Menu.Item leftSection={<IconUser size={14} />}>
+                <Menu.Item leftSection={<IconUser size={14} />} onClick={() => setSettingsOpened(true)}>
                   {t('auth.profile') || 'Профиль'}
                 </Menu.Item>
                 <Menu.Item leftSection={<IconSettings size={14} />} onClick={() => navigate('/admin')}>
                   {t('admin.config') || 'Настройки'}
+                </Menu.Item>
+                <Menu.Item leftSection={<IconShieldLock size={14} />} onClick={() => setSettingsOpened(true)}>
+                  2FA
                 </Menu.Item>
                 <Menu.Divider />
                 <Menu.Item leftSection={<IconLogout size={14} />} color="red" onClick={handleLogout}>
@@ -256,6 +261,7 @@ export default function AppLayout() {
       </AppShell.Main>
 
       <GlobalSearchModal opened={searchOpened} onClose={() => setSearchOpened(false)} />
+      <SettingsModal opened={settingsOpened} onClose={() => setSettingsOpened(false)} />
     </AppShell>
   );
 }
