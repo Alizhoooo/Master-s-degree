@@ -184,14 +184,14 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
         },
       });
 
-      const managers = await this.prisma.user.findMany({ where: { role: { in: ['Manager', 'Admin'] } } });
-      for (const m of managers) {
+      const recipients = await this.prisma.user.findMany({ where: { role: { in: ['Manager', 'Admin', 'Warehouse'] }, active: true } });
+      for (const m of recipients) {
         await this.prisma.notification.create({
           data: {
             userId: m.id,
-            title: severity === 'Expired' ? 'Просрочен товар' : 'Срок годности истекает',
-            message: `${batch.product.name} (партия ${batch.batchNo}) — ${daysLeft < 0 ? 'просрочен на ' + Math.abs(daysLeft) + ' дн.' : 'осталось ' + daysLeft + ' дн.'}`,
-            type: severity === 'Expired' ? 'error' : 'warning',
+            title: severity === 'Expired' ? '⚠️ Просрочен товар' : severity === 'Critical' ? '⚠️ СРОЧНО: срок годности' : 'Срок годности истекает',
+            message: `${batch.product.name} (партия ${batch.batchNo}, ост. ${batch.remainingQty} ${batch.product.unit}) — ${daysLeft < 0 ? 'просрочен на ' + Math.abs(daysLeft) + ' дн.' : 'осталось ' + daysLeft + ' дн.'}`,
+            type: severity === 'Expired' || severity === 'Critical' ? 'error' : 'warning',
             link: `/expiry`,
           },
         });

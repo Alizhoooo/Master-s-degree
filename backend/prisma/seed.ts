@@ -455,10 +455,48 @@ async function main() {
   console.log(`Created ${batches.length} batches`);
 
   // Expiry alerts for batches that are close to expiry
-  await prisma.expiryAlert.create({ data: { batchId: batches[1].id, productId: batches[1].productId, expiryDate: batches[1].expiryDate!, daysLeft: 14, severity: 'Warning' } });
-  await prisma.expiryAlert.create({ data: { batchId: batches[4].id, productId: batches[4].productId, expiryDate: batches[4].expiryDate!, daysLeft: 7, severity: 'Critical' } });
-  await prisma.expiryAlert.create({ data: { batchId: batches[2].id, productId: batches[2].productId, expiryDate: batches[2].expiryDate!, daysLeft: 60, severity: 'Info' } });
+  const expiringBatchInfo = [
+    { batch: batches[1], daysLeft: 14, severity: 'Warning' },
+    { batch: batches[4], daysLeft: 7, severity: 'Critical' },
+    { batch: batches[2], daysLeft: 60, severity: 'Info' },
+  ];
+  for (const e of expiringBatchInfo) {
+    await prisma.expiryAlert.create({
+      data: { batchId: e.batch.id, productId: e.batch.productId, expiryDate: e.batch.expiryDate!, daysLeft: e.daysLeft, severity: e.severity },
+    });
+  }
   console.log('Created 3 expiry alerts');
+
+  // ── Expiry alert notifications for warehouse users ──
+  const warehouseUsers = [users[3].id, users[4].id];
+  for (const e of expiringBatchInfo) {
+    const product = products.find((p) => p.id === e.batch.productId);
+    for (const uid of warehouseUsers) {
+      await prisma.notification.create({
+        data: {
+          userId: uid,
+          title: e.severity === 'Critical' ? '⚠️ СРОЧНО: партия истекает!' : 'Срок годности партии',
+          message: `${product?.name || 'Товар'} (${e.batch.batchNo}): срок истекает через ${e.daysLeft} ${e.daysLeft === 1 ? 'день' : e.daysLeft < 5 ? 'дня' : 'дней'}. Остаток: ${e.batch.remainingQty} ${product?.unit || 'шт'}.`,
+          type: e.severity === 'Critical' ? 'error' : e.severity === 'Warning' ? 'warning' : 'info',
+          link: `/expiry`,
+        },
+      });
+    }
+  }
+  // Also notify admin
+  for (const e of expiringBatchInfo) {
+    const product = products.find((p) => p.id === e.batch.productId);
+    await prisma.notification.create({
+      data: {
+        userId: users[0].id,
+        title: `Срок годности: ${e.daysLeft} дн.`,
+        message: `${product?.name} (партия ${e.batch.batchNo}) истекает ${e.batch.expiryDate!.toISOString().slice(0, 10)}`,
+        type: e.severity === 'Critical' ? 'error' : 'warning',
+        link: `/expiry`,
+      },
+    });
+  }
+  console.log('Created expiry alert notifications');
 
   // ── Cash Registers & Bank Accounts ──
   const cashRegisters = await Promise.all([
@@ -662,44 +700,114 @@ async function main() {
   await prisma.documentItem.create({ data: { documentId: documents[1].id, productId: products[1].id, quantity: 5, unitPrice: 85000, vatRate: 12, vatAmount: 45536, total: 424107 } });
   console.log('Created document items');
 
-  // ── Roles & Permissions ──
-  const permissions = await Promise.all([
-    { key: 'orders.view', description: 'Просмотр заказов', resource: 'orders', action: 'view' },
-    { key: 'orders.create', description: 'Создание заказов', resource: 'orders', action: 'create' },
-    { key: 'orders.edit', description: 'Редактирование заказов', resource: 'orders', action: 'edit' },
-    { key: 'orders.delete', description: 'Удаление заказов', resource: 'orders', action: 'delete' },
-    { key: 'inventory.view', description: 'Просмотр склада', resource: 'inventory', action: 'view' },
-    { key: 'inventory.edit', description: 'Изменение остатков', resource: 'inventory', action: 'edit' },
-    { key: 'users.manage', description: 'Управление пользователями', resource: 'users', action: 'manage' },
-    { key: 'reports.view', description: 'Просмотр отчётов', resource: 'reports', action: 'view' },
-  ].map((p) => prisma.permission.create({ data: p })));
+  // ── Permissions (must match SYSTEM_PERMISSIONS in rbac.service.ts) ──
+  const systemPermissions: { key: string; description: string; resource: string; action: string }[] = [
+    { key: 'accounting.access', description: 'Доступ к бухгалтерии', resource: 'accounting', action: 'access' },
+    { key: 'accounting.read', description: 'Чтение бухгалтерии', resource: 'accounting', action: 'read' },
+    { key: 'accounting.write', description: 'Запись бухгалтерии', resource: 'accounting', action: 'write' },
+    { key: 'accounting.post', description: 'Проведение бухгалтерии', resource: 'accounting', action: 'post' },
+    { key: 'cash.access', description: 'Доступ к кассе', resource: 'cash', action: 'access' },
+    { key: 'cash.read', description: 'Чтение кассы', resource: 'cash', action: 'read' },
+    { key: 'cash.write', description: 'Запись кассы', resource: 'cash', action: 'write' },
+    { key: 'cash.order.read', description: 'Чтение кассовых ордеров', resource: 'cash', action: 'order.read' },
+    { key: 'cash.order.write', description: 'Создание кассовых ордеров', resource: 'cash', action: 'order.write' },
+    { key: 'cash.register.write', description: 'Управление кассами', resource: 'cash', action: 'register.write' },
+    { key: 'bank.access', description: 'Доступ к банку', resource: 'bank', action: 'access' },
+    { key: 'bank.read', description: 'Чтение банка', resource: 'bank', action: 'read' },
+    { key: 'bank.write', description: 'Запись банка', resource: 'bank', action: 'write' },
+    { key: 'bank.confirm', description: 'Подтверждение банковских операций', resource: 'bank', action: 'confirm' },
+    { key: 'bank.account.write', description: 'Управление счетами', resource: 'bank', action: 'account.write' },
+    { key: 'bank.order.read', description: 'Чтение банковских ордеров', resource: 'bank', action: 'order.read' },
+    { key: 'bank.order.write', description: 'Создание банковских ордеров', resource: 'bank', action: 'order.write' },
+    { key: 'warehouse.access', description: 'Доступ к складу', resource: 'warehouse', action: 'access' },
+    { key: 'warehouse.read', description: 'Чтение склада', resource: 'warehouse', action: 'read' },
+    { key: 'warehouse.write', description: 'Запись склада', resource: 'warehouse', action: 'write' },
+    { key: 'warehouse.transfer', description: 'Перемещение товаров', resource: 'warehouse', action: 'transfer' },
+    { key: 'production.access', description: 'Доступ к производству', resource: 'production', action: 'access' },
+    { key: 'production.read', description: 'Чтение производства', resource: 'production', action: 'read' },
+    { key: 'production.write', description: 'Запись производства', resource: 'production', action: 'write' },
+    { key: 'production.start', description: 'Запуск производства', resource: 'production', action: 'start' },
+    { key: 'production.complete', description: 'Завершение производства', resource: 'production', action: 'complete' },
+    { key: 'hr.access', description: 'Доступ к кадрам', resource: 'hr', action: 'access' },
+    { key: 'hr.read', description: 'Чтение кадров', resource: 'hr', action: 'read' },
+    { key: 'hr.write', description: 'Запись кадров', resource: 'hr', action: 'write' },
+    { key: 'hr.payroll', description: 'Начисление зарплаты', resource: 'hr', action: 'payroll' },
+    { key: 'documents.access', description: 'Доступ к документам', resource: 'documents', action: 'access' },
+    { key: 'documents.read', description: 'Чтение документов', resource: 'documents', action: 'read' },
+    { key: 'documents.write', description: 'Запись документов', resource: 'documents', action: 'write' },
+    { key: 'documents.post', description: 'Проведение документов', resource: 'documents', action: 'post' },
+    { key: 'documents.approve', description: 'Утверждение документов', resource: 'documents', action: 'approve' },
+    { key: 'inventory.read', description: 'Чтение инвентаря', resource: 'inventory', action: 'read' },
+    { key: 'inventory.write', description: 'Запись инвентаря', resource: 'inventory', action: 'write' },
+    { key: 'orders.read', description: 'Чтение заказов', resource: 'orders', action: 'read' },
+    { key: 'orders.write', description: 'Запись заказов', resource: 'orders', action: 'write' },
+    { key: 'crm.read', description: 'Чтение CRM', resource: 'crm', action: 'read' },
+    { key: 'crm.write', description: 'Запись CRM', resource: 'crm', action: 'write' },
+    { key: 'reports.read', description: 'Чтение отчётов', resource: 'reports', action: 'read' },
+    { key: 'ai.read', description: 'Чтение AI', resource: 'ai', action: 'read' },
+    { key: 'admin.users', description: 'Управление пользователями', resource: 'admin', action: 'users' },
+    { key: 'admin.config', description: 'Управление конфигурацией', resource: 'admin', action: 'config' },
+    { key: 'configurator.access', description: 'Доступ к конфигуратору', resource: 'configurator', action: 'access' },
+  ];
+  const allPermKeys = systemPermissions.map((p) => p.key);
+  const permissions = await Promise.all(systemPermissions.map((p) => prisma.permission.create({ data: p })));
   console.log(`Created ${permissions.length} permissions`);
 
-  const roles = await Promise.all([
-    { name: 'Admin', description: 'Полный доступ', isSystem: true },
-    { name: 'Manager', description: 'Управление заказами', isSystem: true },
-    { name: 'Warehouse', description: 'Складские операции', isSystem: true },
-    { name: 'Accountant', description: 'Финансы и бухгалтерия', isSystem: true },
-  ].map((r) => prisma.role.create({ data: r })));
-  // Admin gets all
-  for (const p of permissions) {
-    await prisma.rolePermission.create({ data: { roleId: roles[0].id, permissionId: p.id } });
-  }
-  // Manager gets order permissions
-  for (let i = 0; i < 4; i++) {
-    await prisma.rolePermission.create({ data: { roleId: roles[1].id, permissionId: permissions[i].id } });
-  }
-  // Warehouse gets inventory
-  await prisma.rolePermission.create({ data: { roleId: roles[2].id, permissionId: permissions[4].id } });
-  await prisma.rolePermission.create({ data: { roleId: roles[2].id, permissionId: permissions[5].id } });
-  console.log(`Created ${roles.length} roles with permissions`);
+  // ── System Roles (must match seedSystemRoles in rbac.service.ts) ──
+  const adminRole = await prisma.role.create({ data: { name: 'Администратор', description: 'Полный доступ', isSystem: true } });
+  const accountantRole = await prisma.role.create({ data: { name: 'Бухгалтер', description: 'Бухгалтерия', isSystem: true } });
+  const cashierRole = await prisma.role.create({ data: { name: 'Кассир', description: 'Касса', isSystem: true } });
+  const managerRole = await prisma.role.create({ data: { name: 'Менеджер по продажам', description: 'CRM + Заказы', isSystem: true } });
+  const warehouseRole = await prisma.role.create({ data: { name: 'Кладовщик', description: 'Склад', isSystem: true } });
+  const productionRole = await prisma.role.create({ data: { name: 'Производство', description: 'Цеха', isSystem: true } });
+  const hrRole = await prisma.role.create({ data: { name: 'HR', description: 'Кадры', isSystem: true } });
 
-  // ── Scheduled Jobs ──
+  const permByKey: Record<string, number> = {};
+  permissions.forEach((p) => { permByKey[p.key] = p.id; });
+
+  // Admin gets all
+  for (const k of allPermKeys) {
+    await prisma.rolePermission.create({ data: { roleId: adminRole.id, permissionId: permByKey[k] } });
+  }
+  // Accountant
+  for (const k of ['accounting.read', 'accounting.write', 'accounting.post', 'cash.read', 'cash.write', 'bank.read', 'bank.write', 'documents.read', 'reports.read', 'accounting.access', 'cash.access', 'bank.access', 'documents.access', 'cash.order.read', 'cash.order.write', 'cash.register.write', 'bank.account.write', 'bank.order.read', 'bank.order.write']) {
+    if (permByKey[k]) await prisma.rolePermission.create({ data: { roleId: accountantRole.id, permissionId: permByKey[k] } });
+  }
+  // Cashier
+  for (const k of ['cash.read', 'cash.write', 'documents.read', 'cash.access', 'cash.order.read', 'cash.order.write', 'cash.register.write', 'documents.access']) {
+    if (permByKey[k]) await prisma.rolePermission.create({ data: { roleId: cashierRole.id, permissionId: permByKey[k] } });
+  }
+  // Manager
+  for (const k of ['crm.read', 'crm.write', 'orders.read', 'orders.write', 'inventory.read', 'documents.read', 'documents.write', 'documents.post', 'documents.approve', 'documents.access', 'warehouse.access', 'warehouse.read']) {
+    if (permByKey[k]) await prisma.rolePermission.create({ data: { roleId: managerRole.id, permissionId: permByKey[k] } });
+  }
+  // Warehouse
+  for (const k of ['warehouse.read', 'warehouse.write', 'warehouse.transfer', 'warehouse.access', 'inventory.read', 'inventory.write']) {
+    if (permByKey[k]) await prisma.rolePermission.create({ data: { roleId: warehouseRole.id, permissionId: permByKey[k] } });
+  }
+  // Production
+  for (const k of ['production.read', 'production.write', 'production.start', 'production.complete', 'production.access', 'inventory.read', 'warehouse.access', 'warehouse.read']) {
+    if (permByKey[k]) await prisma.rolePermission.create({ data: { roleId: productionRole.id, permissionId: permByKey[k] } });
+  }
+  // HR
+  for (const k of ['hr.read', 'hr.write', 'hr.payroll', 'hr.access', 'documents.read', 'documents.access']) {
+    if (permByKey[k]) await prisma.rolePermission.create({ data: { roleId: hrRole.id, permissionId: permByKey[k] } });
+  }
+
+  // ── Assign roles to users ──
+  await prisma.userRoleAssignment.create({ data: { userId: users[0].id, roleId: adminRole.id, scope: 'ALL' } });
+  await prisma.userRoleAssignment.create({ data: { userId: users[1].id, roleId: managerRole.id, scope: 'ALL' } });
+  await prisma.userRoleAssignment.create({ data: { userId: users[2].id, roleId: managerRole.id, scope: 'ALL' } });
+  await prisma.userRoleAssignment.create({ data: { userId: users[3].id, roleId: warehouseRole.id, scope: 'ALL' } });
+  await prisma.userRoleAssignment.create({ data: { userId: users[4].id, roleId: warehouseRole.id, scope: 'ALL' } });
+  console.log('Created 7 system roles and assigned 5 users to roles');
+
+  // ── Scheduled Jobs (handlers must match SchedulerService.callHandler) ──
   const jobs = await Promise.all([
-    { name: 'Expiry Alert Check', cron: '0 9 * * *', handler: 'expiryAlertJob', enabled: true, lastRunAt: new Date(Date.now() - 86400000), lastStatus: 'OK', nextRunAt: new Date(Date.now() + 86400000) },
-    { name: 'Reorder Point Check', cron: '0 8 * * *', handler: 'reorderCheckJob', enabled: true, lastRunAt: new Date(Date.now() - 86400000), lastStatus: 'OK', nextRunAt: new Date(Date.now() + 86400000) },
-    { name: 'Backup Database', cron: '0 2 * * *', handler: 'backupJob', enabled: true, lastRunAt: new Date(Date.now() - 86400000), lastStatus: 'OK', nextRunAt: new Date(Date.now() + 86400000) },
-    { name: 'Send Daily Digest', cron: '0 18 * * *', handler: 'digestJob', enabled: false, lastStatus: 'Skipped' },
+    { name: 'Проверка сроков годности', cron: '0 7 * * *', handler: 'checkExpiry', enabled: true, lastRunAt: new Date(Date.now() - 86400000), lastStatus: 'OK', nextRunAt: new Date(Date.now() + 86400000) },
+    { name: 'Проверка остатков', cron: '0 9 * * *', handler: 'checkInventory', enabled: true, lastRunAt: new Date(Date.now() - 86400000), lastStatus: 'OK', nextRunAt: new Date(Date.now() + 86400000) },
+    { name: 'Проверка просроченных задач', cron: '0 8 * * *', handler: 'checkOverdueTasks', enabled: true, lastRunAt: new Date(Date.now() - 86400000), lastStatus: 'OK', nextRunAt: new Date(Date.now() + 86400000) },
+    { name: 'Закрытие месяца', cron: '0 2 1 * *', handler: 'closeMonth', enabled: false, lastStatus: 'Skipped' },
   ].map((j) => prisma.scheduledJob.create({ data: j as any })));
   console.log(`Created ${jobs.length} scheduled jobs`);
 
