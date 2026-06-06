@@ -33,7 +33,7 @@ async function request(path: string, options: RequestInit = {}): Promise<any> {
   return data;
 }
 
-// Nomenclature API (1C-style products)
+// Nomenclature API (product catalog)
 export async function searchProducts(q: string) {
   return request(`/nomenclature/products/search?q=${encodeURIComponent(q)}`);
 }

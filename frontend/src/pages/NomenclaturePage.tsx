@@ -104,7 +104,7 @@ export default function NomenclaturePage() {
     <Container size="xl" px={0}>
       <PageHeader
         title={t('nomenclature.title')}
-        description="1С-стиль: SKU, штрих-код, наценка, партии, сроки годности"
+        description="SKU, штрих-код, наценка, партии, сроки годности"
         icon={IconCategory}
         actions={
           <Group>

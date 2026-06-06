@@ -185,7 +185,7 @@ export class ConfiguratorService {
       });
     }
 
-    page.drawText('Документ сформирован программой SupplyFlow BPM 1C-style', {
+    page.drawText('Документ сформирован программой SupplyFlow BPM', {
       x: 50, y: 15, size: 7, font, color: rgb(0.6, 0.6, 0.6),
     });
 

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('1C-style ERP Modules', () => {
+test.describe('ERP Modules', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/login');
     await page.fill('input[type="email"]', 'admin@supplyflow.kz');
@@ -71,7 +71,7 @@ test.describe('1C-style ERP Modules', () => {
   test('Dashboard shows ERP summary widgets', async ({ page }) => {
     await page.click('text=Панель управления');
     await page.waitForURL('/');
-    await expect(page.locator('text=1C-style ERP').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=SupplyFlow BPM').first()).toBeVisible({ timeout: 10000 });
     await expect(page.locator('text=Касса (наличные)')).toBeVisible();
     await expect(page.locator('text=Банк (безналичные)')).toBeVisible();
   });

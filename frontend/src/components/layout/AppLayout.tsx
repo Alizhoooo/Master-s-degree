@@ -238,7 +238,7 @@ export default function AppLayout() {
             border: '1px solid rgba(99, 102, 241, 0.15)',
           }}>
             <Text size="xs" c="dimmed" mb={4} fw={600}>SupplyFlow BPM</Text>
-            <Text size="xs" c="dimmed">v1.0.0 · 1C-style ERP</Text>
+            <Text size="xs" c="dimmed">v1.0.0 · ERP</Text>
             <Badge variant="dot" color="teal" size="xs" mt={6} styles={{ root: { background: 'transparent', padding: 0 } }}>
               Backend: <Text component="span" size="xs" c="teal" fw={600}>Online</Text>
             </Badge>

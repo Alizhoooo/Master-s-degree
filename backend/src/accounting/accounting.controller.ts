@@ -41,7 +41,7 @@ export class AccountingController {
   }
 
   @Post('accounts/seed')
-  @ApiOperation({ summary: 'Seed standard 1C-like chart of accounts' })
+  @ApiOperation({ summary: 'Seed standard chart of accounts' })
   seedStandard() {
     return this.accounting.seedStandardPlan();
   }

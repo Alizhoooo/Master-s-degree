@@ -691,7 +691,7 @@ async function main() {
   await prisma.payrollEntry.createMany({ data: payrollSeeds as any[] });
   console.log(`Created ${payrollSeeds.length} payroll entries`);
 
-  // ── Documents (1С-style) ──
+  // ── Documents (ERP-style) ──
   const documentSeeds = [
     { number: 'РН-2024-00012', type: 'SalesInvoice', posted: true, postedAt: new Date('2024-12-10'), customerId: customers[0].id, contractId: contracts[0].id, createdById: users[0].id, postedById: users[0].id, totalAmount: 1350000, vatAmount: 144643, description: 'Реализация: ноутбук + монитор' },
     { number: 'ПН-2024-00044', type: 'PurchaseInvoice', posted: true, postedAt: new Date('2024-12-08'), customerId: null, createdById: users[1].id, postedById: users[0].id, totalAmount: 540000, vatAmount: 57857, description: 'Поступление от АлматыТехСнаб' },

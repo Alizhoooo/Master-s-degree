@@ -106,7 +106,7 @@ export default function DashboardPage() {
           <Group justify="space-between" mb="md" px="xs">
             <Group gap="xs">
               <Title order={4} fw={700} style={{ letterSpacing: '-0.3px' }}>ERP Overview</Title>
-              <Badge variant="light" color="indigo" size="sm" radius="sm">1C-style</Badge>
+              <Badge variant="light" color="indigo" size="sm" radius="sm">ERP</Badge>
             </Group>
           </Group>
 

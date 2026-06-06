@@ -202,7 +202,7 @@ export default function LoginPage() {
           <ThemeIcon size="xs" variant="transparent" color="indigo">
             <IconSparkles size={12} />
           </ThemeIcon>
-          <Text size="xs" c="dimmed">SupplyFlow BPM · 1C-style ERP</Text>
+          <Text size="xs" c="dimmed">SupplyFlow BPM · ERP</Text>
         </Group>
       </Box>
     </Box>

@@ -49,7 +49,7 @@ export default function Logo({ size = 32, showText = true, variant = 'gradient' 
             SupplyFlow
           </Text>
           <Text size="xs" c="dimmed" fw={500} style={{ letterSpacing: '0.5px', lineHeight: 1 }}>
-            BPM • 1C-style
+            BPM • ERP
           </Text>
         </Box>
       )}

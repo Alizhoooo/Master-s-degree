@@ -7,7 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 
 const request = supertest;
 
-describe('RBAC + 1C Modules Integration', () => {
+describe('RBAC + ERP Modules Integration', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let jwt: JwtService;
@@ -106,7 +106,7 @@ describe('RBAC + 1C Modules Integration', () => {
     });
   });
 
-  describe('Cash Module (1C-style)', () => {
+  describe('Cash Module', () => {
     let registerId: number;
 
     it('admin can create cash register', async () => {
@@ -136,7 +136,7 @@ describe('RBAC + 1C Modules Integration', () => {
     });
   });
 
-  describe('Warehouse Module (1C-style)', () => {
+  describe('Warehouse Module', () => {
     it('admin can create warehouse', async () => {
       const res = await request(app.getHttpServer())
         .post('/api/v1/warehouse/warehouses')
@@ -154,7 +154,7 @@ describe('RBAC + 1C Modules Integration', () => {
     });
   });
 
-  describe('Accounting Module (1C-style)', () => {
+  describe('Accounting Module', () => {
     it('admin can seed standard chart of accounts', async () => {
       const res = await request(app.getHttpServer())
         .post('/api/v1/accounting/accounts/seed')

@@ -23,7 +23,7 @@ export class ReportController {
   }
 
   @Get('dashboard/erp-summary')
-  @ApiOperation({ summary: 'Get 1C-style ERP summary: cash, bank, payroll, stock, production' })
+  @ApiOperation({ summary: 'Get ERP summary: cash, bank, payroll, stock, production' })
   async getErpSummary() {
     return this.reportService.getErpSummary();
   }
