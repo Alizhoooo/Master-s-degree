@@ -6,6 +6,7 @@ import { listBankAccounts, createBankAccount, listBankOrders, createBankOrder, c
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { TableSkeleton } from '../components/Skeleton';
 import { statusLabel, enumLabel } from '../i18n/enumLabel';
+import { PrintButton } from '../components/printing/PrintButton';
 
 export default function BankPage() {
   const { t } = useTranslation();
@@ -54,26 +55,29 @@ export default function BankPage() {
             <Table striped withTableBorder>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>Счёт</Table.Th>
-                  <Table.Th>Тип</Table.Th>
-                  <Table.Th>Сумма</Table.Th>
-                  <Table.Th>Контрагент</Table.Th>
-                  <Table.Th>Назначение</Table.Th>
-                  <Table.Th>Статус</Table.Th>
-                  <Table.Th>Действия</Table.Th>
+                  <Table.Th>{t('bank.fields.account')}</Table.Th>
+                  <Table.Th>{t('bank.fields.type')}</Table.Th>
+                  <Table.Th>{t('bank.fields.amount')}</Table.Th>
+                  <Table.Th>{t('bank.fields.counterparty')}</Table.Th>
+                  <Table.Th>{t('bank.fields.purpose')}</Table.Th>
+                  <Table.Th>{t('bank.fields.status')}</Table.Th>
+                  <Table.Th>{t('bank.fields.actions')}</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
                 {(orders as any[]).map((o: any) => (
                   <Table.Tr key={o.id}>
                     <Table.Td>{o.account?.name}</Table.Td>
-                    <Table.Td><Badge color={o.type === 'In' ? 'green' : 'red'}>{o.type === 'In' ? 'Входящий' : 'Исходящий'}</Badge></Table.Td>
+                    <Table.Td><Badge color={o.type === 'In' ? 'green' : 'red'}>{o.type === 'In' ? t('bank.orderType.In') : t('bank.orderType.Out')}</Badge></Table.Td>
                     <Table.Td><strong>{o.amount.toFixed(2)}</strong></Table.Td>
                     <Table.Td>{o.counterparty}</Table.Td>
                     <Table.Td>{o.purpose}</Table.Td>
                     <Table.Td><Badge color={o.status === 'Completed' ? 'green' : 'yellow'}>{statusLabel(o.status)}</Badge></Table.Td>
                     <Table.Td>
-                      {o.status === 'Pending' && <Button size="xs" variant="light" onClick={() => confirmMut.mutate(o.id)} loading={confirmMut.isPending}>Подтвердить</Button>}
+                      <Group gap={4}>
+                        {o.status === 'Pending' && <Button size="xs" variant="light" onClick={() => confirmMut.mutate(o.id)} loading={confirmMut.isPending}>{t('bank.confirm')}</Button>}
+                        <PrintButton entityType="BankOrder" entityId={o.id} formCode="payment-order" variant="subtle" size="xs" />
+                      </Group>
                     </Table.Td>
                   </Table.Tr>
                 ))}
@@ -87,11 +91,12 @@ export default function BankPage() {
             <Table striped withTableBorder>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>Название</Table.Th>
-                  <Table.Th>Счёт</Table.Th>
-                  <Table.Th>Банк</Table.Th>
-                  <Table.Th>Валюта</Table.Th>
-                  <Table.Th>Баланс</Table.Th>
+                  <Table.Th>{t('bank.fields.name')}</Table.Th>
+                  <Table.Th>{t('bank.fields.accountNo')}</Table.Th>
+                  <Table.Th>{t('bank.fields.bank')}</Table.Th>
+                  <Table.Th>{t('bank.fields.currency')}</Table.Th>
+                  <Table.Th>{t('bank.fields.balance')}</Table.Th>
+                  <Table.Th>{t('common.actions')}</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -102,6 +107,9 @@ export default function BankPage() {
                     <Table.Td>{a.bankName || '-'}</Table.Td>
                     <Table.Td>{a.currency}</Table.Td>
                     <Table.Td><strong>{a.balance.toFixed(2)}</strong></Table.Td>
+                    <Table.Td>
+                      <PrintButton entityType="BankAccount" entityId={a.id} formCode="bank-statement" label={t('printing.bankStatement')} variant="subtle" size="xs" />
+                    </Table.Td>
                   </Table.Tr>
                 ))}
               </Table.Tbody>
@@ -112,25 +120,25 @@ export default function BankPage() {
 
       <Modal opened={accModal} onClose={() => setAccModal(false)} title={t('bank.newAccount')}>
         <Stack>
-          <TextInput label="Название" value={accData.name} onChange={e => setAccData({ ...accData, name: e.currentTarget.value })} required />
-          <TextInput label="Номер счёта" value={accData.accountNo} onChange={e => setAccData({ ...accData, accountNo: e.currentTarget.value })} required />
-          <TextInput label="Банк" value={accData.bankName} onChange={e => setAccData({ ...accData, bankName: e.currentTarget.value })} />
-          <TextInput label="БИК" value={accData.bik} onChange={e => setAccData({ ...accData, bik: e.currentTarget.value })} />
-          <Select label="Валюта" data={['KZT', 'USD', 'EUR', 'RUB']} value={accData.currency} onChange={(v: string | null) => setAccData({ ...accData, currency: v || 'KZT' })} />
-          <Button onClick={() => createAccMut.mutate(accData)} loading={createAccMut.isPending}>Создать</Button>
+          <TextInput label={t('bank.fields.name')} value={accData.name} onChange={e => setAccData({ ...accData, name: e.currentTarget.value })} required />
+          <TextInput label={t('bank.fields.accountNo')} value={accData.accountNo} onChange={e => setAccData({ ...accData, accountNo: e.currentTarget.value })} required />
+          <TextInput label={t('bank.fields.bank')} value={accData.bankName} onChange={e => setAccData({ ...accData, bankName: e.currentTarget.value })} />
+          <TextInput label={t('bank.fields.bik')} value={accData.bik} onChange={e => setAccData({ ...accData, bik: e.currentTarget.value })} />
+          <Select label={t('bank.fields.currency')} data={['KZT', 'USD', 'EUR', 'RUB']} value={accData.currency} onChange={(v: string | null) => setAccData({ ...accData, currency: v || 'KZT' })} />
+          <Button onClick={() => createAccMut.mutate(accData)} loading={createAccMut.isPending}>{t('common.create')}</Button>
         </Stack>
       </Modal>
 
       <Modal opened={orderModal} onClose={() => setOrderModal(false)} title={t('bank.newOrder')} size="md">
         <Stack>
-          <Select label="Счёт" data={accOptions} value={orderData.accountId ? String(orderData.accountId) : null} onChange={(v: string | null) => setOrderData({ ...orderData, accountId: v ? +v : 0 })} required />
-          <Select label="Тип" data={[{ value: 'In', label: 'Входящий' }, { value: 'Out', label: 'Исходящий' }]} value={orderData.type} onChange={(v: string | null) => setOrderData({ ...orderData, type: v || 'In' })} />
-          <NumberInput label="Сумма" value={orderData.amount} onChange={(v: any) => setOrderData({ ...orderData, amount: Number(v) || 0 })} min={0} required />
-          <TextInput label="Контрагент" value={orderData.counterparty} onChange={e => setOrderData({ ...orderData, counterparty: e.currentTarget.value })} required />
-          <TextInput label="ИИН контрагента" value={orderData.counterpartyInn} onChange={e => setOrderData({ ...orderData, counterpartyInn: e.currentTarget.value })} />
-          <TextInput label="Назначение" value={orderData.purpose} onChange={e => setOrderData({ ...orderData, purpose: e.currentTarget.value })} required />
+          <Select label={t('bank.fields.account')} data={accOptions} value={orderData.accountId ? String(orderData.accountId) : null} onChange={(v: string | null) => setOrderData({ ...orderData, accountId: v ? +v : 0 })} required />
+          <Select label={t('bank.fields.type')} data={[{ value: 'In', label: t('bank.orderType.In') }, { value: 'Out', label: t('bank.orderType.Out') }]} value={orderData.type} onChange={(v: string | null) => setOrderData({ ...orderData, type: v || 'In' })} />
+          <NumberInput label={t('bank.fields.amount')} value={orderData.amount} onChange={(v: any) => setOrderData({ ...orderData, amount: Number(v) || 0 })} min={0} required />
+          <TextInput label={t('bank.fields.counterparty')} value={orderData.counterparty} onChange={e => setOrderData({ ...orderData, counterparty: e.currentTarget.value })} required />
+          <TextInput label={t('bank.fields.inn')} value={orderData.counterpartyInn} onChange={e => setOrderData({ ...orderData, counterpartyInn: e.currentTarget.value })} />
+          <TextInput label={t('bank.fields.purpose')} value={orderData.purpose} onChange={e => setOrderData({ ...orderData, purpose: e.currentTarget.value })} required />
           <Button onClick={() => createOrderMut.mutate(orderData)} loading={createOrderMut.isPending} disabled={!orderData.accountId || orderData.amount <= 0}>
-            Создать
+            {t('common.create')}
           </Button>
         </Stack>
       </Modal>

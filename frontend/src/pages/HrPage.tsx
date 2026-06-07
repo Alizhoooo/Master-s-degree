@@ -31,14 +31,14 @@ export default function HrPage() {
   return (
     <Container size="xl">
       <Group justify="space-between" mb="md">
-        <Title order={3}>HR / Зарплата</Title>
+        <Title order={3}>{t('hr.title')}</Title>
         <Group>
-          {tab === 'employees' && <Button leftSection={<IconPlus size={14} />} onClick={() => setEmpModal(true)}>Сотрудник</Button>}
-          {tab === 'timesheets' && <Button leftSection={<IconPlus size={14} />} onClick={() => setTsModal(true)}>Табель</Button>}
+          {tab === 'employees' && <Button leftSection={<IconPlus size={14} />} onClick={() => setEmpModal(true)}>{t('hr.newEmployee')}</Button>}
+          {tab === 'timesheets' && <Button leftSection={<IconPlus size={14} />} onClick={() => setTsModal(true)}>{t('hr.newTimesheet')}</Button>}
           {tab === 'payroll' && (
             <>
               <TextInput value={payPeriod} onChange={e => setPayPeriod(e.currentTarget.value)} placeholder="YYYY-MM" />
-              <Button onClick={() => calcPayMut.mutate()} loading={calcPayMut.isPending}>Рассчитать</Button>
+              <Button onClick={() => calcPayMut.mutate()} loading={calcPayMut.isPending}>{t('hr.calcPayroll')}</Button>
             </>
           )}
         </Group>
@@ -46,21 +46,21 @@ export default function HrPage() {
 
       <Tabs value={tab} onChange={(v: any) => setTab(v || 'employees')}>
         <Tabs.List>
-          <Tabs.Tab value="employees" leftSection={<IconUsers size={14} />}>Сотрудники</Tabs.Tab>
-          <Tabs.Tab value="timesheets" leftSection={<IconClock size={14} />}>Табель</Tabs.Tab>
-          <Tabs.Tab value="payroll" leftSection={<IconCash size={14} />}>Зарплата</Tabs.Tab>
+          <Tabs.Tab value="employees" leftSection={<IconUsers size={14} />}>{t('hr.employees')}</Tabs.Tab>
+          <Tabs.Tab value="timesheets" leftSection={<IconClock size={14} />}>{t('hr.timesheets')}</Tabs.Tab>
+          <Tabs.Tab value="payroll" leftSection={<IconCash size={14} />}>{t('hr.payroll')}</Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="employees" pt="md">
           <Table striped withTableBorder>
             <Table.Thead>
               <Table.Tr>
-                <Table.Th>ФИО</Table.Th>
-                <Table.Th>Должность</Table.Th>
-                <Table.Th>Отдел</Table.Th>
-                <Table.Th>Оклад</Table.Th>
-                <Table.Th>Принят</Table.Th>
-                <Table.Th>Активен</Table.Th>
+                <Table.Th>{t('hr.fields.fullName')}</Table.Th>
+                <Table.Th>{t('hr.fields.position')}</Table.Th>
+                <Table.Th>{t('hr.fields.department')}</Table.Th>
+                <Table.Th>{t('hr.fields.salary')}</Table.Th>
+                <Table.Th>{t('hr.fields.hireDate')}</Table.Th>
+                <Table.Th>{t('hr.fields.status')}</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -71,7 +71,7 @@ export default function HrPage() {
                   <Table.Td>{e.department}</Table.Td>
                   <Table.Td>{e.salary.toFixed(2)}</Table.Td>
                   <Table.Td>{new Date(e.hireDate).toLocaleDateString()}</Table.Td>
-                  <Table.Td>{e.isActive ? <Badge color="green">Активен</Badge> : <Badge color="red">Уволен</Badge>}</Table.Td>
+                  <Table.Td>{e.isActive ? <Badge color="green">{t('hr.fields.active')}</Badge> : <Badge color="red">{t('hr.fields.fired')}</Badge>}</Table.Td>
                 </Table.Tr>
               ))}
             </Table.Tbody>
@@ -82,11 +82,11 @@ export default function HrPage() {
           <Table striped withTableBorder>
             <Table.Thead>
               <Table.Tr>
-                <Table.Th>Сотрудник</Table.Th>
-                <Table.Th>Дата</Table.Th>
-                <Table.Th>Часы</Table.Th>
-                <Table.Th>Сверхурочные</Table.Th>
-                <Table.Th>Тип</Table.Th>
+                <Table.Th>{t('hr.employee')}</Table.Th>
+                <Table.Th>{t('hr.fields.date')}</Table.Th>
+                <Table.Th>{t('hr.fields.hours')}</Table.Th>
+                <Table.Th>{t('hr.fields.overtime')}</Table.Th>
+                <Table.Th>{t('hr.fields.type')}</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -96,7 +96,7 @@ export default function HrPage() {
                   <Table.Td>{new Date(t.date).toLocaleDateString()}</Table.Td>
                   <Table.Td>{t.hours}</Table.Td>
                   <Table.Td>{t.overtime}</Table.Td>
-                  <Table.Td>{t.type}</Table.Td>
+                  <Table.Td>{enumLabel(t.type, 'timesheetType')}</Table.Td>
                 </Table.Tr>
               ))}
             </Table.Tbody>
@@ -107,13 +107,13 @@ export default function HrPage() {
           <Table striped withTableBorder>
             <Table.Thead>
               <Table.Tr>
-                <Table.Th>Сотрудник</Table.Th>
-                <Table.Th>Оклад</Table.Th>
-                <Table.Th>Сверх.</Table.Th>
-                <Table.Th>Налог</Table.Th>
-                <Table.Th>К выплате</Table.Th>
-                <Table.Th>Статус</Table.Th>
-                <Table.Th>Действия</Table.Th>
+                <Table.Th>{t('hr.employee')}</Table.Th>
+                <Table.Th>{t('hr.baseSalary')}</Table.Th>
+                <Table.Th>{t('hr.bonus')}</Table.Th>
+                <Table.Th>{t('hr.tax')}</Table.Th>
+                <Table.Th>{t('hr.netPay')}</Table.Th>
+                <Table.Th>{t('hr.fields.status')}</Table.Th>
+                <Table.Th>{t('hr.fields.actions')}</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -126,7 +126,7 @@ export default function HrPage() {
                   <Table.Td><strong>{p.netPay.toFixed(2)}</strong></Table.Td>
                   <Table.Td><Badge color={p.status === 'Paid' ? 'green' : 'yellow'}>{enumLabel(p.status, 'payroll')}</Badge></Table.Td>
                   <Table.Td>
-                    {p.status === 'Calculated' && <Button size="xs" onClick={() => payMut.mutate(p.id)} loading={payMut.isPending}>Выплатить</Button>}
+                    {p.status === 'Calculated' && <Button size="xs" onClick={() => payMut.mutate(p.id)} loading={payMut.isPending}>{t('hr.payPayroll')}</Button>}
                   </Table.Td>
                 </Table.Tr>
               ))}
@@ -135,28 +135,28 @@ export default function HrPage() {
         </Tabs.Panel>
       </Tabs>
 
-      <Modal opened={empModal} onClose={() => setEmpModal(false)} title="Новый сотрудник" size="md">
+      <Modal opened={empModal} onClose={() => setEmpModal(false)} title={t('hr.newEmployee')} size="md">
         <Stack>
-          <TextInput label="ФИО" value={empData.fullName} onChange={e => setEmpData({ ...empData, fullName: e.currentTarget.value })} required />
-          <TextInput label="Должность" value={empData.position} onChange={e => setEmpData({ ...empData, position: e.currentTarget.value })} required />
-          <TextInput label="Отдел" value={empData.department} onChange={e => setEmpData({ ...empData, department: e.currentTarget.value })} required />
-          <NumberInput label="Оклад" value={empData.salary} onChange={(v: any) => setEmpData({ ...empData, salary: Number(v) || 0 })} required />
-          <TextInput label="Телефон" value={empData.phone} onChange={e => setEmpData({ ...empData, phone: e.currentTarget.value })} />
-          <TextInput label="Email" value={empData.email} onChange={e => setEmpData({ ...empData, email: e.currentTarget.value })} />
-          <TextInput label="ИИН" value={empData.inn} onChange={e => setEmpData({ ...empData, inn: e.currentTarget.value })} />
-          <DatePickerInput label="Дата приёма" value={empData.hireDate} onChange={(d: any) => setEmpData({ ...empData, hireDate: d || new Date() })} required />
-          <Button onClick={() => createEmpMut.mutate()} loading={createEmpMut.isPending} disabled={!empData.fullName || !empData.position}>Создать</Button>
+          <TextInput label={t('hr.fields.fullName')} value={empData.fullName} onChange={e => setEmpData({ ...empData, fullName: e.currentTarget.value })} required />
+          <TextInput label={t('hr.fields.position')} value={empData.position} onChange={e => setEmpData({ ...empData, position: e.currentTarget.value })} required />
+          <TextInput label={t('hr.fields.department')} value={empData.department} onChange={e => setEmpData({ ...empData, department: e.currentTarget.value })} required />
+          <NumberInput label={t('hr.fields.salary')} value={empData.salary} onChange={(v: any) => setEmpData({ ...empData, salary: Number(v) || 0 })} required />
+          <TextInput label={t('hr.fields.phone')} value={empData.phone} onChange={e => setEmpData({ ...empData, phone: e.currentTarget.value })} />
+          <TextInput label={t('common.email')} value={empData.email} onChange={e => setEmpData({ ...empData, email: e.currentTarget.value })} />
+          <TextInput label={t('hr.fields.inn')} value={empData.inn} onChange={e => setEmpData({ ...empData, inn: e.currentTarget.value })} />
+          <DatePickerInput label={t('hr.fields.hireDate')} value={empData.hireDate} onChange={(d: any) => setEmpData({ ...empData, hireDate: d || new Date() })} required />
+          <Button onClick={() => createEmpMut.mutate()} loading={createEmpMut.isPending} disabled={!empData.fullName || !empData.position}>{t('hr.create')}</Button>
         </Stack>
       </Modal>
 
-      <Modal opened={tsModal} onClose={() => setTsModal(false)} title="Запись табеля">
+      <Modal opened={tsModal} onClose={() => setTsModal(false)} title={t('hr.newTimesheetTitle')}>
         <Stack>
-          <Select label="Сотрудник" data={empOptions} value={tsData.employeeId ? String(tsData.employeeId) : null} onChange={(v: string | null) => setTsData({ ...tsData, employeeId: v ? +v : 0 })} required searchable />
-          <DatePickerInput label="Дата" value={tsData.date} onChange={(d: any) => setTsData({ ...tsData, date: d || new Date() })} required />
-          <NumberInput label="Часы" value={tsData.hours} onChange={(v: any) => setTsData({ ...tsData, hours: Number(v) || 0 })} min={0} max={24} required />
-          <NumberInput label="Сверхурочные" value={tsData.overtime} onChange={(v: any) => setTsData({ ...tsData, overtime: Number(v) || 0 })} min={0} />
-          <Select label="Тип" data={['Regular', 'Sick', 'Vacation', 'DayOff']} value={tsData.type} onChange={(v: string | null) => setTsData({ ...tsData, type: v || 'Regular' })} />
-          <Button onClick={() => upsertTsMut.mutate()} loading={upsertTsMut.isPending} disabled={!tsData.employeeId}>Сохранить</Button>
+          <Select label={t('hr.employee')} data={empOptions} value={tsData.employeeId ? String(tsData.employeeId) : null} onChange={(v: string | null) => setTsData({ ...tsData, employeeId: v ? +v : 0 })} required searchable />
+          <DatePickerInput label={t('hr.fields.date')} value={tsData.date} onChange={(d: any) => setTsData({ ...tsData, date: d || new Date() })} required />
+          <NumberInput label={t('hr.fields.hours')} value={tsData.hours} onChange={(v: any) => setTsData({ ...tsData, hours: Number(v) || 0 })} min={0} max={24} required />
+          <NumberInput label={t('hr.fields.overtime')} value={tsData.overtime} onChange={(v: any) => setTsData({ ...tsData, overtime: Number(v) || 0 })} min={0} />
+          <Select label={t('hr.fields.type')} data={['Regular', 'Sick', 'Vacation', 'DayOff']} value={tsData.type} onChange={(v: string | null) => setTsData({ ...tsData, type: v || 'Regular' })} />
+          <Button onClick={() => upsertTsMut.mutate()} loading={upsertTsMut.isPending} disabled={!tsData.employeeId}>{t('hr.save')}</Button>
         </Stack>
       </Modal>
     </Container>

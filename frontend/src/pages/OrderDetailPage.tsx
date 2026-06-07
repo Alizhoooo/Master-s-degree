@@ -88,7 +88,7 @@ export default function OrderDetailPage() {
             {t('order.pickList')}
           </Button>
           <Button variant="light" color="red" leftSection={<IconFileTypePdf size={16} />} onClick={() => downloadInvoice(order.id)}>
-            PDF инвойс
+            {t('order.invoicePdf')}
           </Button>
         </Group>
       </Group>

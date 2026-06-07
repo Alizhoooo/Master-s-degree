@@ -8,6 +8,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../store/AuthContext';
 import { listWarehouses, getProducts } from '../api';
 import { getIssues, createIssue, getTransfers, createTransfer } from '../api/nomenclature';
+import { PrintButton } from '../components/printing/PrintButton';
 import { TableSkeleton } from '../components/Skeleton';
 import { notifications } from '../components/Notifications';
 import PageHeader from '../components/PageHeader';
@@ -109,7 +110,7 @@ export default function IssuesPage() {
                 <Table.Td>{i.reason || '-'}</Table.Td>
                 <Table.Td>{i.totalAmount?.toFixed(2)}</Table.Td>
                 <Table.Td><Badge variant="light" color="green">{t(`enum.docStatus.${i.status || 'Posted'}`)}</Badge></Table.Td>
-                <Table.Td><ActionIcon variant="light" onClick={() => setDetail(i)}><IconEye size={14} /></ActionIcon></Table.Td>
+                <Table.Td><Group gap={4}><ActionIcon variant="light" onClick={() => setDetail(i)}><IconEye size={14} /></ActionIcon><PrintButton entityType="ProductIssue" entityId={i.id} variant="subtle" size="xs" /></Group></Table.Td>
               </Table.Tr>
             ))}
             {filtered.length === 0 && <Table.Tr><Table.Td colSpan={8}><Text ta="center" c="dimmed">{t('issue.noIssues')}</Text></Table.Td></Table.Tr>}

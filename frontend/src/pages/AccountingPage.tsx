@@ -58,7 +58,7 @@ export default function AccountingPage() {
         <Title order={3}>{t('accounting.title')}</Title>
         <Group>
           <Button leftSection={<IconSeeding size={16} />} variant="light" onClick={() => seedMut.mutate()} loading={seedMut.isPending}>
-            Стандартный план
+            {t('accounting.seedPlan')}
           </Button>
         </Group>
       </Group>
@@ -81,11 +81,11 @@ export default function AccountingPage() {
             <Table striped withTableBorder>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>Код</Table.Th>
-                  <Table.Th>Название</Table.Th>
-                  <Table.Th>Тип</Table.Th>
-                  <Table.Th>НДС</Table.Th>
-                  <Table.Th>Активен</Table.Th>
+                  <Table.Th>{t('accounting.fields.code')}</Table.Th>
+                  <Table.Th>{t('accounting.fields.name')}</Table.Th>
+                  <Table.Th>{t('accounting.fields.type')}</Table.Th>
+                  <Table.Th>{t('accounting.fields.vat')}</Table.Th>
+                  <Table.Th>{t('accounting.fields.active')}</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -113,11 +113,11 @@ export default function AccountingPage() {
             <Table striped withTableBorder>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>Счёт</Table.Th>
-                  <Table.Th>Дебет</Table.Th>
-                  <Table.Th>Кредит</Table.Th>
-                  <Table.Th>Период</Table.Th>
-                  <Table.Th>Описание</Table.Th>
+                  <Table.Th>{t('accounting.fields.account')}</Table.Th>
+                  <Table.Th>{t('accounting.fields.debit')}</Table.Th>
+                  <Table.Th>{t('accounting.fields.credit')}</Table.Th>
+                  <Table.Th>{t('accounting.fields.period')}</Table.Th>
+                  <Table.Th>{t('accounting.fields.description')}</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -138,7 +138,7 @@ export default function AccountingPage() {
         <Tabs.Panel value="trial" pt="md">
           <Group mb="sm">
             <TextInput
-              label="Период (ГГГГ-ММ)"
+              label={t('accounting.periodLabel')}
               value={trialPeriod}
               onChange={e => setTrialPeriod(e.currentTarget.value)}
             />
@@ -146,14 +146,14 @@ export default function AccountingPage() {
           <Table striped withTableBorder>
             <Table.Thead>
               <Table.Tr>
-                <Table.Th>Код</Table.Th>
-                <Table.Th>Название</Table.Th>
-                <Table.Th>Нач. Дебет</Table.Th>
-                <Table.Th>Нач. Кредит</Table.Th>
-                <Table.Th>Оборот Дебет</Table.Th>
-                <Table.Th>Оборот Кредит</Table.Th>
-                <Table.Th>Кон. Дебет</Table.Th>
-                <Table.Th>Кон. Кредит</Table.Th>
+                <Table.Th>{t('accounting.fields.code')}</Table.Th>
+                <Table.Th>{t('accounting.fields.name')}</Table.Th>
+                <Table.Th>{t('accounting.fields.openingDebit')}</Table.Th>
+                <Table.Th>{t('accounting.fields.openingCredit')}</Table.Th>
+                <Table.Th>{t('accounting.fields.turnDebit')}</Table.Th>
+                <Table.Th>{t('accounting.fields.turnCredit')}</Table.Th>
+                <Table.Th>{t('accounting.fields.closingDebit')}</Table.Th>
+                <Table.Th>{t('accounting.fields.closingCredit')}</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -177,12 +177,11 @@ export default function AccountingPage() {
           <Table striped withTableBorder>
             <Table.Thead>
               <Table.Tr>
-                <Table.Th>Код</Table.Th>
-                <Table.Th>Название</Table.Th>
-                <Table.Th>Тип</Table.Th>
-                <Table.Th>Оборот Дебет</Table.Th>
-                <Table.Th>Оборот Кредит</Table.Th>
-                <Table.Th>Сальдо</Table.Th>
+                <Table.Th>{t('accounting.fields.code')}</Table.Th>
+                <Table.Th>{t('accounting.fields.name')}</Table.Th>
+                <Table.Th>{t('accounting.fields.turnDebit')}</Table.Th>
+                <Table.Th>{t('accounting.fields.turnCredit')}</Table.Th>
+                <Table.Th>{t('accounting.balance')}</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -203,11 +202,17 @@ export default function AccountingPage() {
 
       <Modal opened={accountModal} onClose={() => setAccountModal(false)} title={t('accounting.newAccount')} size="md">
         <Stack>
-          <TextInput label="Код" value={accountData.code} onChange={e => setAccountData({ ...accountData, code: e.currentTarget.value })} required />
-          <TextInput label="Название" value={accountData.name} onChange={e => setAccountData({ ...accountData, name: e.currentTarget.value })} required />
+          <TextInput label={t('accounting.fields.code')} value={accountData.code} onChange={e => setAccountData({ ...accountData, code: e.currentTarget.value })} required />
+          <TextInput label={t('accounting.fields.name')} value={accountData.name} onChange={e => setAccountData({ ...accountData, name: e.currentTarget.value })} required />
           <Select
-            label="Тип"
-            data={[{ value: 'Asset', label: 'Актив' }, { value: 'Liability', label: 'Пассив' }, { value: 'Equity', label: 'Капитал' }, { value: 'Income', label: 'Доход' }, { value: 'Expense', label: 'Расход' }]}
+            label={t('common.type')}
+            data={[
+              { value: 'Asset', label: t('enum.accountType.Asset') },
+              { value: 'Liability', label: t('enum.accountType.Liability') },
+              { value: 'Equity', label: t('enum.accountType.Equity') },
+              { value: 'Income', label: t('enum.accountType.Income') },
+              { value: 'Expense', label: t('enum.accountType.Expense') },
+            ]}
             value={accountData.type}
             onChange={(v: string | null) => setAccountData({ ...accountData, type: v || 'Asset' })}
           />
@@ -222,14 +227,14 @@ export default function AccountingPage() {
       <Modal opened={entryModal} onClose={() => setEntryModal(false)} title={t('accounting.newEntry')} size="lg">
         <Stack>
           <Group grow>
-            <TextInput label="Номер" value={entryData.number} onChange={e => setEntryData({ ...entryData, number: e.currentTarget.value })} required />
-            <DatePickerInput label="Дата" value={entryData.date} onChange={(d: any) => setEntryData({ ...entryData, date: d })} required />
+            <TextInput label={t('common.number')} value={entryData.number} onChange={e => setEntryData({ ...entryData, number: e.currentTarget.value })} required />
+            <DatePickerInput label={t('common.date')} value={entryData.date} onChange={(d: any) => setEntryData({ ...entryData, date: d })} required />
           </Group>
-          <TextInput label="Описание" value={entryData.description} onChange={e => setEntryData({ ...entryData, description: e.currentTarget.value })} />
+          <TextInput label={t('document.fields.description')} value={entryData.description} onChange={e => setEntryData({ ...entryData, description: e.currentTarget.value })} />
           {entryData.lines.map((line, i) => (
             <Group key={i} grow>
               <Select
-                label={`Счёт ${i + 1}`}
+                label={`${t('accounting.fields.account')} ${i + 1}`}
                 data={accountOptions}
                 value={line.accountId ? String(line.accountId) : null}
                 onChange={(v: string | null) => {
@@ -239,12 +244,12 @@ export default function AccountingPage() {
                 }}
                 searchable
               />
-              <NumberInput label="Дебет" value={line.debit} onChange={(v: any) => {
+              <NumberInput label={t('accounting.fields.debit')} value={line.debit} onChange={(v: any) => {
                 const newLines = [...entryData.lines];
                 newLines[i] = { ...line, debit: Number(v) || 0 };
                 setEntryData({ ...entryData, lines: newLines });
               }} />
-              <NumberInput label="Кредит" value={line.credit} onChange={(v: any) => {
+              <NumberInput label={t('accounting.fields.credit')} value={line.credit} onChange={(v: any) => {
                 const newLines = [...entryData.lines];
                 newLines[i] = { ...line, credit: Number(v) || 0 };
                 setEntryData({ ...entryData, lines: newLines });
@@ -253,7 +258,7 @@ export default function AccountingPage() {
           ))}
           <Group justify="space-between">
             <Text size="sm">
-              Итого: Дебет = {entryData.lines.reduce((s, l) => s + l.debit, 0).toFixed(2)}, Кредит = {entryData.lines.reduce((s, l) => s + l.credit, 0).toFixed(2)}
+              {t('accounting.totals', { debit: entryData.lines.reduce((s, l) => s + l.debit, 0).toFixed(2), credit: entryData.lines.reduce((s, l) => s + l.credit, 0).toFixed(2) })}
             </Text>
             <Button
               onClick={() => createEntryMut.mutate({

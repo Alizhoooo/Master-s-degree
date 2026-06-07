@@ -37,32 +37,32 @@ export default function ProductionPage() {
   return (
     <Container size="xl">
       <Group justify="space-between" mb="md">
-        <Title order={3}>Производство</Title>
+        <Title order={3}>{t('production.title')}</Title>
         <Group>
-          {tab === 'workshops' && <Button leftSection={<IconPlus size={14} />} onClick={() => setWhModal(true)}>Цех</Button>}
-          {tab === 'techcards' && <Button leftSection={<IconPlus size={14} />} onClick={() => setTcModal(true)}>Тех. карта</Button>}
-          {tab === 'orders' && <Button leftSection={<IconPlus size={14} />} onClick={() => setPoModal(true)} disabled={workshops.length === 0 || techCards.length === 0}>Заказ</Button>}
+          {tab === 'workshops' && <Button leftSection={<IconPlus size={14} />} onClick={() => setWhModal(true)}>{t('production.newWorkshop')}</Button>}
+          {tab === 'techcards' && <Button leftSection={<IconPlus size={14} />} onClick={() => setTcModal(true)}>{t('production.newTechCard')}</Button>}
+          {tab === 'orders' && <Button leftSection={<IconPlus size={14} />} onClick={() => setPoModal(true)} disabled={workshops.length === 0 || techCards.length === 0}>{t('production.newOrder')}</Button>}
         </Group>
       </Group>
 
       <Tabs value={tab} onChange={(v: any) => setTab(v || 'orders')}>
         <Tabs.List>
-          <Tabs.Tab value="orders" leftSection={<IconClipboardList size={14} />}>Заказы</Tabs.Tab>
-          <Tabs.Tab value="techcards" leftSection={<IconSettings size={14} />}>Тех. карты</Tabs.Tab>
-          <Tabs.Tab value="workshops" leftSection={<IconBuildingFactory size={14} />}>Цеха</Tabs.Tab>
+          <Tabs.Tab value="orders" leftSection={<IconClipboardList size={14} />}>{t('production.orders')}</Tabs.Tab>
+          <Tabs.Tab value="techcards" leftSection={<IconSettings size={14} />}>{t('production.techCards')}</Tabs.Tab>
+          <Tabs.Tab value="workshops" leftSection={<IconBuildingFactory size={14} />}>{t('production.workshops')}</Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="orders" pt="md">
           <Table striped withTableBorder>
             <Table.Thead>
               <Table.Tr>
-                <Table.Th>Номер</Table.Th>
-                <Table.Th>Тех. карта</Table.Th>
-                <Table.Th>Цех</Table.Th>
-                <Table.Th>Кол-во</Table.Th>
-                <Table.Th>Дата план</Table.Th>
-                <Table.Th>Статус</Table.Th>
-                <Table.Th>Действия</Table.Th>
+                <Table.Th>{t('production.fields.number')}</Table.Th>
+                <Table.Th>{t('production.fields.techCard')}</Table.Th>
+                <Table.Th>{t('production.fields.workshop')}</Table.Th>
+                <Table.Th>{t('production.fields.quantity')}</Table.Th>
+                <Table.Th>{t('production.fields.plannedDate')}</Table.Th>
+                <Table.Th>{t('production.fields.status')}</Table.Th>
+                <Table.Th>{t('production.fields.actions')}</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -76,8 +76,8 @@ export default function ProductionPage() {
                   <Table.Td><Badge>{statusLabel(o.status)}</Badge></Table.Td>
                   <Table.Td>
                     <Group gap="xs">
-                      {o.status === 'Planned' && <Button size="xs" variant="light" onClick={() => startMut.mutate(o.id)}>Старт</Button>}
-                      {o.status === 'InProgress' && <Button size="xs" color="green" onClick={() => completeMut.mutate(o.id)}>Завершить</Button>}
+                      {o.status === 'Planned' && <Button size="xs" variant="light" onClick={() => startMut.mutate(o.id)}>{t('production.start')}</Button>}
+                      {o.status === 'InProgress' && <Button size="xs" color="green" onClick={() => completeMut.mutate(o.id)}>{t('production.complete')}</Button>}
                     </Group>
                   </Table.Td>
                 </Table.Tr>
@@ -90,10 +90,10 @@ export default function ProductionPage() {
           <Table striped withTableBorder>
             <Table.Thead>
               <Table.Tr>
-                <Table.Th>Название</Table.Th>
-                <Table.Th>Продукт</Table.Th>
-                <Table.Th>Выход</Table.Th>
-                <Table.Th>Материалов</Table.Th>
+                <Table.Th>{t('production.fields.name')}</Table.Th>
+                <Table.Th>{t('production.fields.product')}</Table.Th>
+                <Table.Th>{t('production.fields.output')}</Table.Th>
+                <Table.Th>{t('production.fields.materials')}</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -112,7 +112,7 @@ export default function ProductionPage() {
         <Tabs.Panel value="workshops" pt="md">
           <Table striped withTableBorder>
             <Table.Thead>
-              <Table.Tr><Table.Th>Название</Table.Th><Table.Th>Начальник</Table.Th></Table.Tr>
+              <Table.Tr><Table.Th>{t('production.fields.name')}</Table.Th><Table.Th>{t('production.fields.head')}</Table.Th></Table.Tr>
             </Table.Thead>
             <Table.Tbody>
               {(workshops as any[]).map((w: any) => (
@@ -126,30 +126,30 @@ export default function ProductionPage() {
         </Tabs.Panel>
       </Tabs>
 
-      <Modal opened={whModal} onClose={() => setWhModal(false)} title="Новый цех">
+      <Modal opened={whModal} onClose={() => setWhModal(false)} title={t('production.newWorkshop')}>
         <Stack>
-          <TextInput label="Название" value={whData.name} onChange={e => setWhData({ ...whData, name: e.currentTarget.value })} required />
-          <Button onClick={() => createWhMut.mutate()} loading={createWhMut.isPending}>Создать</Button>
+          <TextInput label={t('production.fields.name')} value={whData.name} onChange={e => setWhData({ ...whData, name: e.currentTarget.value })} required />
+          <Button onClick={() => createWhMut.mutate()} loading={createWhMut.isPending}>{t('production.create')}</Button>
         </Stack>
       </Modal>
 
-      <Modal opened={tcModal} onClose={() => setTcModal(false)} title="Новая тех. карта" size="lg">
+      <Modal opened={tcModal} onClose={() => setTcModal(false)} title={t('production.newTechCard')} size="lg">
         <Stack>
-          <TextInput label="Название" value={tcData.name} onChange={e => setTcData({ ...tcData, name: e.currentTarget.value })} required />
-          <Select label="Готовый продукт" data={productOptions} value={tcData.outputProductId ? String(tcData.outputProductId) : null} onChange={(v: string | null) => setTcData({ ...tcData, outputProductId: v ? +v : 0 })} required searchable />
-          <NumberInput label="Выход (за 1 ед.)" value={tcData.outputQuantity} onChange={(v: any) => setTcData({ ...tcData, outputQuantity: Number(v) || 1 })} min={1} required />
-          <Text size="sm" c="dimmed">Материалы добавляются в детальной форме после создания</Text>
-          <Button onClick={() => createTcMut.mutate()} loading={createTcMut.isPending} disabled={!tcData.name || !tcData.outputProductId}>Создать</Button>
+          <TextInput label={t('production.fields.name')} value={tcData.name} onChange={e => setTcData({ ...tcData, name: e.currentTarget.value })} required />
+          <Select label={t('production.fields.outputProduct')} data={productOptions} value={tcData.outputProductId ? String(tcData.outputProductId) : null} onChange={(v: string | null) => setTcData({ ...tcData, outputProductId: v ? +v : 0 })} required searchable />
+          <NumberInput label={t('production.fields.outputQty')} value={tcData.outputQuantity} onChange={(v: any) => setTcData({ ...tcData, outputQuantity: Number(v) || 1 })} min={1} required />
+          <Text size="sm" c="dimmed">{t('production.materialsHint')}</Text>
+          <Button onClick={() => createTcMut.mutate()} loading={createTcMut.isPending} disabled={!tcData.name || !tcData.outputProductId}>{t('production.create')}</Button>
         </Stack>
       </Modal>
 
-      <Modal opened={poModal} onClose={() => setPoModal(false)} title="Новый заказ">
+      <Modal opened={poModal} onClose={() => setPoModal(false)} title={t('production.newOrder')}>
         <Stack>
-          <Select label="Тех. карта" data={tcOptions} value={poData.techCardId ? String(poData.techCardId) : null} onChange={(v: string | null) => setPoData({ ...poData, techCardId: v ? +v : 0 })} required />
-          <Select label="Цех" data={whOptions} value={poData.workshopId ? String(poData.workshopId) : null} onChange={(v: string | null) => setPoData({ ...poData, workshopId: v ? +v : 0 })} required />
-          <NumberInput label="Количество" value={poData.quantity} onChange={(v: any) => setPoData({ ...poData, quantity: Number(v) || 1 })} min={1} required />
-          <DatePickerInput label="Плановая дата" value={poData.plannedDate} onChange={(d: any) => setPoData({ ...poData, plannedDate: d || new Date() })} required />
-          <Button onClick={() => createPoMut.mutate()} loading={createPoMut.isPending} disabled={!poData.techCardId || !poData.workshopId}>Создать</Button>
+          <Select label={t('production.fields.techCard')} data={tcOptions} value={poData.techCardId ? String(poData.techCardId) : null} onChange={(v: string | null) => setPoData({ ...poData, techCardId: v ? +v : 0 })} required />
+          <Select label={t('production.fields.workshop')} data={whOptions} value={poData.workshopId ? String(poData.workshopId) : null} onChange={(v: string | null) => setPoData({ ...poData, workshopId: v ? +v : 0 })} required />
+          <NumberInput label={t('production.fields.quantity')} value={poData.quantity} onChange={(v: any) => setPoData({ ...poData, quantity: Number(v) || 1 })} min={1} required />
+          <DatePickerInput label={t('production.fields.plannedDate')} value={poData.plannedDate} onChange={(d: any) => setPoData({ ...poData, plannedDate: d || new Date() })} required />
+          <Button onClick={() => createPoMut.mutate()} loading={createPoMut.isPending} disabled={!poData.techCardId || !poData.workshopId}>{t('production.create')}</Button>
         </Stack>
       </Modal>
     </Container>

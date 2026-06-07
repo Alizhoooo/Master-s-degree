@@ -517,3 +517,51 @@ export async function exportConfig() { return request('/configurator/export'); }
 export async function globalSearch(q: string) {
   return request(`/search?q=${encodeURIComponent(q)}`);
 }
+
+// ===== Printing =====
+
+export interface PrintForm {
+  id: number;
+  code: string;
+  name: string;
+  applicableTypes: string[];
+  isSystem: boolean;
+  isActive: boolean;
+  sortOrder: number;
+}
+
+export async function listPrintForms(entityType?: string): Promise<PrintForm[]> {
+  const path = entityType ? `/printing/forms/${entityType}` : '/printing/forms';
+  return request(path);
+}
+
+export async function renderPrintForm(entityType: string, entityId: number, formCode: string): Promise<Blob> {
+  let token = getToken();
+  const headers: any = {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  let res = await fetch(`${API}/printing/render/${entityType}/${entityId}/${formCode}`, { headers });
+
+  if (res.status === 401 && token) {
+    try {
+      const { refreshTokenIfNeeded } = await import('../store/AuthContext');
+      const newToken = await refreshTokenIfNeeded();
+      if (newToken) {
+        headers['Authorization'] = `Bearer ${newToken}`;
+        res = await fetch(`${API}/printing/render/${entityType}/${entityId}/${formCode}`, { headers });
+      }
+    } catch {}
+  }
+
+  if (!res.ok) {
+    let msg = 'Print failed';
+    try {
+      const data = await res.json();
+      msg = data.message || msg;
+    } catch {}
+    const err: any = new Error(msg);
+    err.response = { data: { message: msg }, status: res.status };
+    throw err;
+  }
+  return res.blob();
+}

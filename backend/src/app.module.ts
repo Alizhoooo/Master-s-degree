@@ -28,6 +28,7 @@ import { ConfiguratorModule } from './configurator/configurator.module';
 import { SearchModule } from './search/search.module';
 import { NomenclatureModule } from './nomenclature/nomenclature.module';
 import { I18nModule } from './i18n/i18n.module';
+import { PrintingModule } from './printing/printing.module';
 import appConfig from './common/env.config';
 import { AuditLogInterceptor } from './common/audit-log.interceptor';
 
@@ -71,6 +72,7 @@ import { AuditLogInterceptor } from './common/audit-log.interceptor';
     SearchModule,
     NomenclatureModule,
     I18nModule,
+    PrintingModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

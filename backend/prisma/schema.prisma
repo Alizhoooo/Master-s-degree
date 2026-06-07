@@ -993,7 +993,27 @@ model PrintTemplate {
   name         String   @unique
   documentType String
   template     Json
-  isDefault    Boolean  @default(false)
-  createdAt    DateTime @default(now())
+  isDefault    Boolean   @default(false)
+  createdAt    DateTime  @default(now())
   updatedAt           DateTime? @updatedAt
+
+  locale      String   @default("ru-RU")
+  layout      Json?
+  paperSize   String   @default("A4")
+  orientation String   @default("portrait")
+  copies      Int      @default(1)
+  isActive    Boolean  @default(true)
+}
+
+model PrintForm {
+  id              Int      @id @default(autoincrement())
+  code            String   @unique
+  name            String
+  applicableTypes String
+  renderer        String
+  isSystem        Boolean  @default(false)
+  isActive        Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime? @updatedAt
 }

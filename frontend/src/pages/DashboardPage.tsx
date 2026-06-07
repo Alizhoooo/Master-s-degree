@@ -52,7 +52,7 @@ export default function DashboardPage() {
     <Container size="xl" px={0}>
       <PageHeader
         title={t('dashboard.title')}
-        description="Обзор за сегодня: заказы, финансы, склад, производство"
+        description={t('dashboard.subtitle')}
         icon={IconLayoutDashboard}
         actions={
           <>
@@ -105,49 +105,49 @@ export default function DashboardPage() {
         <Box mb="xl">
           <Group justify="space-between" mb="md" px="xs">
             <Group gap="xs">
-              <Title order={4} fw={700} style={{ letterSpacing: '-0.3px' }}>ERP Overview</Title>
+              <Title order={4} fw={700} style={{ letterSpacing: '-0.3px' }}>{t('dashboard.erpOverview')}</Title>
               <Badge variant="light" color="indigo" size="sm" radius="sm">ERP</Badge>
             </Group>
           </Group>
 
           <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} mb="md">
             <KpiCard
-              label="Касса (наличные)"
+              label={t('dashboard.cash')}
               value={formatCurrency(erp.cash?.totalBalance || 0)}
               icon={IconWallet}
-              hint={`${erp.cash?.registersCount || 0} касс`}
+              hint={`${erp.cash?.registersCount || 0} ${t('dashboard.units.cashRegisters')}`}
               gradient={['#10b981', '#22c55e']}
               onClick={() => navigate('/cash')}
             />
             <KpiCard
-              label="Банк (безналичные)"
+              label={t('dashboard.bank')}
               value={formatCurrency(erp.bank?.totalBalance || 0)}
               icon={IconBuildingBank}
-              hint={`${erp.bank?.accountsCount || 0} счетов`}
+              hint={`${erp.bank?.accountsCount || 0} ${t('dashboard.units.accounts')}`}
               gradient={['#3b82f6', '#6366f1']}
               onClick={() => navigate('/bank')}
             />
             <KpiCard
-              label="Зарплата к выплате"
+              label={t('dashboard.payroll')}
               value={formatCurrency(erp.payroll?.totalDue || 0)}
               icon={IconUsersGroup}
               hint={
                 <Group gap={4}>
-                  {erp.payroll?.unpaidCount || 0} невыплачено
-                  {erp.payroll?.overdueCount > 0 && <Badge color="red" size="xs" radius="sm">{erp.payroll.overdueCount} просрочено</Badge>}
+                  {erp.payroll?.unpaidCount || 0} {t('dashboard.units.unpaid')}
+                  {erp.payroll?.overdueCount > 0 && <Badge color="red" size="xs" radius="sm">{erp.payroll.overdueCount} {t('dashboard.units.overdue')}</Badge>}
                 </Group>
               }
               gradient={['#a855f7', '#ec4899']}
               onClick={() => navigate('/hr')}
             />
             <KpiCard
-              label="Складские остатки"
+              label={t('dashboard.stock')}
               value={formatCurrency(erp.stock?.totalValue || 0)}
               icon={IconPackage}
               hint={
                 <Group gap={4}>
-                  {erp.stock?.positionsCount || 0} позиций
-                  {erp.stock?.lowStockItems > 0 && <Badge color="orange" size="xs" radius="sm">{erp.stock.lowStockItems} low</Badge>}
+                  {erp.stock?.positionsCount || 0} {t('dashboard.units.positions')}
+                  {erp.stock?.lowStockItems > 0 && <Badge color="orange" size="xs" radius="sm">{erp.stock.lowStockItems} {t('dashboard.units.low')}</Badge>}
                 </Group>
               }
               gradient={['#06b6d4', '#0891b2']}
@@ -167,17 +167,17 @@ export default function DashboardPage() {
                     }}>
                       <IconBuildingFactory size={18} />
                     </Box>
-                    <Text fw={700}>Производство</Text>
+                    <Text fw={700}>{t('dashboard.production')}</Text>
                   </Group>
-                  <Badge color="orange" variant="light">{erp.production?.activeOrders || 0} активных</Badge>
+                  <Badge color="orange" variant="light">{erp.production?.activeOrders || 0} {t('dashboard.units.active')}</Badge>
                 </Group>
                 <Group gap="xl" mb="md">
                   <Stack gap={0}>
-                    <Text size="xs" c="dimmed" tt="uppercase" fw={600}>Запланировано</Text>
+                    <Text size="xs" c="dimmed" tt="uppercase" fw={600}>{t('dashboard.planned')}</Text>
                     <Text fw={700} size="lg">{erp.production?.planned || 0}</Text>
                   </Stack>
                   <Stack gap={0}>
-                    <Text size="xs" c="dimmed" tt="uppercase" fw={600}>В работе</Text>
+                    <Text size="xs" c="dimmed" tt="uppercase" fw={600}>{t('dashboard.inProgress')}</Text>
                     <Text fw={700} size="lg">{erp.production?.inProgress || 0}</Text>
                   </Stack>
                 </Group>
@@ -201,7 +201,7 @@ export default function DashboardPage() {
                     }}>
                       <IconAlertTriangle size={18} />
                     </Box>
-                    <Text fw={700}>Уведомления и задачи</Text>
+                    <Text fw={700}>{t('dashboard.notificationsAndTasks')}</Text>
                   </Group>
                 </Group>
                 <Group grow>
@@ -218,7 +218,7 @@ export default function DashboardPage() {
                     <Group>
                       <IconClipboardList size={24} color="#f97316" />
                       <Stack gap={0}>
-                        <Text size="xs" c="dimmed" tt="uppercase" fw={600}>Открытых задач</Text>
+                        <Text size="xs" c="dimmed" tt="uppercase" fw={600}>{t('dashboard.openTasks')}</Text>
                         <Text fw={800} size="xl">{erp.alerts?.openTasks || 0}</Text>
                       </Stack>
                     </Group>
@@ -236,7 +236,7 @@ export default function DashboardPage() {
                     <Group>
                       <IconBell size={24} color="#ef4444" />
                       <Stack gap={0}>
-                        <Text size="xs" c="dimmed" tt="uppercase" fw={600}>Непрочитанных</Text>
+                        <Text size="xs" c="dimmed" tt="uppercase" fw={600}>{t('dashboard.unread')}</Text>
                         <Text fw={800} size="xl">{erp.alerts?.unreadNotifications || 0}</Text>
                       </Stack>
                     </Group>
@@ -331,7 +331,7 @@ export default function DashboardPage() {
               <Table.Thead>
                 <Table.Tr>
                   <Table.Th>{t('inventory.name')}</Table.Th>
-                  <Table.Th>SKU</Table.Th>
+                  <Table.Th>{t('inventory.sku')}</Table.Th>
                   <Table.Th>{t('dashboard.quantity')}</Table.Th>
                   <Table.Th>{t('dashboard.revenue')}</Table.Th>
                 </Table.Tr>

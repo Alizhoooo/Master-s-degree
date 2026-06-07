@@ -104,7 +104,7 @@ export default function NomenclaturePage() {
     <Container size="xl" px={0}>
       <PageHeader
         title={t('nomenclature.title')}
-        description="SKU, штрих-код, наценка, партии, сроки годности"
+        description={t('nomenclature.subtitle')}
         icon={IconCategory}
         actions={
           <Group>
@@ -151,7 +151,7 @@ export default function NomenclaturePage() {
                   <Table.Td><code>{p.sku}</code></Table.Td>
                   <Table.Td>
                     <Text fw={500}>{p.name}</Text>
-                    {p.artikul && <Text size="xs" c="dimmed">art: {p.artikul}</Text>}
+                    {p.artikul && <Text size="xs" c="dimmed">{t('nomenclature.artikulLabel')} {p.artikul}</Text>}
                   </Table.Td>
                   <Table.Td>{p.category || '-'}</Table.Td>
                   <Table.Td><Badge variant="light">{t(`enum.productType.${p.type || 'Goods'}`)}</Badge></Table.Td>
@@ -266,8 +266,8 @@ export default function NomenclaturePage() {
                   <Table.Tr>
                     <Table.Th>{t('common.warehouse')}</Table.Th>
                     <Table.Th>{t('common.qty')}</Table.Th>
-                    <Table.Th>Reserved</Table.Th>
-                    <Table.Th>Available</Table.Th>
+                    <Table.Th>{t('inventory.reserved')}</Table.Th>
+                    <Table.Th>{t('inventory.available')}</Table.Th>
                   </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>

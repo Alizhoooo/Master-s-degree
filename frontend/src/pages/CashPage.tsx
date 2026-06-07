@@ -6,6 +6,7 @@ import { IconPlus, IconCash, IconHistory } from '@tabler/icons-react';
 import { listCashRegisters, createCashRegister, listCashOrders, createCashOrder, getCashBalance } from '../api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { TableSkeleton } from '../components/Skeleton';
+import { PrintButton } from '../components/printing/PrintButton';
 
 export default function CashPage() {
   const { t } = useTranslation();
@@ -53,23 +54,35 @@ export default function CashPage() {
             <Table striped withTableBorder>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>Касса</Table.Th>
-                  <Table.Th>Тип</Table.Th>
-                  <Table.Th>Сумма</Table.Th>
-                  <Table.Th>Контрагент</Table.Th>
-                  <Table.Th>Основание</Table.Th>
-                  <Table.Th>Дата</Table.Th>
+                  <Table.Th>{t('cash.fields.register')}</Table.Th>
+                  <Table.Th>{t('cash.fields.type')}</Table.Th>
+                  <Table.Th>{t('cash.fields.amount')}</Table.Th>
+                  <Table.Th>{t('cash.fields.counterparty')}</Table.Th>
+                  <Table.Th>{t('cash.fields.basis')}</Table.Th>
+                  <Table.Th>{t('cash.fields.date')}</Table.Th>
+                  <Table.Th>{t('common.actions')}</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
                 {(orders as any[]).map((o: any) => (
                   <Table.Tr key={o.id}>
                     <Table.Td>{o.register?.name}</Table.Td>
-                    <Table.Td><Badge color={o.type === 'Income' ? 'green' : 'red'}>{o.type === 'Income' ? 'Приход' : 'Расход'}</Badge></Table.Td>
+                    <Table.Td><Badge color={o.type === 'Income' ? 'green' : 'red'}>{o.type === 'Income' ? t('cash.orderType.Income') : t('cash.orderType.Expense')}</Badge></Table.Td>
                     <Table.Td><strong>{o.amount.toFixed(2)}</strong></Table.Td>
                     <Table.Td>{o.counterparty}</Table.Td>
                     <Table.Td>{o.basis}</Table.Td>
                     <Table.Td>{new Date(o.createdAt).toLocaleDateString()}</Table.Td>
+                    <Table.Td>
+                      <Group gap={4}>
+                        <PrintButton
+                          entityType="CashOrder"
+                          entityId={o.id}
+                          formCode={o.type === 'Income' ? 'pko' : 'rko'}
+                          variant="subtle"
+                          size="xs"
+                        />
+                      </Group>
+                    </Table.Td>
                   </Table.Tr>
                 ))}
               </Table.Tbody>
@@ -82,10 +95,11 @@ export default function CashPage() {
             <Table striped withTableBorder>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>Название</Table.Th>
-                  <Table.Th>Валюта</Table.Th>
-                  <Table.Th>Баланс</Table.Th>
-                  <Table.Th>Статус</Table.Th>
+                  <Table.Th>{t('cash.fields.name')}</Table.Th>
+                  <Table.Th>{t('cash.fields.currency')}</Table.Th>
+                  <Table.Th>{t('cash.fields.balance')}</Table.Th>
+                  <Table.Th>{t('cash.fields.status')}</Table.Th>
+                  <Table.Th>{t('common.actions')}</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -94,7 +108,10 @@ export default function CashPage() {
                     <Table.Td>{r.name}</Table.Td>
                     <Table.Td>{r.currency}</Table.Td>
                     <Table.Td><strong>{r.balance.toFixed(2)}</strong></Table.Td>
-                    <Table.Td><Badge color={r.isActive ? 'green' : 'red'}>{r.isActive ? 'Активна' : 'Неактивна'}</Badge></Table.Td>
+                    <Table.Td><Badge color={r.isActive ? 'green' : 'red'}>{r.isActive ? t('enum.cashRegisterStatus.Active') : t('enum.cashRegisterStatus.Inactive')}</Badge></Table.Td>
+                    <Table.Td>
+                      <PrintButton entityType="CashRegister" entityId={r.id} formCode="ko-4" label={t('printing.cashBook', 'Кассовая книга')} variant="subtle" size="xs" />
+                    </Table.Td>
                   </Table.Tr>
                 ))}
               </Table.Tbody>
@@ -105,21 +122,21 @@ export default function CashPage() {
 
       <Modal opened={regModal} onClose={() => setRegModal(false)} title={t('cash.newRegister')}>
         <Stack>
-          <TextInput label="Название" value={regData.name} onChange={e => setRegData({ ...regData, name: e.currentTarget.value })} required />
-          <Select label="Валюта" data={['KZT', 'USD', 'EUR', 'RUB']} value={regData.currency} onChange={(v: string | null) => setRegData({ ...regData, currency: v || 'KZT' })} />
-          <Button onClick={() => createRegMut.mutate(regData)} loading={createRegMut.isPending}>Создать</Button>
+          <TextInput label={t('cash.fields.name')} value={regData.name} onChange={e => setRegData({ ...regData, name: e.currentTarget.value })} required />
+          <Select label={t('cash.fields.currency')} data={['KZT', 'USD', 'EUR', 'RUB']} value={regData.currency} onChange={(v: string | null) => setRegData({ ...regData, currency: v || 'KZT' })} />
+          <Button onClick={() => createRegMut.mutate(regData)} loading={createRegMut.isPending}>{t('common.create')}</Button>
         </Stack>
       </Modal>
 
       <Modal opened={orderModal} onClose={() => setOrderModal(false)} title={t('cash.newOrder')} size="md">
         <Stack>
-          <Select label="Касса" data={regOptions} value={orderData.registerId ? String(orderData.registerId) : null} onChange={(v: string | null) => setOrderData({ ...orderData, registerId: v ? +v : 0 })} required />
-          <Select label="Тип" data={[{ value: 'Income', label: 'Приход' }, { value: 'Expense', label: 'Расход' }]} value={orderData.type} onChange={(v: string | null) => setOrderData({ ...orderData, type: v || 'Income' })} />
-          <NumberInput label="Сумма" value={orderData.amount} onChange={(v: any) => setOrderData({ ...orderData, amount: Number(v) || 0 })} min={0} required />
-          <TextInput label="Контрагент" value={orderData.counterparty} onChange={e => setOrderData({ ...orderData, counterparty: e.currentTarget.value })} required />
-          <TextInput label="Основание" value={orderData.basis} onChange={e => setOrderData({ ...orderData, basis: e.currentTarget.value })} required />
+          <Select label={t('cash.fields.register')} data={regOptions} value={orderData.registerId ? String(orderData.registerId) : null} onChange={(v: string | null) => setOrderData({ ...orderData, registerId: v ? +v : 0 })} required />
+          <Select label={t('cash.fields.type')} data={[{ value: 'Income', label: t('cash.orderType.Income') }, { value: 'Expense', label: t('cash.orderType.Expense') }]} value={orderData.type} onChange={(v: string | null) => setOrderData({ ...orderData, type: v || 'Income' })} />
+          <NumberInput label={t('cash.fields.amount')} value={orderData.amount} onChange={(v: any) => setOrderData({ ...orderData, amount: Number(v) || 0 })} min={0} required />
+          <TextInput label={t('cash.fields.counterparty')} value={orderData.counterparty} onChange={e => setOrderData({ ...orderData, counterparty: e.currentTarget.value })} required />
+          <TextInput label={t('cash.fields.basis')} value={orderData.basis} onChange={e => setOrderData({ ...orderData, basis: e.currentTarget.value })} required />
           <Button onClick={() => createOrderMut.mutate(orderData)} loading={createOrderMut.isPending} disabled={!orderData.registerId || orderData.amount <= 0}>
-            Создать
+            {t('common.create')}
           </Button>
         </Stack>
       </Modal>

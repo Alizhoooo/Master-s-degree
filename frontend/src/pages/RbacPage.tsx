@@ -3,8 +3,10 @@ import { Container, Title, Group, Tabs, Button, Table, Modal, TextInput, MultiSe
 import { IconPlus, IconShield } from '@tabler/icons-react';
 import { listRoles, createRole, listPermissions, assignRole, getUsers, getUserRoles } from '../api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 export default function RbacPage() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [tab, setTab] = useState('roles');
   const [createModal, setCreateModal] = useState(false);
@@ -26,27 +28,27 @@ export default function RbacPage() {
   return (
     <Container size="xl">
       <Group justify="space-between" mb="md">
-        <Title order={3}>Роли и разрешения</Title>
+        <Title order={3}>{t('rbac.title')}</Title>
         <Group>
-          <Button leftSection={<IconPlus size={14} />} onClick={() => setCreateModal(true)}>Новая роль</Button>
-          <Button leftSection={<IconShield size={14} />} variant="light" onClick={() => setAssignModal(true)}>Назначить</Button>
+          <Button leftSection={<IconPlus size={14} />} onClick={() => setCreateModal(true)}>{t('rbac.newRole')}</Button>
+          <Button leftSection={<IconShield size={14} />} variant="light" onClick={() => setAssignModal(true)}>{t('rbac.assignRole')}</Button>
         </Group>
       </Group>
 
       <Tabs value={tab} onChange={(v: any) => setTab(v || 'roles')}>
         <Tabs.List>
-          <Tabs.Tab value="roles">Роли</Tabs.Tab>
-          <Tabs.Tab value="users">Пользователи</Tabs.Tab>
+          <Tabs.Tab value="roles">{t('rbac.roles')}</Tabs.Tab>
+          <Tabs.Tab value="users">{t('rbac.users')}</Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="roles" pt="md">
           <Table striped withTableBorder>
             <Table.Thead>
               <Table.Tr>
-                <Table.Th>Название</Table.Th>
-                <Table.Th>Описание</Table.Th>
-                <Table.Th>Системная</Table.Th>
-                <Table.Th>Разрешений</Table.Th>
+                <Table.Th>{t('rbac.fields.name')}</Table.Th>
+                <Table.Th>{t('rbac.fields.description')}</Table.Th>
+                <Table.Th>{t('rbac.system')}</Table.Th>
+                <Table.Th>{t('rbac.permissionsCount')}</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -54,7 +56,7 @@ export default function RbacPage() {
                 <Table.Tr key={r.id}>
                   <Table.Td><strong>{r.name}</strong></Table.Td>
                   <Table.Td>{r.description || '-'}</Table.Td>
-                  <Table.Td>{r.isSystem ? <Badge color="blue">Системная</Badge> : '-'}</Table.Td>
+                  <Table.Td>{r.isSystem ? <Badge color="blue">{t('rbac.system')}</Badge> : '-'}</Table.Td>
                   <Table.Td>{r.permissions?.length || 0}</Table.Td>
                 </Table.Tr>
               ))}
@@ -66,9 +68,9 @@ export default function RbacPage() {
           <Table striped withTableBorder>
             <Table.Thead>
               <Table.Tr>
-                <Table.Th>Email</Table.Th>
-                <Table.Th>ФИО</Table.Th>
-                <Table.Th>Роль (встроенная)</Table.Th>
+                <Table.Th>{t('rbac.fields.email')}</Table.Th>
+                <Table.Th>{t('rbac.fields.fullName')}</Table.Th>
+                <Table.Th>{t('rbac.builtInRole')}</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -84,27 +86,27 @@ export default function RbacPage() {
         </Tabs.Panel>
       </Tabs>
 
-      <Modal opened={createModal} onClose={() => setCreateModal(false)} title="Новая роль" size="lg">
+      <Modal opened={createModal} onClose={() => setCreateModal(false)} title={t('rbac.newRole')} size="lg">
         <Stack>
-          <TextInput label="Название" value={roleData.name} onChange={e => setRoleData({ ...roleData, name: e.currentTarget.value })} required />
-          <TextInput label="Описание" value={roleData.description} onChange={e => setRoleData({ ...roleData, description: e.currentTarget.value })} />
+          <TextInput label={t('rbac.fields.name')} value={roleData.name} onChange={e => setRoleData({ ...roleData, name: e.currentTarget.value })} required />
+          <TextInput label={t('rbac.fields.description')} value={roleData.description} onChange={e => setRoleData({ ...roleData, description: e.currentTarget.value })} />
           <MultiSelect
-            label="Разрешения"
+            label={t('rbac.fields.permissions')}
             data={permOptions}
             value={roleData.permissions}
             onChange={(v: string[]) => setRoleData({ ...roleData, permissions: v })}
             searchable
             clearable
           />
-          <Button onClick={() => createMut.mutate()} loading={createMut.isPending} disabled={!roleData.name}>Создать</Button>
+          <Button onClick={() => createMut.mutate()} loading={createMut.isPending} disabled={!roleData.name}>{t('rbac.create')}</Button>
         </Stack>
       </Modal>
 
-      <Modal opened={assignModal} onClose={() => setAssignModal(false)} title="Назначить роль">
+      <Modal opened={assignModal} onClose={() => setAssignModal(false)} title={t('rbac.assignRole')}>
         <Stack>
           <Group grow>
             <MultiSelect
-              label="Пользователь"
+              label={t('rbac.fields.user')}
               data={userOptions}
               value={assignData.userId ? [String(assignData.userId)] : []}
               onChange={(v: string[]) => setAssignData({ ...assignData, userId: v[0] ? +v[0] : 0 })}
@@ -112,14 +114,14 @@ export default function RbacPage() {
               searchable
             />
             <MultiSelect
-              label="Роль"
+              label={t('rbac.fields.role')}
               data={roleOptions}
               value={assignData.roleId ? [String(assignData.roleId)] : []}
               onChange={(v: string[]) => setAssignData({ ...assignData, roleId: v[0] ? +v[0] : 0 })}
               maxValues={1}
             />
           </Group>
-          <Button onClick={() => assignMut.mutate()} loading={assignMut.isPending} disabled={!assignData.userId || !assignData.roleId}>Назначить</Button>
+          <Button onClick={() => assignMut.mutate()} loading={assignMut.isPending} disabled={!assignData.userId || !assignData.roleId}>{t('rbac.assign')}</Button>
         </Stack>
       </Modal>
     </Container>

@@ -8,6 +8,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../store/AuthContext';
 import { listWarehouses, getProducts } from '../api';
 import { getTransfers, createTransfer } from '../api/nomenclature';
+import { PrintButton } from '../components/printing/PrintButton';
 import { TableSkeleton } from '../components/Skeleton';
 import { notifications } from '../components/Notifications';
 import PageHeader from '../components/PageHeader';
@@ -80,6 +81,7 @@ export default function TransfersPage() {
               <Table.Th>{t('transfer.fields.to')}</Table.Th>
               <Table.Th>{t('transfer.fields.reason')}</Table.Th>
               <Table.Th>{t('common.status')}</Table.Th>
+              <Table.Th>{t('common.actions')}</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -92,9 +94,10 @@ export default function TransfersPage() {
                 <Table.Td>{tr.toWarehouse?.name || '-'}</Table.Td>
                 <Table.Td>{tr.reason || '-'}</Table.Td>
                 <Table.Td><Badge variant="light" color="green">{t(`enum.docStatus.${tr.status || 'Posted'}`)}</Badge></Table.Td>
+                <Table.Td><PrintButton entityType="ProductTransfer" entityId={tr.id} variant="subtle" size="xs" /></Table.Td>
               </Table.Tr>
             ))}
-            {list.length === 0 && <Table.Tr><Table.Td colSpan={7}><Text ta="center" c="dimmed">{t('transfer.noTransfers')}</Text></Table.Td></Table.Tr>}
+            {list.length === 0 && <Table.Tr><Table.Td colSpan={8}><Text ta="center" c="dimmed">{t('transfer.noTransfers')}</Text></Table.Td></Table.Tr>}
           </Table.Tbody>
         </Table>
       )}
@@ -107,7 +110,7 @@ export default function TransfersPage() {
           </SimpleGrid>
           {sameWh && (
             <Alert color="red" icon={<IconAlertCircle size={14} />}>
-              From and To warehouses must be different
+              {t('transfer.sameWarehouseError')}
             </Alert>
           )}
           <TextInput label={t('transfer.fields.reason')} value={form.reason} onChange={(e) => setForm({ ...form, reason: e.currentTarget.value })} />

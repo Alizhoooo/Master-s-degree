@@ -78,7 +78,7 @@ export default function CustomersPage() {
         icon={IconUsers}
         actions={
           <Group>
-            <Button variant="light" leftSection={<IconUpload size={16} />} onClick={() => setImportOpened(true)}>CSV импорт</Button>
+            <Button variant="light" leftSection={<IconUpload size={16} />} onClick={() => setImportOpened(true)}>{t('customer.csvImport')}</Button>
             <Button leftSection={<IconPlus size={16} />} onClick={openCreate} className="gradient-button">
               {t('customer.newCustomer')}
             </Button>
@@ -92,7 +92,7 @@ export default function CustomersPage() {
             <Table.Th>{t('customer.company')}</Table.Th>
             <Table.Th>{t('customer.contact')}</Table.Th>
             <Table.Th>{t('customer.phone')}</Table.Th>
-            <Table.Th>Email</Table.Th>
+            <Table.Th>{t('common.email')}</Table.Th>
             <Table.Th>{t('customer.tier')}</Table.Th>
             <Table.Th>{t('customer.totalOrders')}</Table.Th>
             <Table.Th>{t('customer.lastOrder')}</Table.Th>
@@ -128,7 +128,7 @@ export default function CustomersPage() {
         <TextInput label={t('customer.company')} placeholder={t('customer.companyName')} value={form.company} onChange={e => setForm({ ...form, company: e.currentTarget.value })} required mb="sm" />
         <TextInput label={t('customer.contact')} placeholder={t('customer.contactPerson')} value={form.contactPerson} onChange={e => setForm({ ...form, contactPerson: e.currentTarget.value })} required mb="sm" />
         <TextInput label={t('customer.phone')} placeholder={t('customer.phoneNumber')} value={form.phone} onChange={e => setForm({ ...form, phone: e.currentTarget.value })} mb="sm" />
-        <TextInput label="Email" placeholder={t('customer.email')} value={form.email} onChange={e => setForm({ ...form, email: e.currentTarget.value })} mb="sm" />
+        <TextInput label={t('common.email')} placeholder={t('customer.email')} value={form.email} onChange={e => setForm({ ...form, email: e.currentTarget.value })} mb="sm" />
         <Select
           label={t('customer.tier')}
           data={[
@@ -151,7 +151,7 @@ export default function CustomersPage() {
       <CsvImportModal
         opened={importOpened}
         onClose={() => setImportOpened(false)}
-        title="CSV импорт — клиенттер"
+        title={t('customer.csvImportCustomers')}
         importFn={importCustomersCsv}
         expectedFields={['company', 'contactPerson', 'phone', 'email', 'tier']}
       />

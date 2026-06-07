@@ -96,7 +96,7 @@ export default function InventoryPage() {
             leftSection={<IconUpload size={16} />}
             onClick={() => setImportOpened(true)}
           >
-            CSV импорт
+            {t('inventory.csvImport')}
           </Button>
           {user?.role === 'Admin' && (
             <Button
@@ -339,7 +339,7 @@ export default function InventoryPage() {
       <CsvImportModal
         opened={importOpened}
         onClose={() => setImportOpened(false)}
-        title="CSV импорт — өнімдер"
+        title={t('inventory.csvImportProducts')}
         importFn={importProductsCsv}
         expectedFields={['sku', 'name', 'category', 'unitPrice', 'quantityOnHand', 'reorderPoint']}
       />

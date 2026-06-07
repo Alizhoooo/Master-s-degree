@@ -62,7 +62,7 @@ export default function TasksPage() {
                   <Table.Td><Badge color={t.status === 'Completed' ? 'green' : t.status === 'InProgress' ? 'blue' : t.status === 'Cancelled' ? 'red' : 'gray'}>{statusLabel(t.status)}</Badge></Table.Td>
                   <Table.Td>
                     <Group gap="xs">
-                      {t.status === 'New' && <Button size="xs" variant="light" leftSection={<IconPlayerPlay size={12} />} onClick={() => startMut.mutate(t.id)}>{t('common.add')}</Button>}
+                      {t.status === 'New' && <Button size="xs" variant="light" leftSection={<IconPlayerPlay size={12} />} onClick={() => startMut.mutate(t.id)}>{t('task.start')}</Button>}
                       {t.status !== 'Completed' && t.status !== 'Cancelled' && (
                         <>
                           <Button size="xs" color="green" leftSection={<IconCheck size={12} />} onClick={() => completeMut.mutate(t.id)}>✓</Button>

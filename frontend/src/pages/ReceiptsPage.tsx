@@ -8,6 +8,7 @@ import { IconPlus, IconTrash, IconFileInvoice, IconEye } from '@tabler/icons-rea
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../store/AuthContext';
 import { listWarehouses, getProducts } from '../api';
+import { PrintButton } from '../components/printing/PrintButton';
 import { getSuppliers, getReceipts, createReceipt } from '../api/nomenclature';
 import { TableSkeleton } from '../components/Skeleton';
 import { notifications } from '../components/Notifications';
@@ -110,7 +111,7 @@ export default function ReceiptsPage() {
                 <Table.Td>{r.invoiceNumber || '-'}</Table.Td>
                 <Table.Td>{r.totalAmount?.toFixed(2)} {r.currency || 'KZT'}</Table.Td>
                 <Table.Td><Badge variant="light" color="green">{t(`enum.docStatus.${r.status || 'Posted'}`)}</Badge></Table.Td>
-                <Table.Td><ActionIcon variant="light" onClick={() => setDetail(r)}><IconEye size={14} /></ActionIcon></Table.Td>
+                <Table.Td><Group gap={4}><ActionIcon variant="light" onClick={() => setDetail(r)}><IconEye size={14} /></ActionIcon><PrintButton entityType="ProductReceipt" entityId={r.id} variant="subtle" size="xs" /></Group></Table.Td>
               </Table.Tr>
             ))}
             {list.length === 0 && <Table.Tr><Table.Td colSpan={8}><Text ta="center" c="dimmed">{t('receipt.noReceipts')}</Text></Table.Td></Table.Tr>}

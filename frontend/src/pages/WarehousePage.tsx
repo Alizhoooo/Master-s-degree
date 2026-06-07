@@ -35,17 +35,17 @@ export default function WarehousePage() {
       <Group justify="space-between" mb="md">
         <Title order={3}>{t('warehouse.title')}</Title>
         <Group>
-          {tab === 'warehouses' && <Button leftSection={<IconPlus size={14} />} onClick={() => setWhModal(true)}>Склад</Button>}
-          {tab === 'warehouses' && <Button leftSection={<IconArrowsTransferUp size={14} />} variant="light" onClick={() => setTransferModal(true)} disabled={warehouses.length < 2}>Перемещение</Button>}
-          {tab === 'batches' && <Button leftSection={<IconPlus size={14} />} onClick={() => setBatchModal(true)}>Партия</Button>}
+          {tab === 'warehouses' && <Button leftSection={<IconPlus size={14} />} onClick={() => setWhModal(true)}>{t('warehouse.warehouses')}</Button>}
+          {tab === 'warehouses' && <Button leftSection={<IconArrowsTransferUp size={14} />} variant="light" onClick={() => setTransferModal(true)} disabled={warehouses.length < 2}>{t('warehouse.transfer')}</Button>}
+          {tab === 'batches' && <Button leftSection={<IconPlus size={14} />} onClick={() => setBatchModal(true)}>{t('warehouse.batches')}</Button>}
         </Group>
       </Group>
 
       <Tabs value={tab} onChange={(v: any) => setTab(v || 'warehouses')}>
         <Tabs.List>
-          <Tabs.Tab value="warehouses" leftSection={<IconBuildingWarehouse size={14} />}>Склады</Tabs.Tab>
-          <Tabs.Tab value="movements" leftSection={<IconHistory size={14} />}>Движения</Tabs.Tab>
-          <Tabs.Tab value="batches" leftSection={<IconBoxSeam size={14} />}>Партии</Tabs.Tab>
+          <Tabs.Tab value="warehouses" leftSection={<IconBuildingWarehouse size={14} />}>{t('warehouse.warehouses')}</Tabs.Tab>
+          <Tabs.Tab value="movements" leftSection={<IconHistory size={14} />}>{t('warehouse.movements')}</Tabs.Tab>
+          <Tabs.Tab value="batches" leftSection={<IconBoxSeam size={14} />}>{t('warehouse.batches')}</Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="warehouses" pt="md">
@@ -53,10 +53,10 @@ export default function WarehousePage() {
             <Table striped withTableBorder>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th>Название</Table.Th>
-                  <Table.Th>Адрес</Table.Th>
-                  <Table.Th>Тип</Table.Th>
-                  <Table.Th>Позиций</Table.Th>
+                  <Table.Th>{t('warehouse.fields.name')}</Table.Th>
+                  <Table.Th>{t('warehouse.fields.address')}</Table.Th>
+                  <Table.Th>{t('warehouse.fields.type')}</Table.Th>
+                  <Table.Th>{t('warehouse.fields.positions')}</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -64,7 +64,7 @@ export default function WarehousePage() {
                   <Table.Tr key={w.id}>
                     <Table.Td><strong>{w.name}</strong></Table.Td>
                     <Table.Td>{w.address || '-'}</Table.Td>
-                    <Table.Td>{w.isMain ? <Badge color="blue">Главный</Badge> : '-'}</Table.Td>
+                    <Table.Td>{w.isMain ? <Badge color="blue">{t('warehouse.main')}</Badge> : '-'}</Table.Td>
                     <Table.Td>{w._count?.stockBalances || 0}</Table.Td>
                   </Table.Tr>
                 ))}
@@ -77,11 +77,11 @@ export default function WarehousePage() {
           <Table striped withTableBorder>
             <Table.Thead>
               <Table.Tr>
-                <Table.Th>Дата</Table.Th>
-                <Table.Th>Склад</Table.Th>
-                <Table.Th>Товар</Table.Th>
-                <Table.Th>Кол-во</Table.Th>
-                <Table.Th>Причина</Table.Th>
+                <Table.Th>{t('warehouse.fields.date')}</Table.Th>
+                <Table.Th>{t('warehouse.fields.warehouse')}</Table.Th>
+                <Table.Th>{t('warehouse.fields.product')}</Table.Th>
+                <Table.Th>{t('warehouse.fields.quantity')}</Table.Th>
+                <Table.Th>{t('warehouse.fields.reason')}</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -102,12 +102,12 @@ export default function WarehousePage() {
           <Table striped withTableBorder>
             <Table.Thead>
               <Table.Tr>
-                <Table.Th>Номер</Table.Th>
-                <Table.Th>Товар</Table.Th>
-                <Table.Th>Кол-во</Table.Th>
-                <Table.Th>Себестоимость</Table.Th>
-                <Table.Th>Срок</Table.Th>
-                <Table.Th>Дата</Table.Th>
+                <Table.Th>{t('warehouse.fields.number')}</Table.Th>
+                <Table.Th>{t('warehouse.fields.product')}</Table.Th>
+                <Table.Th>{t('warehouse.fields.quantity')}</Table.Th>
+                <Table.Th>{t('warehouse.fields.costPrice')}</Table.Th>
+                <Table.Th>{t('warehouse.fields.expiryDate')}</Table.Th>
+                <Table.Th>{t('warehouse.fields.date')}</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -126,35 +126,35 @@ export default function WarehousePage() {
         </Tabs.Panel>
       </Tabs>
 
-      <Modal opened={whModal} onClose={() => setWhModal(false)} title="Новый склад">
+      <Modal opened={whModal} onClose={() => setWhModal(false)} title={t('warehouse.newWarehouse')}>
         <Stack>
-          <TextInput label="Название" value={whData.name} onChange={e => setWhData({ ...whData, name: e.currentTarget.value })} required />
-          <TextInput label="Адрес" value={whData.address} onChange={e => setWhData({ ...whData, address: e.currentTarget.value })} />
-          <Button onClick={() => createWhMut.mutate(whData)} loading={createWhMut.isPending}>Создать</Button>
+          <TextInput label={t('warehouse.fields.name')} value={whData.name} onChange={e => setWhData({ ...whData, name: e.currentTarget.value })} required />
+          <TextInput label={t('warehouse.fields.address')} value={whData.address} onChange={e => setWhData({ ...whData, address: e.currentTarget.value })} />
+          <Button onClick={() => createWhMut.mutate(whData)} loading={createWhMut.isPending}>{t('warehouse.create')}</Button>
         </Stack>
       </Modal>
 
-      <Modal opened={transferModal} onClose={() => setTransferModal(false)} title="Перемещение товара">
+      <Modal opened={transferModal} onClose={() => setTransferModal(false)} title={t('warehouse.newMovement')}>
         <Stack>
-          <Select label="Откуда" data={whOptions} value={transferData.fromWarehouseId ? String(transferData.fromWarehouseId) : null} onChange={(v: string | null) => setTransferData({ ...transferData, fromWarehouseId: v ? +v : 0 })} required />
-          <Select label="Куда" data={whOptions} value={transferData.toWarehouseId ? String(transferData.toWarehouseId) : null} onChange={(v: string | null) => setTransferData({ ...transferData, toWarehouseId: v ? +v : 0 })} required />
-          <Select label="Товар" data={productOptions} value={transferData.productId ? String(transferData.productId) : null} onChange={(v: string | null) => setTransferData({ ...transferData, productId: v ? +v : 0 })} required searchable />
-          <NumberInput label="Количество" value={transferData.quantity} onChange={(v: any) => setTransferData({ ...transferData, quantity: Number(v) || 1 })} min={1} required />
+          <Select label={t('warehouse.fields.from')} data={whOptions} value={transferData.fromWarehouseId ? String(transferData.fromWarehouseId) : null} onChange={(v: string | null) => setTransferData({ ...transferData, fromWarehouseId: v ? +v : 0 })} required />
+          <Select label={t('warehouse.fields.to')} data={whOptions} value={transferData.toWarehouseId ? String(transferData.toWarehouseId) : null} onChange={(v: string | null) => setTransferData({ ...transferData, toWarehouseId: v ? +v : 0 })} required />
+          <Select label={t('warehouse.fields.product')} data={productOptions} value={transferData.productId ? String(transferData.productId) : null} onChange={(v: string | null) => setTransferData({ ...transferData, productId: v ? +v : 0 })} required searchable />
+          <NumberInput label={t('warehouse.fields.quantity')} value={transferData.quantity} onChange={(v: any) => setTransferData({ ...transferData, quantity: Number(v) || 1 })} min={1} required />
           <Button onClick={() => transferMut.mutate(transferData)} loading={transferMut.isPending} disabled={!transferData.fromWarehouseId || !transferData.toWarehouseId || !transferData.productId}>
-            Переместить
+            {t('warehouse.move')}
           </Button>
         </Stack>
       </Modal>
 
-      <Modal opened={batchModal} onClose={() => setBatchModal(false)} title="Новая партия">
+      <Modal opened={batchModal} onClose={() => setBatchModal(false)} title={t('warehouse.newBatch')}>
         <Stack>
-          <Select label="Товар" data={productOptions} value={batchData.productId ? String(batchData.productId) : null} onChange={(v: string | null) => setBatchData({ ...batchData, productId: v ? +v : 0 })} required searchable />
-          <TextInput label="Номер партии" value={batchData.batchNo} onChange={e => setBatchData({ ...batchData, batchNo: e.currentTarget.value })} required />
-          <NumberInput label="Количество" value={batchData.quantity} onChange={(v: any) => setBatchData({ ...batchData, quantity: Number(v) || 0 })} required />
-          <NumberInput label="Себестоимость" value={batchData.costPrice} onChange={(v: any) => setBatchData({ ...batchData, costPrice: Number(v) || 0 })} required />
-          <DatePickerInput label="Срок годности" value={batchData.expiryDate} onChange={(d: any) => setBatchData({ ...batchData, expiryDate: d })} clearable />
+          <Select label={t('warehouse.fields.product')} data={productOptions} value={batchData.productId ? String(batchData.productId) : null} onChange={(v: string | null) => setBatchData({ ...batchData, productId: v ? +v : 0 })} required searchable />
+          <TextInput label={t('warehouse.fields.batchNo')} value={batchData.batchNo} onChange={e => setBatchData({ ...batchData, batchNo: e.currentTarget.value })} required />
+          <NumberInput label={t('warehouse.fields.quantity')} value={batchData.quantity} onChange={(v: any) => setBatchData({ ...batchData, quantity: Number(v) || 0 })} required />
+          <NumberInput label={t('warehouse.fields.costPrice')} value={batchData.costPrice} onChange={(v: any) => setBatchData({ ...batchData, costPrice: Number(v) || 0 })} required />
+          <DatePickerInput label={t('warehouse.fields.expiryDate')} value={batchData.expiryDate} onChange={(d: any) => setBatchData({ ...batchData, expiryDate: d })} clearable />
           <Button onClick={() => createBatchMut.mutate({ ...batchData, expiryDate: batchData.expiryDate?.toISOString() })} loading={createBatchMut.isPending} disabled={!batchData.productId || !batchData.batchNo}>
-            Создать
+            {t('warehouse.create')}
           </Button>
         </Stack>
       </Modal>

@@ -8,9 +8,10 @@ RUN npx prisma generate
 RUN npm run build
 RUN npx tsc prisma/seed.ts --outDir dist-seed --skipLibCheck --esModuleInterop --module commonjs
 RUN npx tsc scripts/assign-roles.ts --outDir dist-scripts --skipLibCheck --esModuleInterop --module commonjs
+RUN npx tsc scripts/seed-print-forms.ts --outDir dist-scripts --skipLibCheck --esModuleInterop --module commonjs
 
 FROM node:20-bookworm-slim AS runner
-RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y openssl fonts-dejavu-core fonts-dejavu-extra && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY package*.json ./
 RUN npm install --legacy-peer-deps --omit=dev

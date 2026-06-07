@@ -74,14 +74,14 @@ export default function ExpiryPage() {
           <Progress value={openAlerts.length ? (warning / openAlerts.length) * 100 : 0} color="yellow" size="sm" mt="xs" />
         </Card>
         <Card withBorder>
-          <Group><IconCalendar size={28} color="blue" /><div><Text size="xs" c="dimmed">{t('common.total')} alerts</Text><Text size="xl" fw={700}>{openAlerts.length}</Text></div></Group>
-          <Text size="xs" c="dimmed" mt="xs">{alertsList.length - openAlerts.length} resolved</Text>
+          <Group><IconCalendar size={28} color="blue" /><div><Text size="xs" c="dimmed">{t('expiry.totalAlerts')}</Text><Text size="xl" fw={700}>{openAlerts.length}</Text></div></Group>
+          <Text size="xs" c="dimmed" mt="xs">{alertsList.length - openAlerts.length} {t('expiry.resolved')}</Text>
         </Card>
       </SimpleGrid>
 
       {critical > 0 && (
         <Alert color="red" icon={<IconAlertTriangle size={16} />} mb="md" title={t('expiry.severityCritical')}>
-          {critical} batches need immediate attention
+          {t('expiry.criticalAlertMsg', { count: critical })}
         </Alert>
       )}
 

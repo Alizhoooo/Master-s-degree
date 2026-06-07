@@ -56,7 +56,7 @@ export default function OrdersPage() {
     try {
       await bulkUpdate.mutateAsync({ ids: selectedIds, status: bulkStatus });
       const { showNotification } = await import('@mantine/notifications');
-      showNotification({ title: t('notification.success'), message: `${selectedIds.length} тапсырыс жаңартылды`, color: 'green' });
+      showNotification({ title: t('notification.success'), message: t('order.bulkUpdated', { count: selectedIds.length }), color: 'green' });
       setSelectedIds([]);
     } catch (err: any) {
       const { showNotification } = await import('@mantine/notifications');
@@ -156,7 +156,7 @@ export default function OrdersPage() {
 
       {selectedIds.length > 0 && (
         <Group mb="sm" p="xs" style={{ background: 'var(--mantine-color-blue-0)', borderRadius: 8 }}>
-          <Text size="sm" fw={500}>{selectedIds.length} таңдалды</Text>
+          <Text size="sm" fw={500}>{selectedIds.length} {t('order.selectedCount')}</Text>
           <Select
             size="xs"
             data={['Confirmed', 'Reserved', 'Paid', 'Picked', 'Shipped', 'Delivered', 'Cancelled']}
