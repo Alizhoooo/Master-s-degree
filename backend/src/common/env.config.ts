@@ -1,13 +1,19 @@
 import { registerAs } from '@nestjs/config';
 
 export default registerAs('app', () => {
-  const corsOrigin = (process.env.CORS_ORIGIN || 'http://localhost:5173')
+  const envOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
     .split(',')
     .map(s => s.trim())
-    .concat([
-      'https://master-s-degree.vercel.app',
-      'https://master-s-degree.onrender.com',
-    ]);
+    .filter(Boolean);
+  const hardcodedFallbacks = [
+    'https://master-s-degree.vercel.app',
+    'https://master-s-degree-ali.vercel.app',
+    'https://master-s-degree.onrender.com',
+    'https://master-s-degree-ali.onrender.com',
+    'http://localhost:5173',
+    'http://localhost:4173',
+  ];
+  const corsOrigin = Array.from(new Set([...envOrigins, ...hardcodedFallbacks]));
 
   return {
     port: parseInt(process.env.PORT || '3001', 10),

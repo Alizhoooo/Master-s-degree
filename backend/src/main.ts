@@ -20,8 +20,21 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const logger = new Logger('Bootstrap');
 
-  const corsOrigin = configService.get<string[]>('app.corsOrigin');
-  app.enableCors({ origin: corsOrigin, credentials: true });
+  const corsOrigin = configService.get<string[]>('app.corsOrigin') || [];
+  app.enableCors({
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      if (!origin) return callback(null, true);
+      if (corsOrigin.length === 0) return callback(null, true);
+      if (corsOrigin.includes(origin)) return callback(null, true);
+      if (process.env.NODE_ENV !== 'production') return callback(null, true);
+      return callback(new Error(`CORS: origin ${origin} not allowed`), false);
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'Origin'],
+    exposedHeaders: ['Content-Disposition'],
+    maxAge: 86400,
+  });
 
   app.use(cookieParser());
 
