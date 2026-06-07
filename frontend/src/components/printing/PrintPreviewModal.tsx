@@ -13,7 +13,7 @@ interface PrintPreviewModalProps {
 }
 
 export function PrintPreviewModal({ form, entityType, entityId, onClose }: PrintPreviewModalProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [url, setUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
@@ -22,7 +22,7 @@ export function PrintPreviewModal({ form, entityType, entityId, onClose }: Print
     let active = true;
     (async () => {
       try {
-        const blob = await renderPrintForm(entityType, entityId, form.code);
+        const blob = await renderPrintForm(entityType, entityId, form.code, i18n.language);
         if (active) {
           const objectUrl = URL.createObjectURL(blob);
           setUrl(objectUrl);
@@ -45,12 +45,12 @@ export function PrintPreviewModal({ form, entityType, entityId, onClose }: Print
       if (url) URL.revokeObjectURL(url);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.code, entityType, entityId]);
+  }, [form.code, entityType, entityId, i18n.language]);
 
   async function download() {
     setDownloading(true);
     try {
-      const blob = await renderPrintForm(entityType, entityId, form.code);
+      const blob = await renderPrintForm(entityType, entityId, form.code, i18n.language);
       const objectUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = objectUrl;

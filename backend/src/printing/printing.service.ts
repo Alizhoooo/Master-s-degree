@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from '../common/prisma.service';
 import { getRenderer, FORM_REGISTRY } from './print-form.registry';
 import { createPdfBuffer } from './renderers/base-form.renderer';
+import { PdfLocale } from './renderers/pdf-translations';
 
 @Injectable()
 export class PrintingService {
@@ -31,7 +32,7 @@ export class PrintingService {
     }));
   }
 
-  async renderForm(entityType: string, id: number, formCode: string): Promise<Buffer> {
+  async renderForm(entityType: string, id: number, formCode: string, locale: PdfLocale = 'ru'): Promise<Buffer> {
     const renderer = getRenderer(formCode);
     if (!renderer) {
       throw new NotFoundException(`Print form "${formCode}" not found in registry`);
@@ -59,7 +60,7 @@ export class PrintingService {
 
     const ctx = {
       prisma: this.prisma,
-      locale: 'ru-RU',
+      locale,
       currency: cfgMap['currency'] || '₸',
       seller,
     };

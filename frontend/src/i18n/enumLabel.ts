@@ -16,7 +16,8 @@ type EnumType =
   | 'bank'
   | 'payroll'
   | 'payment'
-  | 'priority';
+  | 'priority'
+  | 'timesheetType';
 
 const STATUS_TYPES: EnumType[] = ['statuses', 'orderStatus', 'docStatus', 'production', 'task', 'complaint', 'cash', 'bank', 'payroll', 'payment', 'expiry', 'priority'];
 

@@ -2,6 +2,7 @@ import { PrismaService } from '../common/prisma.service';
 import { Column } from './renderers/pdfkit-table';
 import { createPdfBuffer, BaseRenderOptions, defaultSeller, partyFromCustomer, partyFromSupplier, partyFromUser } from './renderers/base-form.renderer';
 import { formatCurrency, formatDate, formatNumber, numberToWords } from './renderers/pdfkit-helpers';
+import { getDict } from './renderers/pdf-translations';
 
 export interface FormContext {
   prisma: PrismaService;
@@ -17,7 +18,8 @@ export interface IFormRenderer {
 // ==================== STAGE 1: Sales / Documents ====================
 
 const invoiceForm: IFormRenderer = {
-  async build({ prisma, currency, seller }, id) {
+  async build({ prisma, currency, seller, locale }, id) {
+    const d = getDict(locale);
     const order = await prisma.order.findUnique({
       where: { id },
       include: { customer: true, user: true, items: { include: { product: true } } },
@@ -27,19 +29,21 @@ const invoiceForm: IFormRenderer = {
     const totalNoVat = order.totalAmount - totalVat;
 
     return {
-      title: 'СЧЁТ НА ОПЛАТУ',
+      title: d.forms.invoice,
       number: String(order.id),
       date: order.createdAt,
       seller: seller || defaultSeller(),
       buyer: partyFromCustomer(order.customer),
+      locale,
+      currency,
       columns: [
-        { key: 'no', label: '№', width: 30, align: 'center' },
-        { key: 'name', label: 'Наименование', width: 220, align: 'left' },
-        { key: 'sku', label: 'Артикул', width: 70, align: 'left' },
-        { key: 'qty', label: 'Кол-во', width: 50, align: 'right' },
-        { key: 'unit', label: 'Ед.', width: 40, align: 'center' },
-        { key: 'price', label: 'Цена', width: 75, align: 'right', formatter: (v) => formatCurrency(v || 0, currency) },
-        { key: 'sum', label: 'Сумма', width: 75, align: 'right', formatter: (v) => formatCurrency(v || 0, currency) },
+        { key: 'no', label: d.common.no, width: 30, align: 'center' },
+        { key: 'name', label: d.common.name, width: 220, align: 'left' },
+        { key: 'sku', label: d.common.sku, width: 70, align: 'left' },
+        { key: 'qty', label: d.common.qty, width: 50, align: 'right' },
+        { key: 'unit', label: d.common.unit, width: 40, align: 'center' },
+        { key: 'price', label: d.common.price, width: 75, align: 'right', formatter: (v) => formatCurrency(v || 0, currency, localeToIntl(locale)) },
+        { key: 'sum', label: d.common.sum, width: 75, align: 'right', formatter: (v) => formatCurrency(v || 0, currency, localeToIntl(locale)) },
       ],
       rows: order.items.map((it, i) => ({
         no: i + 1,
@@ -51,21 +55,22 @@ const invoiceForm: IFormRenderer = {
         sum: it.unitPrice * it.quantity,
       })),
       totals: [
-        { label: 'Итого без НДС:', value: formatCurrency(totalNoVat, currency) },
-        { label: 'НДС (12%):', value: formatCurrency(totalVat, currency) },
-        { label: 'Итого с НДС:', value: formatCurrency(order.totalAmount, currency), bold: true },
+        { label: d.totals.subtotal, value: formatCurrency(totalNoVat, currency, localeToIntl(locale)) },
+        { label: d.totals.vat, value: formatCurrency(totalVat, currency, localeToIntl(locale)) },
+        { label: d.totals.total, value: formatCurrency(order.totalAmount, currency, localeToIntl(locale)), bold: true },
       ],
-      footer: `Счёт действителен в течение 5 (пяти) банковских дней.\nСумма прописью: ${numberToWords(order.totalAmount)}`,
+      footer: `${d.extras.validity}\n${d.totals.sumInWords} ${numberToWords(order.totalAmount, locale)}`,
       signatures: [
-        { label: 'Руководитель', value: seller?.director || '_________________' },
-        { label: 'Главный бухгалтер', value: seller?.accountant || '_________________' },
+        { label: d.signatures.director, value: seller?.director || '_________________' },
+        { label: d.signatures.accountant, value: seller?.accountant || '_________________' },
       ],
     };
   },
 };
 
 const invoiceVatForm: IFormRenderer = {
-  async build({ prisma, currency, seller }, id) {
+  async build({ prisma, currency, seller, locale }, id) {
+    const d = getDict(locale);
     const order = await prisma.order.findUnique({
       where: { id },
       include: { customer: true, items: { include: { product: true } } },
@@ -75,20 +80,22 @@ const invoiceVatForm: IFormRenderer = {
     const totalVat = order.items.reduce((s, i) => s + (i.vatAmount || 0), 0);
 
     return {
-      title: 'СЧЁТ-ФАКТУРА',
+      title: d.forms.invoiceVat,
       number: `СФ-${String(order.id).padStart(6, '0')}`,
       date: order.createdAt,
       seller: seller || defaultSeller(),
       buyer: partyFromCustomer(order.customer),
+      locale,
+      currency,
       columns: [
-        { key: 'no', label: '№ п/п', width: 28, align: 'center' },
-        { key: 'name', label: 'Наименование товара (работ, услуг)', width: 180, align: 'left' },
-        { key: 'unit', label: 'Ед. изм.', width: 40, align: 'center' },
-        { key: 'qty', label: 'Кол-во', width: 40, align: 'right' },
-        { key: 'price', label: 'Цена за ед.', width: 70, align: 'right', formatter: (v) => formatCurrency(v || 0, currency) },
-        { key: 'noVat', label: 'Стоимость без НДС', width: 80, align: 'right', formatter: (v) => formatCurrency(v || 0, currency) },
-        { key: 'vat', label: 'НДС 12%', width: 60, align: 'right', formatter: (v) => formatCurrency(v || 0, currency) },
-        { key: 'sum', label: 'Стоимость с НДС', width: 80, align: 'right', formatter: (v) => formatCurrency(v || 0, currency) },
+        { key: 'no', label: d.common.no, width: 28, align: 'center' },
+        { key: 'name', label: d.common.name, width: 180, align: 'left' },
+        { key: 'unit', label: d.common.unit, width: 40, align: 'center' },
+        { key: 'qty', label: d.common.qty, width: 40, align: 'right' },
+        { key: 'price', label: d.common.price, width: 70, align: 'right', formatter: (v) => formatCurrency(v || 0, currency, localeToIntl(locale)) },
+        { key: 'noVat', label: d.common.noVat, width: 80, align: 'right', formatter: (v) => formatCurrency(v || 0, currency, localeToIntl(locale)) },
+        { key: 'vat', label: d.common.vat + ' 12%', width: 60, align: 'right', formatter: (v) => formatCurrency(v || 0, currency, localeToIntl(locale)) },
+        { key: 'sum', label: d.common.withVat, width: 80, align: 'right', formatter: (v) => formatCurrency(v || 0, currency, localeToIntl(locale)) },
       ],
       rows: order.items.map((it, i) => {
         const sum = it.unitPrice * it.quantity;
@@ -105,22 +112,23 @@ const invoiceVatForm: IFormRenderer = {
         };
       }),
       totals: [
-        { label: 'Итого без НДС:', value: formatCurrency(totalNoVat, currency) },
-        { label: 'НДС (12%):', value: formatCurrency(totalVat, currency) },
-        { label: 'Всего с НДС:', value: formatCurrency(order.totalAmount, currency), bold: true },
+        { label: d.totals.subtotal, value: formatCurrency(totalNoVat, currency, localeToIntl(locale)) },
+        { label: d.totals.vat, value: formatCurrency(totalVat, currency, localeToIntl(locale)) },
+        { label: d.totals.total, value: formatCurrency(order.totalAmount, currency, localeToIntl(locale)), bold: true },
       ],
-      footer: `Сумма прописью: ${numberToWords(order.totalAmount)}`,
+      footer: `${d.totals.sumInWords} ${numberToWords(order.totalAmount, locale)}`,
       signatures: [
-        { label: 'Руководитель организации (подпись)', value: '_______________' },
-        { label: 'Главный бухгалтер (подпись)', value: '_______________' },
-        { label: 'Дата отпуска', value: formatDate(order.createdAt) },
+        { label: d.signatures.director, value: '_______________' },
+        { label: d.signatures.accountant, value: '_______________' },
+        { label: d.extras.edIssued, value: formatDate(order.createdAt, localeToIntl(locale)) },
       ],
     };
   },
 };
 
 const torg12Form: IFormRenderer = {
-  async build({ prisma, currency, seller }, id) {
+  async build({ prisma, currency, seller, locale }, id) {
+    const d = getDict(locale);
     const order = await prisma.order.findUnique({
       where: { id },
       include: { customer: true, user: true, items: { include: { product: true } } },
@@ -128,18 +136,20 @@ const torg12Form: IFormRenderer = {
     if (!order) throw new Error(`Order ${id} not found`);
 
     return {
-      title: 'ТОВАРНАЯ НАКЛАДНАЯ',
+      title: d.forms.torg12,
       number: `ТОРГ-12-${String(order.id).padStart(6, '0')}`,
       date: order.createdAt,
       seller: seller || defaultSeller(),
       buyer: { ...partyFromCustomer(order.customer), address: order.deliveryAddress || partyFromCustomer(order.customer).address },
+      locale,
+      currency,
       columns: [
-        { key: 'no', label: '№', width: 26, align: 'center' },
-        { key: 'name', label: 'Наименование товара', width: 200, align: 'left' },
-        { key: 'unit', label: 'Ед. изм.', width: 40, align: 'center' },
-        { key: 'qty', label: 'Кол-во', width: 45, align: 'right' },
-        { key: 'price', label: 'Цена', width: 70, align: 'right', formatter: (v) => formatCurrency(v || 0, currency) },
-        { key: 'sum', label: 'Сумма', width: 80, align: 'right', formatter: (v) => formatCurrency(v || 0, currency) },
+        { key: 'no', label: d.common.no, width: 26, align: 'center' },
+        { key: 'name', label: d.common.name, width: 200, align: 'left' },
+        { key: 'unit', label: d.common.unit, width: 40, align: 'center' },
+        { key: 'qty', label: d.common.qty, width: 45, align: 'right' },
+        { key: 'price', label: d.common.price, width: 70, align: 'right', formatter: (v) => formatCurrency(v || 0, currency, localeToIntl(locale)) },
+        { key: 'sum', label: d.common.sum, width: 80, align: 'right', formatter: (v) => formatCurrency(v || 0, currency, localeToIntl(locale)) },
       ],
       rows: order.items.map((it, i) => ({
         no: i + 1,
@@ -150,23 +160,24 @@ const torg12Form: IFormRenderer = {
         sum: it.unitPrice * it.quantity,
       })),
       totals: [
-        { label: 'Итого:', value: formatCurrency(order.totalAmount, currency), bold: true },
+        { label: d.totals.total, value: formatCurrency(order.totalAmount, currency, localeToIntl(locale)), bold: true },
       ],
-      footer: `Товарная накладная имеет юридическую силу при наличии подписей и печати.\nСумма прописью: ${numberToWords(order.totalAmount)}`,
+      footer: `${d.extras.legalForce}\n${d.totals.sumInWords} ${numberToWords(order.totalAmount, locale)}`,
       copies: 2,
-      copyLabel: (n) => n === 1 ? 'Экземпляр поставщика' : 'Экземпляр покупателя',
+      copyLabel: (n) => n === 1 ? d.common.copySupplier : d.common.copyBuyer,
       signatures: [
-        { label: 'Отпуск разрешил', value: seller?.director || '_______________' },
-        { label: 'Сдал (отпуск произвёл)', value: '_______________' },
-        { label: 'Груз получил', value: '_______________' },
-        { label: 'Груз принял', value: '_______________' },
+        { label: d.signatures.allowedBy, value: seller?.director || '_______________' },
+        { label: d.signatures.issued, value: '_______________' },
+        { label: d.signatures.receivedBy, value: '_______________' },
+        { label: d.signatures.acceptedBy, value: '_______________' },
       ],
     };
   },
 };
 
 const updForm: IFormRenderer = {
-  async build({ prisma, currency, seller }, id) {
+  async build({ prisma, currency, seller, locale }, id) {
+    const d = getDict(locale);
     const order = await prisma.order.findUnique({
       where: { id },
       include: { customer: true, items: { include: { product: true } } },
@@ -176,20 +187,22 @@ const updForm: IFormRenderer = {
     const totalNoVat = order.totalAmount - totalVat;
 
     return {
-      title: 'УНИВЕРСАЛЬНЫЙ ПЕРЕДАТОЧНЫЙ ДОКУМЕНТ',
+      title: d.forms.upd,
       number: `УПД-${String(order.id).padStart(6, '0')}`,
       date: order.createdAt,
       seller: seller || defaultSeller(),
       buyer: partyFromCustomer(order.customer),
+      locale,
+      currency,
       columns: [
-        { key: 'no', label: '№', width: 26, align: 'center' },
-        { key: 'name', label: 'Наименование', width: 170, align: 'left' },
-        { key: 'unit', label: 'Ед.', width: 36, align: 'center' },
-        { key: 'qty', label: 'Кол-во', width: 40, align: 'right' },
-        { key: 'price', label: 'Цена', width: 65, align: 'right', formatter: (v) => formatCurrency(v || 0, currency) },
-        { key: 'noVat', label: 'Без НДС', width: 70, align: 'right', formatter: (v) => formatCurrency(v || 0, currency) },
-        { key: 'vat', label: 'НДС', width: 55, align: 'right', formatter: (v) => formatCurrency(v || 0, currency) },
-        { key: 'sum', label: 'С НДС', width: 70, align: 'right', formatter: (v) => formatCurrency(v || 0, currency) },
+        { key: 'no', label: d.common.no, width: 26, align: 'center' },
+        { key: 'name', label: d.common.name, width: 170, align: 'left' },
+        { key: 'unit', label: d.common.unit, width: 36, align: 'center' },
+        { key: 'qty', label: d.common.qty, width: 40, align: 'right' },
+        { key: 'price', label: d.common.price, width: 65, align: 'right', formatter: (v) => formatCurrency(v || 0, currency, localeToIntl(locale)) },
+        { key: 'noVat', label: d.common.noVat, width: 70, align: 'right', formatter: (v) => formatCurrency(v || 0, currency, localeToIntl(locale)) },
+        { key: 'vat', label: d.common.vat, width: 55, align: 'right', formatter: (v) => formatCurrency(v || 0, currency, localeToIntl(locale)) },
+        { key: 'sum', label: d.common.withVat, width: 70, align: 'right', formatter: (v) => formatCurrency(v || 0, currency, localeToIntl(locale)) },
       ],
       rows: order.items.map((it, i) => {
         const sum = it.unitPrice * it.quantity;
@@ -206,21 +219,22 @@ const updForm: IFormRenderer = {
         };
       }),
       totals: [
-        { label: 'Итого без НДС:', value: formatCurrency(totalNoVat, currency) },
-        { label: 'НДС (12%):', value: formatCurrency(totalVat, currency) },
-        { label: 'Всего с НДС:', value: formatCurrency(order.totalAmount, currency), bold: true },
+        { label: d.totals.subtotal, value: formatCurrency(totalNoVat, currency, localeToIntl(locale)) },
+        { label: d.totals.vat, value: formatCurrency(totalVat, currency, localeToIntl(locale)) },
+        { label: d.totals.total, value: formatCurrency(order.totalAmount, currency, localeToIntl(locale)), bold: true },
       ],
-      footer: 'Статус: 1 (СЧФДОП — счёт-фактура и передаточный документ).\nСумма прописью: ' + numberToWords(order.totalAmount),
+      footer: `${d.extras.typeSFDOP}\n${d.totals.sumInWords} ${numberToWords(order.totalAmount, locale)}`,
       signatures: [
-        { label: 'Сдал (продавец)', value: '_______________' },
-        { label: 'Принял (покупатель)', value: '_______________' },
+        { label: `${d.signatures.issued} (${d.party.subSeller})`, value: '_______________' },
+        { label: `${d.signatures.acceptedBy} (${d.party.subBuyer})`, value: '_______________' },
       ],
     };
   },
 };
 
 const actForm: IFormRenderer = {
-  async build({ prisma, currency, seller }, id) {
+  async build({ prisma, currency, seller, locale }, id) {
+    const d = getDict(locale);
     const order = await prisma.order.findUnique({
       where: { id },
       include: { customer: true, items: { include: { product: true } } },
@@ -228,18 +242,20 @@ const actForm: IFormRenderer = {
     if (!order) throw new Error(`Order ${id} not found`);
 
     return {
-      title: 'АКТ ВЫПОЛНЕННЫХ РАБОТ (ОКАЗАННЫХ УСЛУГ)',
+      title: d.forms.act,
       number: `А-${String(order.id).padStart(6, '0')}`,
       date: order.createdAt,
       seller: seller || defaultSeller(),
       buyer: partyFromCustomer(order.customer),
+      locale,
+      currency,
       columns: [
-        { key: 'no', label: '№', width: 28, align: 'center' },
-        { key: 'name', label: 'Наименование работ (услуг)', width: 270, align: 'left' },
-        { key: 'qty', label: 'Кол-во', width: 50, align: 'right' },
-        { key: 'unit', label: 'Ед.', width: 40, align: 'center' },
-        { key: 'price', label: 'Цена', width: 70, align: 'right', formatter: (v) => formatCurrency(v || 0, currency) },
-        { key: 'sum', label: 'Сумма', width: 80, align: 'right', formatter: (v) => formatCurrency(v || 0, currency) },
+        { key: 'no', label: d.common.no, width: 28, align: 'center' },
+        { key: 'name', label: d.common.name, width: 270, align: 'left' },
+        { key: 'qty', label: d.common.qty, width: 50, align: 'right' },
+        { key: 'unit', label: d.common.unit, width: 40, align: 'center' },
+        { key: 'price', label: d.common.price, width: 70, align: 'right', formatter: (v) => formatCurrency(v || 0, currency, localeToIntl(locale)) },
+        { key: 'sum', label: d.common.sum, width: 80, align: 'right', formatter: (v) => formatCurrency(v || 0, currency, localeToIntl(locale)) },
       ],
       rows: order.items.map((it, i) => ({
         no: i + 1,
@@ -250,14 +266,14 @@ const actForm: IFormRenderer = {
         sum: it.unitPrice * it.quantity,
       })),
       totals: [
-        { label: 'Итого:', value: formatCurrency(order.totalAmount, currency), bold: true },
+        { label: d.totals.total, value: formatCurrency(order.totalAmount, currency, localeToIntl(locale)), bold: true },
       ],
-      footer: `Сумма прописью: ${numberToWords(order.totalAmount)}`,
+      footer: `${d.totals.sumInWords} ${numberToWords(order.totalAmount, locale)}`,
       copies: 2,
-      copyLabel: (n) => n === 1 ? 'Экземпляр исполнителя' : 'Экземпляр заказчика',
+      copyLabel: (n) => n === 1 ? d.common.copyExecutor : d.common.copyCustomer,
       signatures: [
-        { label: 'Работы сдал (исполнитель)', value: '_______________' },
-        { label: 'Работы принял (заказчик)', value: '_______________' },
+        { label: d.signatures.delivered, value: '_______________' },
+        { label: d.signatures.accepted, value: '_______________' },
       ],
     };
   },
@@ -266,7 +282,8 @@ const actForm: IFormRenderer = {
 // ==================== STAGE 2: Warehouse ====================
 
 const m4Form: IFormRenderer = {
-  async build({ prisma, currency, seller }, id) {
+  async build({ prisma, currency, seller, locale }, id) {
+    const d = getDict(locale);
     const receipt = await prisma.productReceipt.findUnique({
       where: { id },
       include: { supplier: true, warehouse: true, user: true, items: { include: { product: true } } },
@@ -274,18 +291,20 @@ const m4Form: IFormRenderer = {
     if (!receipt) throw new Error(`ProductReceipt ${id} not found`);
 
     return {
-      title: 'ПРИХОДНЫЙ ОРДЕР (М-4)',
+      title: d.forms.m4,
       number: String(receipt.id),
       date: receipt.date,
       seller: seller || defaultSeller(),
       buyer: partyFromSupplier(receipt.supplier),
+      locale,
+      currency,
       columns: [
-        { key: 'no', label: '№', width: 26, align: 'center' },
-        { key: 'name', label: 'Наименование товара', width: 220, align: 'left' },
-        { key: 'unit', label: 'Ед. изм.', width: 50, align: 'center' },
-        { key: 'qty', label: 'Кол-во', width: 60, align: 'right' },
-        { key: 'price', label: 'Цена', width: 80, align: 'right', formatter: (v) => formatCurrency(v || 0, currency) },
-        { key: 'sum', label: 'Сумма', width: 100, align: 'right', formatter: (v) => formatCurrency(v || 0, currency) },
+        { key: 'no', label: d.common.no, width: 26, align: 'center' },
+        { key: 'name', label: d.common.name, width: 220, align: 'left' },
+        { key: 'unit', label: d.common.unit, width: 50, align: 'center' },
+        { key: 'qty', label: d.common.qty, width: 60, align: 'right' },
+        { key: 'price', label: d.common.price, width: 80, align: 'right', formatter: (v) => formatCurrency(v || 0, currency, localeToIntl(locale)) },
+        { key: 'sum', label: d.common.sum, width: 100, align: 'right', formatter: (v) => formatCurrency(v || 0, currency, localeToIntl(locale)) },
       ],
       rows: receipt.items.map((it, i) => ({
         no: i + 1,
@@ -296,19 +315,20 @@ const m4Form: IFormRenderer = {
         sum: it.unitPrice * it.quantity,
       })),
       totals: [
-        { label: 'Итого:', value: formatCurrency(receipt.totalAmount, currency), bold: true },
+        { label: d.totals.total, value: formatCurrency(receipt.totalAmount, currency, localeToIntl(locale)), bold: true },
       ],
-      footer: `Принял на склад: ${receipt.warehouse?.name || '—'}. Дата приёмки: ${formatDate(receipt.date)}`,
+      footer: `${d.extras.receive} ${receipt.warehouse?.name || '—'}. ${formatDate(receipt.date, localeToIntl(locale))}`,
       signatures: [
-        { label: 'Сдал (экспедитор)', value: '_______________' },
-        { label: 'Принял (зав. складом)', value: '_______________' },
+        { label: d.signatures.issued, value: '_______________' },
+        { label: d.signatures.releasedBy, value: '_______________' },
       ],
     };
   },
 };
 
 const m11Form: IFormRenderer = {
-  async build({ prisma, currency, seller }, id) {
+  async build({ prisma, currency, seller, locale }, id) {
+    const d = getDict(locale);
     const issue = await prisma.productIssue.findUnique({
       where: { id },
       include: { warehouse: true, customer: true, user: true, items: { include: { product: true } } },
@@ -316,17 +336,19 @@ const m11Form: IFormRenderer = {
     if (!issue) throw new Error(`ProductIssue ${id} not found`);
 
     return {
-      title: 'ТРЕБОВАНИЕ-НАКЛАДНАЯ (М-11)',
+      title: d.forms.m11,
       number: String(issue.id),
       date: issue.date,
       seller: { name: issue.warehouse?.name || 'Склад', address: issue.warehouse?.address || '—' },
-      buyer: issue.customer ? partyFromCustomer(issue.customer) : { name: issue.type || 'Производственное подразделение' },
+      buyer: issue.customer ? partyFromCustomer(issue.customer) : { name: d.party.inProduction },
+      locale,
+      currency,
       columns: [
-        { key: 'no', label: '№', width: 26, align: 'center' },
-        { key: 'name', label: 'Наименование', width: 240, align: 'left' },
-        { key: 'unit', label: 'Ед. изм.', width: 50, align: 'center' },
-        { key: 'qty', label: 'Затребовано', width: 70, align: 'right' },
-        { key: 'issued', label: 'Отпущено', width: 70, align: 'right' },
+        { key: 'no', label: d.common.no, width: 26, align: 'center' },
+        { key: 'name', label: d.common.name, width: 240, align: 'left' },
+        { key: 'unit', label: d.common.unit, width: 50, align: 'center' },
+        { key: 'qty', label: d.common.qty, width: 70, align: 'right' },
+        { key: 'issued', label: d.signatures.releasedBy, width: 70, align: 'right' },
       ],
       rows: issue.items.map((it, i) => ({
         no: i + 1,
@@ -336,20 +358,21 @@ const m11Form: IFormRenderer = {
         issued: it.quantity,
       })),
       totals: [
-        { label: 'Итого отпущено:', value: formatNumber(issue.items.reduce((s, it) => s + it.quantity, 0), 0) + ' ед.', bold: true },
+        { label: d.totals.issueTotal, value: formatNumber(issue.items.reduce((s, it) => s + it.quantity, 0), 0, localeToIntl(locale)) + ' ' + d.extras.units, bold: true },
       ],
-      footer: `Дата отпуска: ${formatDate(issue.date)}. Корреспонденция счёта: ${issue.type || '—'}.`,
+      footer: `${d.extras.edIssued} ${formatDate(issue.date, localeToIntl(locale))}. ${d.extras.corrAccount}: ${issue.type || '—'}.`,
       signatures: [
-        { label: 'Разрешил', value: '_______________' },
-        { label: 'Отпустил (зав. складом)', value: '_______________' },
-        { label: 'Получил', value: '_______________' },
+        { label: d.signatures.allowedBy, value: '_______________' },
+        { label: d.signatures.releasedBy, value: '_______________' },
+        { label: d.signatures.receivedBy, value: '_______________' },
       ],
     };
   },
 };
 
 const m15Form: IFormRenderer = {
-  async build({ prisma, currency, seller }, id) {
+  async build({ prisma, currency, seller, locale }, id) {
+    const d = getDict(locale);
     const transfer = await prisma.productTransfer.findUnique({
       where: { id },
       include: { fromWarehouse: true, toWarehouse: true, user: true, items: { include: { product: true } } },
@@ -357,18 +380,20 @@ const m15Form: IFormRenderer = {
     if (!transfer) throw new Error(`ProductTransfer ${id} not found`);
 
     return {
-      title: 'НАКЛАДНАЯ НА ВНУТРЕННЕЕ ПЕРЕМЕЩЕНИЕ (М-15)',
+      title: d.forms.m15,
       number: String(transfer.id),
       date: transfer.date,
       seller: { name: transfer.fromWarehouse?.name || 'Склад-отправитель', address: transfer.fromWarehouse?.address || '—' },
       buyer: { name: transfer.toWarehouse?.name || 'Склад-получатель', address: transfer.toWarehouse?.address || '—' },
+      locale,
+      currency,
       columns: [
-        { key: 'no', label: '№', width: 26, align: 'center' },
-        { key: 'name', label: 'Наименование', width: 230, align: 'left' },
-        { key: 'unit', label: 'Ед. изм.', width: 50, align: 'center' },
-        { key: 'qty', label: 'Кол-во', width: 60, align: 'right' },
-        { key: 'price', label: 'Цена', width: 80, align: 'right', formatter: (v) => formatCurrency(v || 0, currency) },
-        { key: 'sum', label: 'Сумма', width: 100, align: 'right', formatter: (v) => formatCurrency(v || 0, currency) },
+        { key: 'no', label: d.common.no, width: 26, align: 'center' },
+        { key: 'name', label: d.common.name, width: 230, align: 'left' },
+        { key: 'unit', label: d.common.unit, width: 50, align: 'center' },
+        { key: 'qty', label: d.common.qty, width: 60, align: 'right' },
+        { key: 'price', label: d.common.price, width: 80, align: 'right', formatter: (v) => formatCurrency(v || 0, currency, localeToIntl(locale)) },
+        { key: 'sum', label: d.common.sum, width: 100, align: 'right', formatter: (v) => formatCurrency(v || 0, currency, localeToIntl(locale)) },
       ],
       rows: transfer.items.map((it, i) => ({
         no: i + 1,
@@ -379,19 +404,20 @@ const m15Form: IFormRenderer = {
         sum: (it.costPrice || 0) * it.quantity,
       })),
       totals: [
-        { label: 'Итого:', value: formatCurrency(transfer.items.reduce((s, it) => s + (it.costPrice || 0) * it.quantity, 0), currency), bold: true },
+        { label: d.totals.total, value: formatCurrency(transfer.items.reduce((s, it) => s + (it.costPrice || 0) * it.quantity, 0), currency, localeToIntl(locale)), bold: true },
       ],
-      footer: `Перемещение со склада "${transfer.fromWarehouse?.name || '—'}" на склад "${transfer.toWarehouse?.name || '—'}". Дата: ${formatDate(transfer.date)}.`,
+      footer: `${d.extras.transferFrom} "${transfer.fromWarehouse?.name || '—'}" ${d.extras.transferTo} "${transfer.toWarehouse?.name || '—'}". ${formatDate(transfer.date, localeToIntl(locale))}.`,
       signatures: [
-        { label: 'Отпустил (зав. складом)', value: '_______________' },
-        { label: 'Принял (получатель)', value: '_______________' },
+        { label: d.signatures.releasedBy, value: '_______________' },
+        { label: d.signatures.receivedBy, value: '_______________' },
       ],
     };
   },
 };
 
 const inv3Form: IFormRenderer = {
-  async build({ prisma, currency, seller }, id) {
+  async build({ prisma, currency, seller, locale }, id) {
+    const d = getDict(locale);
     const wh = await prisma.warehouse.findUnique({ where: { id } });
     if (!wh) throw new Error(`Warehouse ${id} not found`);
     const balances = await prisma.stockBalance.findMany({
@@ -401,20 +427,22 @@ const inv3Form: IFormRenderer = {
     });
 
     return {
-      title: 'ИНВЕНТАРИЗАЦИОННАЯ ОПИСЬ (ИНВ-3)',
+      title: d.forms.inv3,
       number: `ИНВ-${id}`,
       date: new Date(),
       seller: seller || defaultSeller(),
       buyer: { name: wh.name, address: wh.address },
       paperSize: 'A4',
       orientation: 'landscape',
+      locale,
+      currency,
       columns: [
-        { key: 'no', label: '№', width: 28, align: 'center' },
-        { key: 'name', label: 'Наименование', width: 280, align: 'left' },
-        { key: 'unit', label: 'Ед.', width: 50, align: 'center' },
-        { key: 'accountQty', label: 'По учёту', width: 70, align: 'right' },
-        { key: 'factQty', label: 'Фактически', width: 70, align: 'right' },
-        { key: 'diff', label: 'Отклонение', width: 80, align: 'right' },
+        { key: 'no', label: d.common.no, width: 28, align: 'center' },
+        { key: 'name', label: d.common.name, width: 280, align: 'left' },
+        { key: 'unit', label: d.common.unit, width: 50, align: 'center' },
+        { key: 'accountQty', label: d.extras.inventory, width: 70, align: 'right' },
+        { key: 'factQty', label: d.extras.inventory, width: 70, align: 'right' },
+        { key: 'diff', label: '±', width: 80, align: 'right' },
       ],
       rows: balances.map((b, i) => ({
         no: i + 1,
@@ -425,15 +453,15 @@ const inv3Form: IFormRenderer = {
         diff: 0,
       })),
       totals: [
-        { label: 'Всего наименований:', value: String(balances.length), bold: true },
-        { label: 'Общее кол-во по учёту:', value: formatNumber(balances.reduce((s, b) => s + b.quantity, 0), 0) + ' ед.', bold: true },
+        { label: d.extras.itemsCount, value: String(balances.length), bold: true },
+        { label: d.extras.totalQty, value: formatNumber(balances.reduce((s, b) => s + b.quantity, 0), 0, localeToIntl(locale)) + ' ' + d.extras.units, bold: true },
       ],
-      footer: `Инвентаризация на складе "${wh.name}". Материально ответственное лицо: _________________`,
+      footer: `${d.extras.inventory} "${wh.name}". ${d.signatures.mol}: _________________`,
       signatures: [
-        { label: 'Председатель комиссии', value: '_______________' },
-        { label: 'Член комиссии', value: '_______________' },
-        { label: 'Член комиссии', value: '_______________' },
-        { label: 'Материально ответственное лицо', value: '_______________' },
+        { label: d.signatures.commissionChair, value: '_______________' },
+        { label: d.signatures.commissionMember, value: '_______________' },
+        { label: d.signatures.commissionMember, value: '_______________' },
+        { label: d.signatures.mol, value: '_______________' },
       ],
     };
   },
@@ -442,7 +470,8 @@ const inv3Form: IFormRenderer = {
 // ==================== STAGE 3: Cash / Bank ====================
 
 const pkoForm: IFormRenderer = {
-  async build({ prisma, currency, seller }, id) {
+  async build({ prisma, currency, seller, locale }, id) {
+    const d = getDict(locale);
     const order = await prisma.cashOrder.findUnique({
       where: { id },
       include: { register: true, user: true },
@@ -450,25 +479,28 @@ const pkoForm: IFormRenderer = {
     if (!order) throw new Error(`CashOrder ${id} not found`);
 
     return {
-      title: 'ПРИХОДНЫЙ КАССОВЫЙ ОРДЕР (КО-1)',
+      title: d.forms.pko,
       number: String(order.id),
       date: order.createdAt,
       seller: seller || defaultSeller(),
       buyer: { name: order.counterparty || '—' },
+      locale,
+      currency,
       columns: [],
       rows: [],
-      footer: `Основание: ${order.basis || '—'}\n\nСумма прописью: ${numberToWords(order.amount)}`,
+      footer: `${d.extras.basis} ${order.basis || '—'}\n\n${d.totals.sumInWords} ${numberToWords(order.amount, locale)}`,
       signatures: [
-        { label: 'Главный бухгалтер', value: '_______________' },
-        { label: 'Получил кассир', value: '_______________' },
-        { label: 'Принял от', value: '_______________' },
+        { label: d.signatures.accountant, value: '_______________' },
+        { label: `${d.signatures.cashier} (${d.signatures.receivedBy})`, value: '_______________' },
+        { label: d.signatures.receivedBy, value: '_______________' },
       ],
     };
   },
 };
 
 const rkoForm: IFormRenderer = {
-  async build({ prisma, currency, seller }, id) {
+  async build({ prisma, currency, seller, locale }, id) {
+    const d = getDict(locale);
     const order = await prisma.cashOrder.findUnique({
       where: { id },
       include: { register: true, user: true },
@@ -476,26 +508,29 @@ const rkoForm: IFormRenderer = {
     if (!order) throw new Error(`CashOrder ${id} not found`);
 
     return {
-      title: 'РАСХОДНЫЙ КАССОВЫЙ ОРДЕР (КО-2)',
+      title: d.forms.rko,
       number: String(order.id),
       date: order.createdAt,
       seller: seller || defaultSeller(),
       buyer: { name: order.counterparty || '—' },
+      locale,
+      currency,
       columns: [],
       rows: [],
-      footer: `Основание: ${order.basis || '—'}\n\nСумма прописью: ${numberToWords(order.amount)}`,
+      footer: `${d.extras.basis} ${order.basis || '—'}\n\n${d.totals.sumInWords} ${numberToWords(order.amount, locale)}`,
       signatures: [
-        { label: 'Руководитель', value: '_______________' },
-        { label: 'Главный бухгалтер', value: '_______________' },
-        { label: 'Получил', value: '_______________' },
-        { label: 'Выдал кассир', value: '_______________' },
+        { label: d.signatures.director, value: '_______________' },
+        { label: d.signatures.accountant, value: '_______________' },
+        { label: d.signatures.receivedBy, value: '_______________' },
+        { label: `${d.signatures.cashier} (${d.signatures.issued})`, value: '_______________' },
       ],
     };
   },
 };
 
 const ko4Form: IFormRenderer = {
-  async build({ prisma, currency, seller }, id) {
+  async build({ prisma, currency, seller, locale }, id) {
+    const d = getDict(locale);
     const reg = await prisma.cashRegister.findUnique({ where: { id } });
     if (!reg) throw new Error(`CashRegister ${id} not found`);
     const orders = await prisma.cashOrder.findMany({
@@ -504,20 +539,22 @@ const ko4Form: IFormRenderer = {
     });
 
     return {
-      title: 'КАССОВАЯ КНИГА (КО-4)',
+      title: d.forms.ko4,
       number: `КО-4-${id}`,
       date: new Date(),
       seller: seller || defaultSeller(),
       buyer: { name: reg.name, address: reg.currency },
       paperSize: 'A4',
       orientation: 'landscape',
+      locale,
+      currency,
       columns: [
-        { key: 'date', label: 'Дата', width: 80, align: 'left', formatter: (v) => formatDate(v) },
-        { key: 'no', label: '№ документа', width: 80, align: 'left' },
-        { key: 'who', label: 'От кого / Кому', width: 180, align: 'left' },
-        { key: 'corr', label: 'Корр. счёт', width: 80, align: 'left' },
-        { key: 'income', label: 'Приход', width: 90, align: 'right', formatter: (v) => v ? formatCurrency(v, currency) : '' },
-        { key: 'expense', label: 'Расход', width: 90, align: 'right', formatter: (v) => v ? formatCurrency(v, currency) : '' },
+        { key: 'date', label: d.common.date, width: 80, align: 'left', formatter: (v) => formatDate(v, localeToIntl(locale)) },
+        { key: 'no', label: '№', width: 80, align: 'left' },
+        { key: 'who', label: `${d.party.payer} / ${d.party.payee}`, width: 180, align: 'left' },
+        { key: 'corr', label: d.extras.corrAccount, width: 80, align: 'left' },
+        { key: 'income', label: d.totals.income, width: 90, align: 'right', formatter: (v) => v ? formatCurrency(v, currency, localeToIntl(locale)) : '' },
+        { key: 'expense', label: d.totals.expense, width: 90, align: 'right', formatter: (v) => v ? formatCurrency(v, currency, localeToIntl(locale)) : '' },
       ],
       rows: orders.map((o) => ({
         date: o.createdAt,
@@ -528,21 +565,22 @@ const ko4Form: IFormRenderer = {
         expense: o.type === 'Expense' ? o.amount : null,
       })),
       totals: [
-        { label: 'Итого приход:', value: formatCurrency(orders.filter((o) => o.type === 'Income').reduce((s, o) => s + o.amount, 0), currency), bold: true },
-        { label: 'Итого расход:', value: formatCurrency(orders.filter((o) => o.type === 'Expense').reduce((s, o) => s + o.amount, 0), currency), bold: true },
-        { label: 'Остаток:', value: formatCurrency(reg.balance, currency), bold: true },
+        { label: `${d.totals.income}:`, value: formatCurrency(orders.filter((o) => o.type === 'Income').reduce((s, o) => s + o.amount, 0), currency, localeToIntl(locale)), bold: true },
+        { label: `${d.totals.expense}:`, value: formatCurrency(orders.filter((o) => o.type === 'Expense').reduce((s, o) => s + o.amount, 0), currency, localeToIntl(locale)), bold: true },
+        { label: `${d.totals.balance}:`, value: formatCurrency(reg.balance, currency, localeToIntl(locale)), bold: true },
       ],
-      footer: `Кассовая книга за период. Касса: ${reg.name}. Валюта: ${reg.currency || 'KZT'}.`,
+      footer: `${d.forms.ko4}. ${d.extras.warehouse}: ${reg.name}. ${d.extras.units}: ${reg.currency || 'KZT'}.`,
       signatures: [
-        { label: 'Кассир', value: '_______________' },
-        { label: 'Главный бухгалтер', value: '_______________' },
+        { label: d.signatures.cashier, value: '_______________' },
+        { label: d.signatures.accountant, value: '_______________' },
       ],
     };
   },
 };
 
 const paymentOrderForm: IFormRenderer = {
-  async build({ prisma, currency, seller }, id) {
+  async build({ prisma, currency, seller, locale }, id) {
+    const d = getDict(locale);
     const order = await prisma.bankOrder.findUnique({
       where: { id },
       include: { account: true, user: true },
@@ -550,30 +588,33 @@ const paymentOrderForm: IFormRenderer = {
     if (!order) throw new Error(`BankOrder ${id} not found`);
 
     return {
-      title: 'ПЛАТЁЖНОЕ ПОРУЧЕНИЕ',
+      title: d.forms.paymentOrder,
       number: String(order.id),
       date: order.createdAt,
       seller: seller || defaultSeller(),
       buyer: { name: order.counterparty || '—' },
+      locale,
+      currency,
       columns: [],
       rows: [],
       footer:
-        `Вид платежа: ${order.type === 'In' ? 'входящий' : 'исходящий'}\n` +
-        `Сумма: ${formatCurrency(order.amount, currency)}\n` +
-        `Сумма прописью: ${numberToWords(order.amount)}\n` +
-        `Назначение платежа: ${order.purpose || '—'}\n` +
-        `Счёт: ${order.account?.accountNo || '—'} (${order.account?.bankName || '—'}, БИК ${order.account?.bik || '—'})\n` +
-        `Контрагент: ${order.counterparty || '—'}`,
+        `${d.extras.kindPayment} ${order.type === 'In' ? d.extras.incoming : d.extras.outgoing}\n` +
+        `${d.totals.total.replace(':', '')}: ${formatCurrency(order.amount, currency, localeToIntl(locale))}\n` +
+        `${d.totals.sumInWords} ${numberToWords(order.amount, locale)}\n` +
+        `${d.extras.purpose} ${order.purpose || '—'}\n` +
+        `${d.extras.accountShort} ${order.account?.accountNo || '—'} (${order.account?.bankName || '—'}, ${d.extras.bikShort} ${order.account?.bik || '—'})\n` +
+        `${d.extras.counterparty} ${order.counterparty || '—'}`,
       signatures: [
-        { label: 'Подпись руководителя', value: '_______________' },
-        { label: 'М.П.', value: '' },
+        { label: d.signatures.director, value: '_______________' },
+        { label: d.signatures.seal, value: '' },
       ],
     };
   },
 };
 
 const bankStatementForm: IFormRenderer = {
-  async build({ prisma, currency, seller }, id) {
+  async build({ prisma, currency, seller, locale }, id) {
+    const d = getDict(locale);
     const acc = await prisma.bankAccount.findUnique({ where: { id } });
     if (!acc) throw new Error(`BankAccount ${id} not found`);
     const orders = await prisma.bankOrder.findMany({
@@ -582,20 +623,22 @@ const bankStatementForm: IFormRenderer = {
     });
 
     return {
-      title: 'БАНКОВСКАЯ ВЫПИСКА',
+      title: d.forms.bankStatement,
       number: `БВ-${id}`,
       date: new Date(),
       seller: seller || defaultSeller(),
       buyer: { name: acc.name, account: acc.accountNo, bank: acc.bankName, bik: acc.bik },
       paperSize: 'A4',
       orientation: 'landscape',
+      locale,
+      currency,
       columns: [
-        { key: 'date', label: 'Дата', width: 80, align: 'left', formatter: (v) => formatDate(v) },
-        { key: 'no', label: '№ документа', width: 80, align: 'left' },
-        { key: 'counterparty', label: 'Корреспондент', width: 200, align: 'left' },
-        { key: 'purpose', label: 'Назначение', width: 200, align: 'left' },
-        { key: 'debit', label: 'Дебет', width: 90, align: 'right', formatter: (v) => v ? formatCurrency(v, currency) : '' },
-        { key: 'credit', label: 'Кредит', width: 90, align: 'right', formatter: (v) => v ? formatCurrency(v, currency) : '' },
+        { key: 'date', label: d.common.date, width: 80, align: 'left', formatter: (v) => formatDate(v, localeToIntl(locale)) },
+        { key: 'no', label: '№', width: 80, align: 'left' },
+        { key: 'counterparty', label: d.party.payer, width: 200, align: 'left' },
+        { key: 'purpose', label: d.extras.purpose, width: 200, align: 'left' },
+        { key: 'debit', label: d.totals.debit, width: 90, align: 'right', formatter: (v) => v ? formatCurrency(v, currency, localeToIntl(locale)) : '' },
+        { key: 'credit', label: d.totals.credit, width: 90, align: 'right', formatter: (v) => v ? formatCurrency(v, currency, localeToIntl(locale)) : '' },
       ],
       rows: orders.map((o) => ({
         date: o.createdAt,
@@ -606,18 +649,25 @@ const bankStatementForm: IFormRenderer = {
         credit: o.type === 'In' ? o.amount : null,
       })),
       totals: [
-        { label: 'Итого дебет:', value: formatCurrency(orders.filter((o) => o.type === 'Out').reduce((s, o) => s + o.amount, 0), currency), bold: true },
-        { label: 'Итого кредит:', value: formatCurrency(orders.filter((o) => o.type === 'In').reduce((s, o) => s + o.amount, 0), currency), bold: true },
-        { label: 'Остаток:', value: formatCurrency(acc.balance, currency), bold: true },
+        { label: `${d.totals.debit}:`, value: formatCurrency(orders.filter((o) => o.type === 'Out').reduce((s, o) => s + o.amount, 0), currency, localeToIntl(locale)), bold: true },
+        { label: `${d.totals.credit}:`, value: formatCurrency(orders.filter((o) => o.type === 'In').reduce((s, o) => s + o.amount, 0), currency, localeToIntl(locale)), bold: true },
+        { label: `${d.totals.balance}:`, value: formatCurrency(acc.balance, currency, localeToIntl(locale)), bold: true },
       ],
-      footer: `Счёт: ${acc.accountNo || '—'}. Банк: ${acc.bankName || '—'}. БИК: ${acc.bik || '—'}. Валюта: ${acc.currency || 'KZT'}.`,
+      footer: `${d.extras.accountShort} ${acc.accountNo || '—'}. ${d.party.bank}: ${acc.bankName || '—'}. ${d.party.bik}: ${acc.bik || '—'}. ${d.extras.units}: ${acc.currency || 'KZT'}.`,
       signatures: [
-        { label: 'Начальник отдела', value: '_______________' },
-        { label: 'Главный бухгалтер', value: '_______________' },
+        { label: d.signatures.headOfDept, value: '_______________' },
+        { label: d.signatures.accountant, value: '_______________' },
       ],
     };
   },
 };
+
+function localeToIntl(locale: string): string {
+  const lc = (locale || 'ru').toLowerCase();
+  if (lc.startsWith('kk')) return 'kk-KZ';
+  if (lc.startsWith('en')) return 'en-US';
+  return 'ru-RU';
+}
 
 // ==================== Registry ====================
 

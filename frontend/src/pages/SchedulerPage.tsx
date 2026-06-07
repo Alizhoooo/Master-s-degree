@@ -51,7 +51,7 @@ export default function SchedulerPage() {
             <Table.Tr key={j.id}>
               <Table.Td><strong>{j.name}</strong></Table.Td>
               <Table.Td><Code>{j.cron}</Code></Table.Td>
-              <Table.Td>{t(`scheduler.handlers.${j.handler}`, j.handler)}</Table.Td>
+              <Table.Td>{t(`scheduler.handlers.${j.handler}`, j.handler) as string}</Table.Td>
               <Table.Td><Badge color={j.enabled ? 'green' : 'gray'}>{j.enabled ? t('common.yes') : t('common.no')}</Badge></Table.Td>
               <Table.Td>{j.lastRunAt ? new Date(j.lastRunAt).toLocaleString() : '-'}</Table.Td>
               <Table.Td><Badge color={j.lastStatus === 'Success' ? 'green' : j.lastStatus === 'Failed' ? 'red' : 'gray'}>{j.lastStatus || '-'}</Badge></Table.Td>

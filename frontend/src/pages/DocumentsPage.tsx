@@ -80,7 +80,7 @@ export default function DocumentsPage() {
                 {(documents as any[]).map((d: any) => (
                   <Table.Tr key={d.id}>
                     <Table.Td><strong>{d.number}</strong></Table.Td>
-                    <Table.Td><Badge color={typeColors[d.type] || 'gray'}>{enumLabel(d.type, 'docStatus') || t(`enum.docType.${d.type}`, d.type)}</Badge></Table.Td>
+                    <Table.Td><Badge color={typeColors[d.type] || 'gray'}>{(enumLabel(d.type, 'docStatus') || t(`enum.docType.${d.type}`, d.type)) as string}</Badge></Table.Td>
                     <Table.Td>{new Date(d.date).toLocaleDateString()}</Table.Td>
                     <Table.Td>{d.customer?.company || '-'}</Table.Td>
                     <Table.Td><strong>{d.totalAmount.toFixed(2)}</strong></Table.Td>

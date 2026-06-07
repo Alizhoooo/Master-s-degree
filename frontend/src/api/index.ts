@@ -535,12 +535,15 @@ export async function listPrintForms(entityType?: string): Promise<PrintForm[]> 
   return request(path);
 }
 
-export async function renderPrintForm(entityType: string, entityId: number, formCode: string): Promise<Blob> {
+export async function renderPrintForm(entityType: string, entityId: number, formCode: string, locale?: string): Promise<Blob> {
   let token = getToken();
   const headers: any = {};
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  let res = await fetch(`${API}/printing/render/${entityType}/${entityId}/${formCode}`, { headers });
+  const lc = locale || (typeof localStorage !== 'undefined' ? localStorage.getItem('i18nextLng') : null) || 'ru';
+  const url = `${API}/printing/render/${entityType}/${entityId}/${formCode}?locale=${encodeURIComponent(lc)}`;
+
+  let res = await fetch(url, { headers });
 
   if (res.status === 401 && token) {
     try {
@@ -548,7 +551,7 @@ export async function renderPrintForm(entityType: string, entityId: number, form
       const newToken = await refreshTokenIfNeeded();
       if (newToken) {
         headers['Authorization'] = `Bearer ${newToken}`;
-        res = await fetch(`${API}/printing/render/${entityType}/${entityId}/${formCode}`, { headers });
+        res = await fetch(url, { headers });
       }
     } catch {}
   }

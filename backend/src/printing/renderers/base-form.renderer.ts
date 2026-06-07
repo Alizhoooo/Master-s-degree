@@ -1,5 +1,6 @@
 import { registerCyrillicFonts, font, formatDate, formatNumber } from './pdfkit-helpers';
 import { drawTable, Column } from './pdfkit-table';
+import { t, getDict } from './pdf-translations';
 
 type PDFKit = any;
 
@@ -77,6 +78,9 @@ export function createPdfBuffer(opts: BaseRenderOptions): Promise<Buffer> {
         if (copyIdx > 0) doc.addPage();
         let y = yStart;
 
+        const locale = opts.locale || 'ru';
+        const dict = getDict(locale);
+
         // Title
         doc.font(font('bold')).fontSize(16).fillColor('#000');
         doc.text(opts.title, margin, y, { width: contentWidth, align: 'center' });
@@ -86,11 +90,11 @@ export function createPdfBuffer(opts: BaseRenderOptions): Promise<Buffer> {
         doc.font(font('regular')).fontSize(9).fillColor('#444');
         const sub: string[] = [];
         if (opts.number) sub.push(`№ ${opts.number}`);
-        if (opts.date) sub.push(`от ${formatDate(opts.date, opts.locale || 'ru-RU')}`);
+        if (opts.date) sub.push(`${dict.extras.onDate} ${formatDate(opts.date, localeToIntl(locale))}`);
         if (copies > 1) {
           const label = opts.copyLabel
             ? (typeof opts.copyLabel === 'function' ? opts.copyLabel(copyIdx + 1, copies) : opts.copyLabel)
-            : `Экземпляр № ${copyIdx + 1}`;
+            : `${dict.common.copy} ${copyIdx + 1}`;
           sub.push(label);
         }
         if (sub.length) {
@@ -103,8 +107,8 @@ export function createPdfBuffer(opts: BaseRenderOptions): Promise<Buffer> {
         // Parties: seller (left) | buyer (right)
         const colPartyWidth = contentWidth / 2 - 8;
         const partyTop = y;
-        const partyHeight = drawParty(doc, opts.seller, margin, y, colPartyWidth, 'Поставщик / Продавец:');
-        const buyerHeight = drawParty(doc, opts.buyer, margin + contentWidth / 2 + 8, y, colPartyWidth, 'Покупатель:');
+        const partyHeight = drawParty(doc, opts.seller, margin, y, colPartyWidth, dict.party.seller, dict);
+        const buyerHeight = drawParty(doc, opts.buyer, margin + contentWidth / 2 + 8, y, colPartyWidth, dict.party.buyer, dict);
         y += Math.max(partyHeight, buyerHeight) + 8;
 
         // Table
@@ -143,7 +147,7 @@ export function createPdfBuffer(opts: BaseRenderOptions): Promise<Buffer> {
             doc.text(sig.label, sx, sigTop, { width: sigColWidth - 8 });
             doc.moveTo(sx, sigTop + 30).lineTo(sx + sigColWidth - 16, sigTop + 30).stroke('#aaa');
             doc.fontSize(7).fillColor('#999');
-            doc.text('(подпись)', sx, sigTop + 32, { width: sigColWidth - 8 });
+            doc.text(dict.common.signHint, sx, sigTop + 32, { width: sigColWidth - 8 });
             if (sig.value) {
               doc.fontSize(8).fillColor('#000');
               doc.text(sig.value, sx, sigTop + 50, { width: sigColWidth - 8 });
@@ -165,7 +169,14 @@ export function createPdfBuffer(opts: BaseRenderOptions): Promise<Buffer> {
   });
 }
 
-function drawParty(doc: PDFKit, p: PartyInfo, x: number, y: number, w: number, label: string): number {
+function localeToIntl(locale: string): string {
+  const lc = (locale || 'ru').toLowerCase();
+  if (lc.startsWith('kk')) return 'kk-KZ';
+  if (lc.startsWith('en')) return 'en-US';
+  return 'ru-RU';
+}
+
+function drawParty(doc: PDFKit, p: PartyInfo, x: number, y: number, w: number, label: string, dict: any): number {
   doc.font(font('bold')).fontSize(8).fillColor('#1a237e');
   doc.text(label, x, y, { width: w });
   let cy = doc.y + 2;
@@ -173,27 +184,27 @@ function drawParty(doc: PDFKit, p: PartyInfo, x: number, y: number, w: number, l
   doc.text(p.name, x, cy, { width: w });
   cy = doc.y + 2;
   if (p.inn) {
-    doc.text(`ИНН: ${p.inn}${p.kpp ? ' / КПП: ' + p.kpp : ''}`, x, cy, { width: w });
+    doc.text(`${dict.party.inn} ${p.inn}${p.kpp ? ' / ' + dict.party.kpp + ' ' + p.kpp : ''}`, x, cy, { width: w });
     cy = doc.y + 2;
   }
   if (p.address) {
-    doc.text(p.address, x, cy, { width: w });
+    doc.text(`${dict.party.address} ${p.address}`, x, cy, { width: w });
     cy = doc.y + 2;
   }
   if (p.bank) {
-    doc.text(`Банк: ${p.bank}${p.bik ? ' (БИК ' + p.bik + ')' : ''}`, x, cy, { width: w });
+    doc.text(`${dict.party.bank} ${p.bank}${p.bik ? ' (' + dict.party.bik + ' ' + p.bik + ')' : ''}`, x, cy, { width: w });
     cy = doc.y + 2;
   }
   if (p.account) {
-    doc.text(`Р/с: ${p.account}`, x, cy, { width: w });
+    doc.text(`${dict.party.account} ${p.account}`, x, cy, { width: w });
     cy = doc.y + 2;
   }
   if (p.phone) {
-    doc.text(`Тел: ${p.phone}`, x, cy, { width: w });
+    doc.text(`${dict.party.phone} ${p.phone}`, x, cy, { width: w });
     cy = doc.y + 2;
   }
   if (p.email) {
-    doc.text(`Email: ${p.email}`, x, cy, { width: w });
+    doc.text(`${dict.party.email} ${p.email}`, x, cy, { width: w });
     cy = doc.y + 2;
   }
   return cy - y + 4;

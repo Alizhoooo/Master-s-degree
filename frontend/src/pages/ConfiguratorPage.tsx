@@ -81,7 +81,7 @@ export default function ConfiguratorPage() {
             <Table.Tbody>
               {(objects as any[]).map((o: any) => (
                 <Table.Tr key={o.id}>
-                  <Table.Td><Badge>{t(`enum.configKind.${o.kind}`, o.kind)}</Badge></Table.Td>
+                  <Table.Td><Badge>{t(`enum.configKind.${o.kind}`, o.kind) as string}</Badge></Table.Td>
                   <Table.Td><strong>{o.name}</strong></Table.Td>
                   <Table.Td>{o.description || '-'}</Table.Td>
                   <Table.Td>{o.version}</Table.Td>
@@ -108,7 +108,7 @@ export default function ConfiguratorPage() {
               {(templates as any[]).map((tpl: any) => (
                 <Table.Tr key={tpl.id}>
                   <Table.Td><strong>{tpl.name}</strong></Table.Td>
-                  <Table.Td><Badge>{t(`enum.docType.${tpl.documentType}`, tpl.documentType)}</Badge></Table.Td>
+                  <Table.Td><Badge>{t(`enum.docType.${tpl.documentType}`, tpl.documentType) as string}</Badge></Table.Td>
                   <Table.Td>{tpl.isDefault ? <Badge color="blue">{t('common.yes')}</Badge> : '-'}</Table.Td>
                 </Table.Tr>
               ))}
