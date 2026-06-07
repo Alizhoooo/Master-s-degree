@@ -664,6 +664,7 @@ interface SalesEntity {
   totalAmount: number;
   deliveryAddress?: string | null;
   description?: string | null;
+  documentType?: string;
 }
 
 async function loadSalesEntity(prisma: PrismaService, entityType: string, id: number): Promise<SalesEntity> {
@@ -679,8 +680,16 @@ async function loadSalesEntity(prisma: PrismaService, entityType: string, id: nu
     if (!doc.items || doc.items.length === 0) {
       throw new Error(`Document ${id} has no line items — cannot generate waybill/invoice`);
     }
+    const extractSupplierName = (desc: string | null | undefined): string => {
+      if (!desc) return '—';
+      const m = desc.match(/(?:Поступление от|Приход от|Принято от|от)\s+(.+?)(?:\.|,|$)/i);
+      return (m && m[1] ? m[1].trim() : desc.trim()) || '—';
+    };
+    const counterpartyName = doc.type === 'PurchaseInvoice'
+      ? extractSupplierName(doc.description)
+      : (doc.description || '—');
     const customer = doc.customer || {
-      company: doc.description || `—`,
+      company: counterpartyName,
       contactPerson: null,
       inn: null,
       kpp: null,
@@ -703,6 +712,7 @@ async function loadSalesEntity(prisma: PrismaService, entityType: string, id: nu
       totalAmount: doc.totalAmount,
       deliveryAddress: null,
       description: doc.description,
+      documentType: doc.type,
     };
   }
   const order = await prisma.order.findUnique({

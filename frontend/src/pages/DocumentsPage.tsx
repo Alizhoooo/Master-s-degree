@@ -88,7 +88,7 @@ export default function DocumentsPage() {
                     <Table.Td>{d.posted ? <Badge color="green">{t('enum.documentPostStatus.Posted')}</Badge> : <Badge color="yellow">{t('enum.documentPostStatus.Unposted')}</Badge>}</Table.Td>
                     <Table.Td>
                       <Group gap="xs">
-                        {d.posted && d.type === 'SalesInvoice' && <PrintButton entityType="Document" entityId={d.id} size="xs" />}
+                        {d.posted && (d.type === 'SalesInvoice' || d.type === 'PurchaseInvoice') && <PrintButton entityType="Document" entityId={d.id} size="xs" />}
                         {!d.posted ? (
                           <Button size="xs" leftSection={<IconCheck size={12} />} onClick={() => postMut.mutate(d.id)}>{t('document.post')}</Button>
                         ) : (
