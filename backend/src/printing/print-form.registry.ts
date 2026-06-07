@@ -12,19 +12,15 @@ export interface FormContext {
 }
 
 export interface IFormRenderer {
-  build(ctx: FormContext, id: number): Promise<BaseRenderOptions>;
+  build(ctx: FormContext, entityType: string, id: number): Promise<BaseRenderOptions>;
 }
 
 // ==================== STAGE 1: Sales / Documents ====================
 
 const invoiceForm: IFormRenderer = {
-  async build({ prisma, currency, seller, locale }, id) {
+  async build({ prisma, currency, seller, locale }, entityType, id) {
     const d = getDict(locale);
-    const order = await prisma.order.findUnique({
-      where: { id },
-      include: { customer: true, user: true, items: { include: { product: true } } },
-    });
-    if (!order) throw new Error(`Order ${id} not found`);
+    const order = await loadSalesEntity(prisma, entityType, id);
     const totalVat = order.items.reduce((s, i) => s + (i.vatAmount || 0), 0);
     const totalNoVat = order.totalAmount - totalVat;
 
@@ -69,13 +65,9 @@ const invoiceForm: IFormRenderer = {
 };
 
 const invoiceVatForm: IFormRenderer = {
-  async build({ prisma, currency, seller, locale }, id) {
+  async build({ prisma, currency, seller, locale }, entityType, id) {
     const d = getDict(locale);
-    const order = await prisma.order.findUnique({
-      where: { id },
-      include: { customer: true, items: { include: { product: true } } },
-    });
-    if (!order) throw new Error(`Order ${id} not found`);
+    const order = await loadSalesEntity(prisma, entityType, id);
     const totalNoVat = order.items.reduce((s, i) => s + (i.unitPrice * i.quantity - (i.vatAmount || 0)), 0);
     const totalVat = order.items.reduce((s, i) => s + (i.vatAmount || 0), 0);
 
@@ -127,13 +119,9 @@ const invoiceVatForm: IFormRenderer = {
 };
 
 const torg12Form: IFormRenderer = {
-  async build({ prisma, currency, seller, locale }, id) {
+  async build({ prisma, currency, seller, locale }, entityType, id) {
     const d = getDict(locale);
-    const order = await prisma.order.findUnique({
-      where: { id },
-      include: { customer: true, user: true, items: { include: { product: true } } },
-    });
-    if (!order) throw new Error(`Order ${id} not found`);
+    const order = await loadSalesEntity(prisma, entityType, id);
 
     return {
       title: d.forms.torg12,
@@ -176,13 +164,9 @@ const torg12Form: IFormRenderer = {
 };
 
 const updForm: IFormRenderer = {
-  async build({ prisma, currency, seller, locale }, id) {
+  async build({ prisma, currency, seller, locale }, entityType, id) {
     const d = getDict(locale);
-    const order = await prisma.order.findUnique({
-      where: { id },
-      include: { customer: true, items: { include: { product: true } } },
-    });
-    if (!order) throw new Error(`Order ${id} not found`);
+    const order = await loadSalesEntity(prisma, entityType, id);
     const totalVat = order.items.reduce((s, i) => s + (i.vatAmount || 0), 0);
     const totalNoVat = order.totalAmount - totalVat;
 
@@ -233,13 +217,9 @@ const updForm: IFormRenderer = {
 };
 
 const actForm: IFormRenderer = {
-  async build({ prisma, currency, seller, locale }, id) {
+  async build({ prisma, currency, seller, locale }, entityType, id) {
     const d = getDict(locale);
-    const order = await prisma.order.findUnique({
-      where: { id },
-      include: { customer: true, items: { include: { product: true } } },
-    });
-    if (!order) throw new Error(`Order ${id} not found`);
+    const order = await loadSalesEntity(prisma, entityType, id);
 
     return {
       title: d.forms.act,
@@ -282,7 +262,7 @@ const actForm: IFormRenderer = {
 // ==================== STAGE 2: Warehouse ====================
 
 const m4Form: IFormRenderer = {
-  async build({ prisma, currency, seller, locale }, id) {
+  async build({ prisma, currency, seller, locale }, entityType, id) {
     const d = getDict(locale);
     const receipt = await prisma.productReceipt.findUnique({
       where: { id },
@@ -327,7 +307,7 @@ const m4Form: IFormRenderer = {
 };
 
 const m11Form: IFormRenderer = {
-  async build({ prisma, currency, seller, locale }, id) {
+  async build({ prisma, currency, seller, locale }, entityType, id) {
     const d = getDict(locale);
     const issue = await prisma.productIssue.findUnique({
       where: { id },
@@ -371,7 +351,7 @@ const m11Form: IFormRenderer = {
 };
 
 const m15Form: IFormRenderer = {
-  async build({ prisma, currency, seller, locale }, id) {
+  async build({ prisma, currency, seller, locale }, entityType, id) {
     const d = getDict(locale);
     const transfer = await prisma.productTransfer.findUnique({
       where: { id },
@@ -416,7 +396,7 @@ const m15Form: IFormRenderer = {
 };
 
 const inv3Form: IFormRenderer = {
-  async build({ prisma, currency, seller, locale }, id) {
+  async build({ prisma, currency, seller, locale }, entityType, id) {
     const d = getDict(locale);
     const wh = await prisma.warehouse.findUnique({ where: { id } });
     if (!wh) throw new Error(`Warehouse ${id} not found`);
@@ -470,7 +450,7 @@ const inv3Form: IFormRenderer = {
 // ==================== STAGE 3: Cash / Bank ====================
 
 const pkoForm: IFormRenderer = {
-  async build({ prisma, currency, seller, locale }, id) {
+  async build({ prisma, currency, seller, locale }, entityType, id) {
     const d = getDict(locale);
     const order = await prisma.cashOrder.findUnique({
       where: { id },
@@ -499,7 +479,7 @@ const pkoForm: IFormRenderer = {
 };
 
 const rkoForm: IFormRenderer = {
-  async build({ prisma, currency, seller, locale }, id) {
+  async build({ prisma, currency, seller, locale }, entityType, id) {
     const d = getDict(locale);
     const order = await prisma.cashOrder.findUnique({
       where: { id },
@@ -529,7 +509,7 @@ const rkoForm: IFormRenderer = {
 };
 
 const ko4Form: IFormRenderer = {
-  async build({ prisma, currency, seller, locale }, id) {
+  async build({ prisma, currency, seller, locale }, entityType, id) {
     const d = getDict(locale);
     const reg = await prisma.cashRegister.findUnique({ where: { id } });
     if (!reg) throw new Error(`CashRegister ${id} not found`);
@@ -579,7 +559,7 @@ const ko4Form: IFormRenderer = {
 };
 
 const paymentOrderForm: IFormRenderer = {
-  async build({ prisma, currency, seller, locale }, id) {
+  async build({ prisma, currency, seller, locale }, entityType, id) {
     const d = getDict(locale);
     const order = await prisma.bankOrder.findUnique({
       where: { id },
@@ -613,7 +593,7 @@ const paymentOrderForm: IFormRenderer = {
 };
 
 const bankStatementForm: IFormRenderer = {
-  async build({ prisma, currency, seller, locale }, id) {
+  async build({ prisma, currency, seller, locale }, entityType, id) {
     const d = getDict(locale);
     const acc = await prisma.bankAccount.findUnique({ where: { id } });
     if (!acc) throw new Error(`BankAccount ${id} not found`);
@@ -667,6 +647,73 @@ function localeToIntl(locale: string): string {
   if (lc.startsWith('kk')) return 'kk-KZ';
   if (lc.startsWith('en')) return 'en-US';
   return 'ru-RU';
+}
+
+interface SalesEntity {
+  id: number;
+  date: Date;
+  createdAt: Date;
+  customer: any;
+  items: Array<{
+    productId: number;
+    product: any;
+    quantity: number;
+    unitPrice: number;
+    vatAmount?: number | null;
+  }>;
+  totalAmount: number;
+  deliveryAddress?: string | null;
+}
+
+async function loadSalesEntity(prisma: PrismaService, entityType: string, id: number): Promise<SalesEntity> {
+  if (entityType === 'Document') {
+    const doc = await prisma.document.findUnique({
+      where: { id },
+      include: {
+        customer: true,
+        items: { include: { product: true } },
+      },
+    });
+    if (!doc) throw new Error(`Document ${id} not found`);
+    return {
+      id: doc.id,
+      date: doc.date,
+      createdAt: doc.createdAt,
+      customer: doc.customer,
+      items: doc.items.map((it) => ({
+        productId: it.productId,
+        product: it.product,
+        quantity: it.quantity,
+        unitPrice: it.unitPrice,
+        vatAmount: it.vatAmount,
+      })),
+      totalAmount: doc.totalAmount,
+      deliveryAddress: null,
+    };
+  }
+  const order = await prisma.order.findUnique({
+    where: { id },
+    include: {
+      customer: true,
+      items: { include: { product: true } },
+    },
+  });
+  if (!order) throw new Error(`Order ${id} not found`);
+  return {
+    id: order.id,
+    date: order.createdAt,
+    createdAt: order.createdAt,
+    customer: order.customer,
+    items: order.items.map((it) => ({
+      productId: it.productId,
+      product: it.product,
+      quantity: it.quantity,
+      unitPrice: it.unitPrice,
+      vatAmount: it.vatAmount,
+    })),
+    totalAmount: order.totalAmount,
+    deliveryAddress: order.deliveryAddress,
+  };
 }
 
 // ==================== Registry ====================

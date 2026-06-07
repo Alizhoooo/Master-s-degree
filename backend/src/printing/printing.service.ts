@@ -64,7 +64,7 @@ export class PrintingService {
       currency: cfgMap['currency'] || '₸',
       seller,
     };
-    const baseOpts = await renderer.build(ctx, id);
+    const baseOpts = await renderer.build(ctx, entityType, id);
     return createPdfBuffer(baseOpts);
   }
 }
