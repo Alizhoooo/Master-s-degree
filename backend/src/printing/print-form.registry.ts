@@ -663,6 +663,7 @@ interface SalesEntity {
   }>;
   totalAmount: number;
   deliveryAddress?: string | null;
+  description?: string | null;
 }
 
 async function loadSalesEntity(prisma: PrismaService, entityType: string, id: number): Promise<SalesEntity> {
@@ -675,11 +676,23 @@ async function loadSalesEntity(prisma: PrismaService, entityType: string, id: nu
       },
     });
     if (!doc) throw new Error(`Document ${id} not found`);
+    if (!doc.items || doc.items.length === 0) {
+      throw new Error(`Document ${id} has no line items — cannot generate waybill/invoice`);
+    }
+    const customer = doc.customer || {
+      company: doc.description || `—`,
+      contactPerson: null,
+      inn: null,
+      kpp: null,
+      address: null,
+      phone: null,
+      email: null,
+    };
     return {
       id: doc.id,
       date: doc.date,
       createdAt: doc.createdAt,
-      customer: doc.customer,
+      customer,
       items: doc.items.map((it) => ({
         productId: it.productId,
         product: it.product,
@@ -689,6 +702,7 @@ async function loadSalesEntity(prisma: PrismaService, entityType: string, id: nu
       })),
       totalAmount: doc.totalAmount,
       deliveryAddress: null,
+      description: doc.description,
     };
   }
   const order = await prisma.order.findUnique({
@@ -699,11 +713,22 @@ async function loadSalesEntity(prisma: PrismaService, entityType: string, id: nu
     },
   });
   if (!order) throw new Error(`Order ${id} not found`);
+  if (!order.items || order.items.length === 0) {
+    throw new Error(`Order ${id} has no line items — cannot generate waybill/invoice`);
+  }
+  const customer = order.customer || {
+    company: '—',
+    inn: null,
+    kpp: null,
+    address: null,
+    phone: null,
+    email: null,
+  };
   return {
     id: order.id,
     date: order.createdAt,
     createdAt: order.createdAt,
-    customer: order.customer,
+    customer,
     items: order.items.map((it) => ({
       productId: it.productId,
       product: it.product,
