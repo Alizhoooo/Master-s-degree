@@ -1,28 +1,30 @@
 export type PdfLocale = 'kk' | 'ru' | 'en';
 
 export interface PdfDict {
-  common: {
-    no: string;
-    name: string;
-    sku: string;
-    qty: string;
-    unit: string;
-    price: string;
-    sum: string;
-    total: string;
-    noVat: string;
-    vat: string;
-    withVat: string;
-    vatRate: string;
-    copy: string;
-    copySupplier: string;
-    copyBuyer: string;
-    copyExecutor: string;
-    copyCustomer: string;
-    signHint: string;
-    noForms: string;
-    date: string;
-  };
+    common: {
+      no: string;
+      name: string;
+      sku: string;
+      qty: string;
+      unit: string;
+      price: string;
+      sum: string;
+      total: string;
+      noVat: string;
+      vat: string;
+      withVat: string;
+      vatRate: string;
+      copy: string;
+      copySupplier: string;
+      copyBuyer: string;
+      copyExecutor: string;
+      copyCustomer: string;
+      signHint: string;
+      noForms: string;
+      date: string;
+      copyReceived: string;
+      copyIssued: string;
+    };
   party: {
     seller: string;
     buyer: string;
@@ -77,50 +79,57 @@ export interface PdfDict {
     mol: string;
     seal: string;
   };
-  forms: {
-    invoice: string;
-    invoiceVat: string;
-    torg12: string;
-    upd: string;
-    act: string;
-    m4: string;
-    m11: string;
-    m15: string;
-    inv3: string;
-    pko: string;
-    rko: string;
-    ko4: string;
-    paymentOrder: string;
-    bankStatement: string;
-  };
-  extras: {
-    validity: string;
-    legalForce: string;
-    typeSFDOP: string;
-    onDate: string;
-    basis: string;
-    purpose: string;
-    counterparty: string;
-    warehouse: string;
-    mol: string;
-    receive: string;
-    transferFrom: string;
-    transferTo: string;
-    description: string;
-    kindPayment: string;
-    incoming: string;
-    outgoing: string;
-    accountShort: string;
-    bikShort: string;
-    edIssued: string;
-    corrAccount: string;
-    inventory: string;
-    itemsCount: string;
-    totalQty: string;
-    valid5days: string;
-    line: string;
-    units: string;
-  };
+    forms: {
+      invoice: string;
+      invoiceVat: string;
+      torg12: string;
+      upd: string;
+      act: string;
+      m4: string;
+      m11: string;
+      m15: string;
+      inv3: string;
+      pko: string;
+      rko: string;
+      ko4: string;
+      paymentOrder: string;
+      bankStatement: string;
+      incomingTorg12: string;
+      incomingInvoiceVat: string;
+      incomingUpd: string;
+      incomingAct: string;
+    };
+    extras: {
+      validity: string;
+      legalForce: string;
+      typeSFDOP: string;
+      typeUPD2: string;
+      onDate: string;
+      basis: string;
+      purpose: string;
+      counterparty: string;
+      warehouse: string;
+      mol: string;
+      receive: string;
+      transferFrom: string;
+      transferTo: string;
+      description: string;
+      kindPayment: string;
+      incoming: string;
+      outgoing: string;
+      accountShort: string;
+      bikShort: string;
+      edIssued: string;
+      corrAccount: string;
+      inventory: string;
+      itemsCount: string;
+      totalQty: string;
+      valid5days: string;
+      line: string;
+      units: string;
+      incomingWaybill: string;
+      incomingInvoice: string;
+    };
 }
 
 const dict: Record<PdfLocale, PdfDict> = {
@@ -146,6 +155,8 @@ const dict: Record<PdfLocale, PdfDict> = {
       signHint: '(қолы)',
       noForms: 'Қол жетімді формалар жоқ',
       date: 'Күні',
+      copyReceived: 'Қабылдаған дана',
+      copyIssued: 'Тапсырған дана',
     },
     party: {
       seller: 'Жеткізуші / Сатушы:',
@@ -216,11 +227,16 @@ const dict: Record<PdfLocale, PdfDict> = {
       ko4: 'КАССА КІТАБЫ (КО-4)',
       paymentOrder: 'ТӨЛЕМ ТАПСЫРМАСЫ',
       bankStatement: 'БАНК ҮЗІНДІСІ',
+      incomingTorg12: 'КІРІС КОЛХАТЫ',
+      incomingInvoiceVat: 'КІРІС ШОТ-ФАКТУРА',
+      incomingUpd: 'ӘМБЕБАП БЕРУ ҚҰЖАТЫ (КІРІС)',
+      incomingAct: 'ҚАБЫЛДАУ АКТІСІ',
     },
     extras: {
       validity: 'Шот 5 (бес) банк күні ішінде жарамды.',
       legalForce: 'Тауарлық колхат қол қойылған және мөр басылған кезде заңды күшке ие.',
       typeSFDOP: 'Статус: 1 (ШФДОТ — шот-фактура және беру құжаты).',
+      typeUPD2: 'Статус: 2 (ИШБҚ — кіріс).',
       onDate: 'күні',
       basis: 'Негіздеме:',
       purpose: 'Төлем мақсаты:',
@@ -244,6 +260,8 @@ const dict: Record<PdfLocale, PdfDict> = {
       valid5days: 'Шот 5 (бес) банк күні ішінде жарамды',
       line: 'Корр. шот',
       units: 'бірл.',
+      incomingWaybill: 'Кіріс колхаты тауарлық-материалдық құндылықтарды сатып алушының қабылдағанын растайды.',
+      incomingInvoice: 'Кіріс шот-фактура сатушымен сатып алушыға ұсынылған.',
     },
   },
   ru: {
@@ -268,6 +286,8 @@ const dict: Record<PdfLocale, PdfDict> = {
       signHint: '(подпись)',
       noForms: 'Нет доступных форм',
       date: 'Дата',
+      copyReceived: 'Экземпляр получателя',
+      copyIssued: 'Экземпляр сдавшего',
     },
     party: {
       seller: 'Поставщик / Продавец:',
@@ -338,11 +358,16 @@ const dict: Record<PdfLocale, PdfDict> = {
       ko4: 'КАССОВАЯ КНИГА (КО-4)',
       paymentOrder: 'ПЛАТЁЖНОЕ ПОРУЧЕНИЕ',
       bankStatement: 'БАНКОВСКАЯ ВЫПИСКА',
+      incomingTorg12: 'ПРИХОДНАЯ НАКЛАДНАЯ',
+      incomingInvoiceVat: 'ВХОДЯЩИЙ СЧЁТ-ФАКТУРА',
+      incomingUpd: 'УНИВЕРСАЛЬНЫЙ ПЕРЕДАТОЧНЫЙ ДОКУМЕНТ (ВХ.)',
+      incomingAct: 'АКТ ПРИЁМА',
     },
     extras: {
       validity: 'Счёт действителен в течение 5 (пяти) банковских дней.',
       legalForce: 'Товарная накладная имеет юридическую силу при наличии подписей и печати.',
       typeSFDOP: 'Статус: 1 (СЧФДОП — счёт-фактура и передаточный документ).',
+      typeUPD2: 'Статус: 2 (ИУПД — исправленный универсальный передаточный документ / входящий).',
       onDate: 'от',
       basis: 'Основание:',
       purpose: 'Назначение платежа:',
@@ -366,6 +391,8 @@ const dict: Record<PdfLocale, PdfDict> = {
       valid5days: 'Счёт действителен в течение 5 (пяти) банковских дней',
       line: 'Корр. счёт',
       units: 'ед.',
+      incomingWaybill: 'Приходная накладная подтверждает получение товарно-материальных ценностей покупателем.',
+      incomingInvoice: 'Входящий счёт-фактура предъявлен продавцом покупателю.',
     },
   },
   en: {
@@ -390,6 +417,8 @@ const dict: Record<PdfLocale, PdfDict> = {
       signHint: '(signature)',
       noForms: 'No forms available',
       date: 'Date',
+      copyReceived: 'Recipient copy',
+      copyIssued: 'Issuer copy',
     },
     party: {
       seller: 'Supplier / Seller:',
@@ -460,11 +489,16 @@ const dict: Record<PdfLocale, PdfDict> = {
       ko4: 'CASH BOOK (KO-4)',
       paymentOrder: 'PAYMENT ORDER',
       bankStatement: 'BANK STATEMENT',
+      incomingTorg12: 'INCOMING WAYBILL',
+      incomingInvoiceVat: 'INCOMING TAX INVOICE',
+      incomingUpd: 'UNIVERSAL TRANSFER DOCUMENT (INCOMING)',
+      incomingAct: 'ACCEPTANCE ACT',
     },
     extras: {
       validity: 'Invoice is valid for 5 (five) banking days.',
       legalForce: 'Waybill has legal force with signatures and seal.',
       typeSFDOP: 'Status: 1 (Invoice + transfer document).',
+      typeUPD2: 'Status: 2 (Incoming universal transfer document).',
       onDate: 'dated',
       basis: 'Basis:',
       purpose: 'Purpose of payment:',
@@ -488,6 +522,8 @@ const dict: Record<PdfLocale, PdfDict> = {
       valid5days: 'Valid for 5 banking days',
       line: 'Cor. account',
       units: 'units',
+      incomingWaybill: 'Incoming waybill confirms receipt of goods by the buyer.',
+      incomingInvoice: 'Incoming tax invoice issued by the seller to the buyer.',
     },
   },
 };

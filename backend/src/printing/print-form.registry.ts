@@ -23,13 +23,16 @@ const invoiceForm: IFormRenderer = {
     const order = await loadSalesEntity(prisma, entityType, id);
     const totalVat = order.items.reduce((s, i) => s + (i.vatAmount || 0), 0);
     const totalNoVat = order.totalAmount - totalVat;
+    const isIncoming = !!order.incoming;
+    const ourOrg = seller || defaultSeller();
+    const party = partyFromCustomer(order.customer);
 
     return {
-      title: d.forms.invoice,
+      title: isIncoming ? d.forms.incomingInvoiceVat : d.forms.invoice,
       number: String(order.id),
       date: order.createdAt,
-      seller: seller || defaultSeller(),
-      buyer: partyFromCustomer(order.customer),
+      seller: isIncoming ? party : ourOrg,
+      buyer: isIncoming ? ourOrg : party,
       locale,
       currency,
       columns: [
@@ -55,7 +58,9 @@ const invoiceForm: IFormRenderer = {
         { label: d.totals.vat, value: formatCurrency(totalVat, currency, localeToIntl(locale)) },
         { label: d.totals.total, value: formatCurrency(order.totalAmount, currency, localeToIntl(locale)), bold: true },
       ],
-      footer: `${d.extras.validity}\n${d.totals.sumInWords} ${numberToWords(order.totalAmount, locale)}`,
+      footer: isIncoming
+        ? `${d.extras.incomingInvoice}\n${d.totals.sumInWords} ${numberToWords(order.totalAmount, locale)}`
+        : `${d.extras.validity}\n${d.totals.sumInWords} ${numberToWords(order.totalAmount, locale)}`,
       signatures: [
         { label: d.signatures.director, value: seller?.director || '_________________' },
         { label: d.signatures.accountant, value: seller?.accountant || '_________________' },
@@ -70,13 +75,16 @@ const invoiceVatForm: IFormRenderer = {
     const order = await loadSalesEntity(prisma, entityType, id);
     const totalNoVat = order.items.reduce((s, i) => s + (i.unitPrice * i.quantity - (i.vatAmount || 0)), 0);
     const totalVat = order.items.reduce((s, i) => s + (i.vatAmount || 0), 0);
+    const isIncoming = !!order.incoming;
+    const ourOrg = seller || defaultSeller();
+    const party = partyFromCustomer(order.customer);
 
     return {
-      title: d.forms.invoiceVat,
+      title: isIncoming ? d.forms.incomingInvoiceVat : d.forms.invoiceVat,
       number: `СФ-${String(order.id).padStart(6, '0')}`,
       date: order.createdAt,
-      seller: seller || defaultSeller(),
-      buyer: partyFromCustomer(order.customer),
+      seller: isIncoming ? party : ourOrg,
+      buyer: isIncoming ? ourOrg : party,
       locale,
       currency,
       columns: [
@@ -108,7 +116,9 @@ const invoiceVatForm: IFormRenderer = {
         { label: d.totals.vat, value: formatCurrency(totalVat, currency, localeToIntl(locale)) },
         { label: d.totals.total, value: formatCurrency(order.totalAmount, currency, localeToIntl(locale)), bold: true },
       ],
-      footer: `${d.totals.sumInWords} ${numberToWords(order.totalAmount, locale)}`,
+      footer: isIncoming
+        ? `${d.extras.incomingInvoice}\n${d.totals.sumInWords} ${numberToWords(order.totalAmount, locale)}`
+        : `${d.totals.sumInWords} ${numberToWords(order.totalAmount, locale)}`,
       signatures: [
         { label: d.signatures.director, value: '_______________' },
         { label: d.signatures.accountant, value: '_______________' },
@@ -122,13 +132,16 @@ const torg12Form: IFormRenderer = {
   async build({ prisma, currency, seller, locale }, entityType, id) {
     const d = getDict(locale);
     const order = await loadSalesEntity(prisma, entityType, id);
+    const isIncoming = !!order.incoming;
+    const ourOrg = seller || defaultSeller();
+    const party = { ...partyFromCustomer(order.customer), address: order.deliveryAddress || partyFromCustomer(order.customer).address };
 
     return {
-      title: d.forms.torg12,
+      title: isIncoming ? d.forms.incomingTorg12 : d.forms.torg12,
       number: `ТОРГ-12-${String(order.id).padStart(6, '0')}`,
       date: order.createdAt,
-      seller: seller || defaultSeller(),
-      buyer: { ...partyFromCustomer(order.customer), address: order.deliveryAddress || partyFromCustomer(order.customer).address },
+      seller: isIncoming ? party : ourOrg,
+      buyer: isIncoming ? ourOrg : party,
       locale,
       currency,
       columns: [
@@ -150,9 +163,13 @@ const torg12Form: IFormRenderer = {
       totals: [
         { label: d.totals.total, value: formatCurrency(order.totalAmount, currency, localeToIntl(locale)), bold: true },
       ],
-      footer: `${d.extras.legalForce}\n${d.totals.sumInWords} ${numberToWords(order.totalAmount, locale)}`,
+      footer: isIncoming
+        ? `${d.extras.incomingWaybill}\n${d.totals.sumInWords} ${numberToWords(order.totalAmount, locale)}`
+        : `${d.extras.legalForce}\n${d.totals.sumInWords} ${numberToWords(order.totalAmount, locale)}`,
       copies: 2,
-      copyLabel: (n) => n === 1 ? d.common.copySupplier : d.common.copyBuyer,
+      copyLabel: (n) => isIncoming
+        ? (n === 1 ? d.common.copyReceived : d.common.copyIssued)
+        : (n === 1 ? d.common.copySupplier : d.common.copyBuyer),
       signatures: [
         { label: d.signatures.allowedBy, value: seller?.director || '_______________' },
         { label: d.signatures.issued, value: '_______________' },
@@ -169,13 +186,16 @@ const updForm: IFormRenderer = {
     const order = await loadSalesEntity(prisma, entityType, id);
     const totalVat = order.items.reduce((s, i) => s + (i.vatAmount || 0), 0);
     const totalNoVat = order.totalAmount - totalVat;
+    const isIncoming = !!order.incoming;
+    const ourOrg = seller || defaultSeller();
+    const party = partyFromCustomer(order.customer);
 
     return {
-      title: d.forms.upd,
+      title: isIncoming ? d.forms.incomingUpd : d.forms.upd,
       number: `УПД-${String(order.id).padStart(6, '0')}`,
       date: order.createdAt,
-      seller: seller || defaultSeller(),
-      buyer: partyFromCustomer(order.customer),
+      seller: isIncoming ? party : ourOrg,
+      buyer: isIncoming ? ourOrg : party,
       locale,
       currency,
       columns: [
@@ -207,7 +227,9 @@ const updForm: IFormRenderer = {
         { label: d.totals.vat, value: formatCurrency(totalVat, currency, localeToIntl(locale)) },
         { label: d.totals.total, value: formatCurrency(order.totalAmount, currency, localeToIntl(locale)), bold: true },
       ],
-      footer: `${d.extras.typeSFDOP}\n${d.totals.sumInWords} ${numberToWords(order.totalAmount, locale)}`,
+      footer: isIncoming
+        ? `${d.extras.typeUPD2}\n${d.totals.sumInWords} ${numberToWords(order.totalAmount, locale)}`
+        : `${d.extras.typeSFDOP}\n${d.totals.sumInWords} ${numberToWords(order.totalAmount, locale)}`,
       signatures: [
         { label: `${d.signatures.issued} (${d.party.subSeller})`, value: '_______________' },
         { label: `${d.signatures.acceptedBy} (${d.party.subBuyer})`, value: '_______________' },
@@ -220,13 +242,16 @@ const actForm: IFormRenderer = {
   async build({ prisma, currency, seller, locale }, entityType, id) {
     const d = getDict(locale);
     const order = await loadSalesEntity(prisma, entityType, id);
+    const isIncoming = !!order.incoming;
+    const ourOrg = seller || defaultSeller();
+    const party = partyFromCustomer(order.customer);
 
     return {
-      title: d.forms.act,
+      title: isIncoming ? d.forms.incomingAct : d.forms.act,
       number: `А-${String(order.id).padStart(6, '0')}`,
       date: order.createdAt,
-      seller: seller || defaultSeller(),
-      buyer: partyFromCustomer(order.customer),
+      seller: isIncoming ? party : ourOrg,
+      buyer: isIncoming ? ourOrg : party,
       locale,
       currency,
       columns: [
@@ -250,7 +275,9 @@ const actForm: IFormRenderer = {
       ],
       footer: `${d.totals.sumInWords} ${numberToWords(order.totalAmount, locale)}`,
       copies: 2,
-      copyLabel: (n) => n === 1 ? d.common.copyExecutor : d.common.copyCustomer,
+      copyLabel: (n) => isIncoming
+        ? (n === 1 ? d.common.copyReceived : d.common.copyIssued)
+        : (n === 1 ? d.common.copyExecutor : d.common.copyCustomer),
       signatures: [
         { label: d.signatures.delivered, value: '_______________' },
         { label: d.signatures.accepted, value: '_______________' },
@@ -665,6 +692,7 @@ interface SalesEntity {
   deliveryAddress?: string | null;
   description?: string | null;
   documentType?: string;
+  incoming?: boolean;
 }
 
 async function loadSalesEntity(prisma: PrismaService, entityType: string, id: number): Promise<SalesEntity> {
@@ -713,6 +741,7 @@ async function loadSalesEntity(prisma: PrismaService, entityType: string, id: nu
       deliveryAddress: null,
       description: doc.description,
       documentType: doc.type,
+      incoming: doc.type === 'PurchaseInvoice',
     };
   }
   const order = await prisma.order.findUnique({
