@@ -8,6 +8,7 @@ export default registerAs('app', () => {
   const hardcodedFallbacks = [
     'https://master-s-degree.vercel.app',
     'https://master-s-degree-ali.vercel.app',
+    'https://master-s-degree-78ak.vercel.app',
     'https://master-s-degree.onrender.com',
     'https://master-s-degree-ali.onrender.com',
     'http://localhost:5173',
